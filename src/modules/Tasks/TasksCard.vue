@@ -91,6 +91,20 @@
         </span>
       </div>
     </div>
+    <span
+      v-if="task.dueDate"
+      :class="[
+        'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md',
+        isOverdue(task.dueDate)
+          ? 'bg-red-50 text-red-500'
+          : isToday(task.dueDate)
+            ? 'bg-stone-50 text-stone-400'
+            : 'bg-blue-50 text-blue-500',
+      ]"
+    >
+      <i class="pi pi-calendar text-[0.65rem]" />
+      {{ formatDueDate(task.dueDate) }}
+    </span>
 
     <!-- Delete -->
     <button
@@ -108,7 +122,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Task } from "@/modules/Tasks/tasks.type";
+import { useCalendar } from "@/modules/Calendar/calendar.composable";
 
+
+const { isOverdue, isToday, formatDueDate } = useCalendar();
 const props = defineProps<{ task: Task; readonly?: boolean }>();
 const emit = defineEmits<{ complete: [id: number]; delete: [id: number] }>();
 
