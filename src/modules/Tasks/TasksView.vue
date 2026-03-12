@@ -1,64 +1,101 @@
 <template>
-  <div class="max-w-full">
+  <div class="flex flex-col pl-8">
     <!-- Page Header -->
-    <div class="flex items-end justify-between mb-7">
+    <div class="flex items-center justify-between" style="margin-bottom: 28px">
       <div>
-        <h1 class="text-4xl text-stone-800 font-serif">Tasks</h1>
-        <p class="text-sm text-stone-400 mt-1">{{ today }}</p>
+        <h1
+          class="font-serif text-stone-800"
+          style="font-size: 2rem; line-height: 1.1"
+        >
+          Tasks
+        </h1>
+        <p class="text-stone-400" style="font-size: 0.8rem; margin-top: 4px">
+          {{ today }}
+        </p>
       </div>
-      <Button label="New Task" icon="pi pi-plus" @click="showAddTask = true" />
+      <Button
+        label="New Task"
+        icon="pi pi-plus"
+        class="bg-(--accent)! hover:bg---accent-hover)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+        @click="showAddTask = true"
+      />
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-4 gap-3 mb-7">
-      <Card class="shadow-none! border border-stone-200 rounded-xl!">
-        <template #content>
-          <span
-            class="block text-2xl text-stone-800 font-serif leading-none mb-1"
-            >{{ activeTasks.length }}</span
-          >
-          <span
-            class="text-xs font-medium text-stone-400 uppercase tracking-wide"
-            >Active</span
-          >
-        </template>
-      </Card>
-      <Card class="shadow-none! border border-stone-200 rounded-xl!">
-        <template #content>
-          <span
-            class="block text-2xl text-stone-800 font-serif leading-none mb-1"
-            >{{ completedToday.length }}</span
-          >
-          <span
-            class="text-xs font-medium text-stone-400 uppercase tracking-wide"
-            >Done Today</span
-          >
-        </template>
-      </Card>
-      <Card class="shadow-none! border border-stone-200 rounded-xl!">
-        <template #content>
-          <span
-            class="block text-2xl text-stone-800 font-serif leading-none mb-1"
-            >{{ profile.tasksCompleted }}</span
-          >
-          <span
-            class="text-xs font-medium text-stone-400 uppercase tracking-wide"
-            >All Time</span
-          >
-        </template>
-      </Card>
-      <Card class="shadow-none! bg-violet-50! border-0 rounded-xl!">
-        <template #content>
-          <span
-            class="block text-2xl text-violet-600 font-serif leading-none mb-1"
-            >+{{ completedToday.reduce((s, t) => s + t.xpReward, 0) }}</span
-          >
-          <span
-            class="text-xs font-medium text-violet-400 uppercase tracking-wide"
-            >XP Today</span
-          >
-        </template>
-      </Card>
+    <div class="grid grid-cols-4 gap-3" style="margin-bottom: 28px">
+      <div
+        class="bg-white border border-stone-200 rounded-2xl"
+        style="padding: 16px 18px"
+      >
+        <p
+          class="font-serif text-stone-800"
+          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+        >
+          {{ activeTasks.length }}
+        </p>
+        <p
+          class="text-stone-400 font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem"
+        >
+          Active
+        </p>
+      </div>
+      <div
+        class="bg-white border border-stone-200 rounded-2xl"
+        style="padding: 16px 18px"
+      >
+        <p
+          class="font-serif text-stone-800"
+          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+        >
+          {{ completedToday.length }}
+        </p>
+        <p
+          class="text-stone-400 font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem"
+        >
+          Done Today
+        </p>
+      </div>
+      <div
+        class="bg-white border border-stone-200 rounded-2xl"
+        style="padding: 16px 18px"
+      >
+        <p
+          class="font-serif text-stone-800"
+          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+        >
+          {{ profile.tasksCompleted }}
+        </p>
+        <p
+          class="text-stone-400 font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem"
+        >
+          All Time
+        </p>
+      </div>
+      <div
+        class="rounded-2xl"
+        style="padding: 16px 18px; background: var(--xp-soft)"
+      >
+        <p
+          class="font-serif"
+          style="
+            font-size: 1.75rem;
+            line-height: 1;
+            margin-bottom: 6px;
+            color: var(--xp);
+          "
+        >
+          +{{ completedToday.reduce((s, t) => s + t.xpReward, 0) }}
+        </p>
+        <p
+          class="font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem; color: var(--xp); opacity: 0.7"
+        >
+          XP Today
+        </p>
+      </div>
     </div>
 
     <!-- Add Task Panel -->
@@ -68,120 +105,134 @@
       leave-active-class="transition-all duration-150 ease-in"
       leave-to-class="opacity-0 -translate-y-2"
     >
-      <Card
+      <div
         v-if="showAddTask"
-        class="shadow-sm! border border-stone-200 rounded-xl! mb-7"
+        class="bg-white border border-stone-200 rounded-2xl"
+        style="
+          padding: 24px;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 20px rgba(26, 23, 20, 0.08);
+        "
       >
-        <template #content>
-          <p class="text-base font-medium text-stone-800 mb-5">New Task</p>
+        <p
+          class="font-semibold text-stone-800"
+          style="font-size: 0.95rem; margin-bottom: 20px"
+        >
+          New Task
+        </p>
 
-          <div class="flex flex-col gap-1.5 mb-4">
-            <label class="text-xs font-medium text-stone-500">Task name</label>
-            <InputText
-              v-model="form.title"
-              placeholder="What needs to be done?"
+        <div class="flex flex-col" style="gap: 6px; margin-bottom: 16px">
+          <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
+            >Task name</label
+          >
+          <InputText
+            v-model="form.title"
+            placeholder="What needs to be done?"
+            class="w-full"
+            @keyup.enter="submitTask"
+            autofocus
+          />
+        </div>
+
+        <div class="grid grid-cols-2" style="gap: 16px; margin-bottom: 16px">
+          <div class="flex flex-col" style="gap: 6px">
+            <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
+              >Priority</label
+            >
+            <Select
+              v-model="form.priority"
+              :options="priorityOptions"
+              option-label="label"
+              option-value="value"
               class="w-full"
-              @keyup.enter="submitTask"
-              autofocus
             />
           </div>
-
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500">Priority</label>
-              <Select
-                v-model="form.priority"
-                :options="priorityOptions"
-                option-label="label"
-                option-value="value"
+          <div class="flex flex-col" style="gap: 6px">
+            <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
+              >Duration</label
+            >
+            <div class="grid grid-cols-3" style="gap: 8px">
+              <InputNumber
+                v-model="form.hours"
+                :min="0"
+                :use-grouping="false"
+                placeholder="0h"
                 class="w-full"
+                input-class="w-full text-center"
+              />
+              <InputNumber
+                v-model="form.minutes"
+                :min="0"
+                :max="59"
+                :use-grouping="false"
+                placeholder="25m"
+                class="w-full"
+                input-class="w-full text-center"
+              />
+              <InputNumber
+                v-model="form.seconds"
+                :min="0"
+                :max="59"
+                :use-grouping="false"
+                placeholder="0s"
+                class="w-full"
+                input-class="w-full text-center"
               />
             </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500">Duration</label>
-              <div class="grid grid-cols-3 gap-2">
-                <InputNumber
-                  v-model="form.hours"
-                  :min="0"
-                  :use-grouping="false"
-                  placeholder="0h"
-                  class="w-full"
-                  input-class="w-full text-center"
-                />
-                <InputNumber
-                  v-model="form.minutes"
-                  :min="0"
-                  :max="59"
-                  :use-grouping="false"
-                  placeholder="25m"
-                  class="w-full"
-                  input-class="w-full text-center"
-                />
-                <InputNumber
-                  v-model="form.seconds"
-                  :min="0"
-                  :max="59"
-                  :use-grouping="false"
-                  placeholder="0s"
-                  class="w-full"
-                  input-class="w-full text-center"
-                />
-              </div>
-            </div>
           </div>
+        </div>
 
-          <div class="flex flex-col gap-1.5 mb-5">
-            <label class="text-xs font-medium text-stone-500">
-              Notes <span class="font-normal text-stone-400">(optional)</span>
-            </label>
-            <Textarea
-              v-model="form.notes"
-              placeholder="Any details..."
-              :rows="2"
-              class="w-full resize-none"
-            />
-          </div>
+        <div class="flex flex-col" style="gap: 6px; margin-bottom: 20px">
+          <label class="text-stone-500 font-medium" style="font-size: 0.75rem">
+            Notes <span class="font-normal text-stone-400">(optional)</span>
+          </label>
+          <Textarea
+            v-model="form.notes"
+            placeholder="Any details..."
+            :rows="2"
+            class="w-full resize-none"
+          />
+        </div>
 
-          <div class="flex justify-end gap-2">
-            <Button
-              label="Cancel"
-              severity="secondary"
-              text
-              @click="cancelAdd"
-            />
-            <Button
-              label="Add Task"
-              :disabled="!form.title.trim()"
-              @click="submitTask"
-            />
-          </div>
-        </template>
-      </Card>
+        <div class="flex justify-end" style="gap: 8px">
+          <Button label="Cancel" severity="secondary" text @click="cancelAdd" />
+          <Button
+            label="Add Task"
+            :disabled="!form.title.trim()"
+            class="bg-(--accent)! hover:bg-(--accent-hover)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+            @click="submitTask"
+          />
+        </div>
+      </div>
     </Transition>
 
     <!-- Active Tasks -->
-    <section class="mb-9">
-      <div class="flex items-center gap-2 mb-3">
+    <section style="margin-bottom: 32px">
+      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
         <span
-          class="text-xs font-semibold uppercase tracking-widest text-stone-400"
+          class="text-stone-400 font-semibold uppercase tracking-widest"
+          style="font-size: 0.68rem"
           >Active</span
         >
-        <Badge :value="activeTasks.length" severity="secondary" />
-      </div>
-
-      <div v-if="activeTasks.length === 0">
-        <Card
-          class="shadow-none! border border-dashed border-stone-200 rounded-xl!"
+        <span
+          class="font-semibold rounded-full"
+          style="
+            background: var(--surface-muted);
+            color: var(--ink-secondary);
+            font-size: 0.7rem;
+            padding: 1px 8px;
+          "
+          >{{ activeTasks.length }}</span
         >
-          <template #content>
-            <p class="text-center text-sm text-stone-400 py-4">
-              No active tasks. Add one above ↑
-            </p>
-          </template>
-        </Card>
       </div>
-
-      <div v-else class="flex flex-col gap-2">
+      <div
+        v-if="activeTasks.length === 0"
+        class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
+        style="padding: 40px; font-size: 0.875rem"
+      >
+        No active tasks. Add one above ↑
+      </div>
+      <div v-else class="flex flex-col" style="gap: 8px">
         <TaskCard
           v-for="task in activeTasks"
           :key="task.id"
@@ -193,15 +244,25 @@
     </section>
 
     <!-- Completed Today -->
-    <section v-if="completedToday.length > 0" class="mb-9">
-      <div class="flex items-center gap-2 mb-3">
+    <section v-if="completedToday.length > 0" style="margin-bottom: 32px">
+      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
         <span
-          class="text-xs font-semibold uppercase tracking-widest text-emerald-500"
+          class="font-semibold uppercase tracking-widest"
+          style="font-size: 0.68rem; color: var(--success)"
           >Completed Today</span
         >
-        <Badge :value="completedToday.length" severity="success" />
+        <span
+          class="font-semibold rounded-full"
+          style="
+            background: var(--success-soft);
+            color: var(--success);
+            font-size: 0.7rem;
+            padding: 1px 8px;
+          "
+          >{{ completedToday.length }}</span
+        >
       </div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col" style="gap: 8px">
         <TaskCard
           v-for="task in completedToday"
           :key="task.id"
@@ -216,8 +277,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
-import Card from "primevue/card";
-import Badge from "primevue/badge";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
