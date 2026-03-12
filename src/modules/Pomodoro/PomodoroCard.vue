@@ -1,6 +1,7 @@
 <template>
-  <div class="bg-white border border-stone-200 rounded-2xl p-8 flex flex-col items-center gap-6">
-
+  <div
+    class="bg-white border border-stone-200 rounded-2xl p-8 flex flex-col items-center gap-6"
+  >
     <!-- Phase tabs -->
     <div class="flex gap-1 bg-stone-100 rounded-lg p-1 w-full">
       <button
@@ -19,56 +20,66 @@
     </div>
 
     <!-- Ring timer -->
-    <div class="relative w-52 h-52">
-      <svg class="w-full h-full" viewBox="0 0 200 200">
+    <div class="relative w-60 h-60">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 200 200">
         <!-- Track -->
         <circle
-          cx="100" cy="100" r="88"
+          cx="100"
+          cy="100"
+          r="88"
           fill="none"
-          stroke="#e7e5e4"
-          stroke-width="8"
+          stroke="#f2efe9"
+          stroke-width="6"
         />
-        <!-- Progress -->
+        <!-- Progress ring -->
         <circle
-          cx="100" cy="100" r="88"
+          cx="100"
+          cy="100"
+          r="88"
           fill="none"
           :stroke="phaseColor"
-          stroke-width="8"
+          stroke-width="6"
           stroke-linecap="round"
           :stroke-dasharray="circumference"
           :stroke-dashoffset="dashOffset"
-          transform="rotate(-90 100 100)"
           class="transition-[stroke-dashoffset] duration-1000 ease-linear"
         />
       </svg>
 
-      <!-- Time display -->
-      <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
-        <span class="text-5xl text-stone-800 font-serif tracking-tight leading-none">
+      <!-- Time + label centered inside ring -->
+      <div
+        class="absolute inset-0 flex flex-col items-center justify-center gap-1.5"
+      >
+        <span
+          class="text-5xl text-stone-800 font-serif tracking-tight leading-none"
+        >
           {{ formattedTime }}
         </span>
-        <span class="text-xs font-medium uppercase tracking-widest" :style="{ color: phaseColor }">
+        <span
+          class="text-[0.65rem] font-semibold uppercase tracking-widest"
+          :style="{ color: phaseColor }"
+        >
           {{ phaseLabel }}
         </span>
       </div>
     </div>
 
     <!-- Controls -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
       <Button
         icon="pi pi-refresh"
         severity="secondary"
         text
         rounded
-        @click="emit('reset')"
-        title="Reset"
         class="w-11! h-11!"
+        title="Reset"
+        @click="emit('reset')"
       />
       <Button
         :icon="isRunning ? 'pi pi-pause' : 'pi pi-play'"
         rounded
-        :severity="isRunning ? 'secondary' : 'primary'"
-        class="w-14! h-14! text-lg!"
+        class="w-16! h-16! border-none!"
+        :style="{ background: phaseColor }"
         @click="emit('toggle')"
       />
       <Button
@@ -76,9 +87,10 @@
         severity="secondary"
         text
         rounded
-        @click="emit('skip')"
-        title="Skip"
+        :disabled="!isRunning && progress === 0"
         class="w-11! h-11!"
+        title="Skip"
+        @click="emit('skip')"
       />
     </div>
 
@@ -89,60 +101,62 @@
         :key="i"
         :class="[
           'w-2 h-2 rounded-full transition-all duration-300',
-          (sessionsCompleted % settings.sessionsUntilLongBreak) >= i
-            ? 'bg-orange-400'
+          sessionsCompleted % settings.sessionsUntilLongBreak >= i
+            ? 'scale-110'
             : 'bg-stone-200',
         ]"
+        :style="
+          sessionsCompleted % settings.sessionsUntilLongBreak >= i
+            ? { background: phaseColor }
+            : {}
+        "
       />
       <span class="text-xs text-stone-400 ml-1">
-        {{ sessionsCompleted }} session{{ sessionsCompleted !== 1 ? 's' : '' }}
+        {{ sessionsCompleted }} session{{ sessionsCompleted !== 1 ? "s" : "" }}
       </span>
     </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Button from 'primevue/button'
-import type { PomodoroPhase, PomodoroSettings } from './pomodoro.type'
+import { computed } from "vue";
+import Button from "primevue/button";
+import type { PomodoroPhase, PomodoroSettings } from "./pomodoro.type";
 
 const props = defineProps<{
-  phase: PomodoroPhase
-  formattedTime: string
-  progress: number
-  isRunning: boolean
-  sessionsCompleted: number
-  settings: PomodoroSettings
-}>()
+  phase: PomodoroPhase;
+  formattedTime: string;
+  progress: number;
+  isRunning: boolean;
+  sessionsCompleted: number;
+  settings: PomodoroSettings;
+}>();
 
 const emit = defineEmits<{
-  toggle: []
-  reset: []
-  skip: []
-  'switch-phase': [phase: PomodoroPhase]
-}>()
+  toggle: [];
+  reset: [];
+  skip: [];
+  "switch-phase": [phase: PomodoroPhase];
+}>();
 
 const phases = [
-  { key: 'work',        label: 'Pomodoro' },
-  { key: 'short-break', label: 'Short Break' },
-  { key: 'long-break',  label: 'Long Break' },
-]
+  { key: "work", label: "Pomodoro" },
+  { key: "short-break", label: "Short Break" },
+  { key: "long-break", label: "Long Break" },
+];
 
 const phaseColor = computed(() => {
-  if (props.phase === 'work')        return '#f97316' // orange-500
-  if (props.phase === 'short-break') return '#10b981' // emerald-500
-  return '#6366f1'                                    // indigo-500
-})
+  if (props.phase === "work") return "var(--accent)";
+  if (props.phase === "short-break") return "#10b981";
+  return "#6366f1";
+});
 
 const phaseLabel = computed(() => {
-  if (props.phase === 'work')        return 'Focus'
-  if (props.phase === 'short-break') return 'Short Break'
-  return 'Long Break'
-})
+  if (props.phase === "work") return "Focus";
+  if (props.phase === "short-break") return "Short Break";
+  return "Long Break";
+});
 
-const circumference = 2 * Math.PI * 88
-const dashOffset = computed(() =>
-  circumference * (1 - props.progress / 100)
-)
+const circumference = 2 * Math.PI * 88;
+const dashOffset = computed(() => circumference * (1 - props.progress / 100));
 </script>

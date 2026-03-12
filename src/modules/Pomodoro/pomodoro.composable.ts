@@ -1,8 +1,22 @@
 import { watch, onUnmounted } from "vue";
 import { usePomodoroStore } from "./pomodoro.store";
-
+import { storeToRefs } from "pinia";
 export function usePomodoroTimer() {
   const store = usePomodoroStore();
+
+  const {
+    phase,
+    status,
+    isRunning,
+    isPaused,
+    isIdle,
+    formattedTime,
+    progress,
+    sessionsCompleted,
+    todayFocusMinutes,
+    linkedTaskId,
+    settings,
+  } = storeToRefs(store);
 
   let interval: ReturnType<typeof setInterval> | null = null;
 
@@ -19,7 +33,7 @@ export function usePomodoroTimer() {
   };
 
   watch(
-    () => store.isRunning,
+    isRunning,
     (running) => {
       if (running) startInterval();
       else stopInterval();
@@ -30,17 +44,17 @@ export function usePomodoroTimer() {
   onUnmounted(stopInterval);
 
   return {
-    phase: store.phase,
-    status: store.status,
-    isRunning: store.isRunning,
-    isPaused: store.isPaused,
-    isIdle: store.isIdle,
-    formattedTime: store.formattedTime,
-    progress: store.progress,
-    sessionsCompleted: store.sessionsCompleted,
-    todayFocusMinutes: store.todayFocusMinutes,
-    linkedTaskId: store.linkedTaskId,
-    settings: store.settings,
+    phase,
+    status,
+    isRunning,
+    isPaused,
+    isIdle,
+    formattedTime,
+    progress,
+    sessionsCompleted,
+    todayFocusMinutes,
+    linkedTaskId,
+    settings,
 
     toggle: store.toggle,
     reset: store.reset,

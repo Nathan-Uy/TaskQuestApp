@@ -1,15 +1,20 @@
 <template>
-  <div class="max-w-full">
+  <div class="flex flex-col pl-8">
+    <!-- Page Header -->
     <div class="flex items-end justify-between mb-7">
       <div>
-        <h1 class="text-4xl text-stone-800 font-serif">Pomodoro</h1>
-        <p class="text-sm text-stone-400 mt-1">
+        <h1 class="text-3xl font-serif text-stone-800 leading-tight">
+          Pomodoro
+        </h1>
+        <p class="text-xs text-stone-400 mt-1">
           Stay focused, take meaningful breaks
         </p>
       </div>
     </div>
 
-    <div class="grid grid-cols-[1fr_300px] gap-5 items-start">
+    <!-- Main layout -->
+    <div class="grid grid-cols-[1fr_260px] gap-5 items-start">
+      <!-- Timer Card -->
       <PomodoroCard
         :phase="phase"
         :formatted-time="formattedTime"
@@ -23,10 +28,12 @@
         @switch-phase="switchPhase"
       />
 
+      <!-- Side Panel -->
       <div class="flex flex-col gap-4">
+        <!-- Focusing on -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
-            class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3"
+            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-3"
           >
             Focusing on
           </p>
@@ -40,43 +47,49 @@
           />
         </div>
 
+        <!-- Today's stats -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
-            class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4"
+            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
           >
             Today
           </p>
           <div class="grid grid-cols-3 gap-2">
             <div
-              class="flex flex-col gap-1 items-center text-center bg-stone-50 rounded-xl p-3"
+              class="flex flex-col items-center text-center bg-stone-50 rounded-xl p-3 gap-1"
             >
-              <span class="text-xl text-stone-800 font-serif leading-none">{{
+              <span class="text-xl font-serif text-stone-800 leading-none">{{
                 sessionsCompleted
               }}</span>
-              <span class="text-xs text-stone-400 font-medium">Sessions</span>
+              <span class="text-[0.65rem] text-stone-400 font-medium"
+                >Sessions</span
+              >
             </div>
             <div
-              class="flex flex-col gap-1 items-center text-center bg-stone-50 rounded-xl p-3"
+              class="flex flex-col items-center text-center bg-stone-50 rounded-xl p-3 gap-1"
             >
-              <span class="text-xl text-stone-800 font-serif leading-none"
+              <span class="text-xl font-serif text-stone-800 leading-none"
                 >{{ todayFocusMinutes }}m</span
               >
-              <span class="text-xs text-stone-400 font-medium">Focused</span>
+              <span class="text-[0.65rem] text-stone-400 font-medium"
+                >Focused</span
+              >
             </div>
             <div
-              class="flex flex-col gap-1 items-center text-center bg-violet-50 rounded-xl p-3"
+              class="flex flex-col items-center text-center bg-violet-50 rounded-xl p-3 gap-1"
             >
-              <span class="text-xl text-violet-600 font-serif leading-none"
+              <span class="text-xl font-serif text-violet-600 leading-none"
                 >+{{ sessionsCompleted * 25 }}</span
               >
-              <span class="text-xs text-violet-400 font-medium">XP</span>
+              <span class="text-[0.65rem] text-violet-400 font-medium">XP</span>
             </div>
           </div>
         </div>
 
+        <!-- Settings -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
-            class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4"
+            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
           >
             Settings
           </p>
