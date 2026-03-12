@@ -51,10 +51,16 @@
   --duration-slow:   380ms;
 }
 
-/* ── Reset ───────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Base ────────────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
 
-html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+*, *::before, *::after {
+  box-sizing: inherit;
+}
 
 body {
   font-family: 'DM Sans', sans-serif;
@@ -99,24 +105,14 @@ h1, h2, h3, h4 {
   white-space: nowrap;
 }
 
-.btn-primary {
-  background: var(--accent);
-  color: var(--ink-inverse);
-}
+.btn-primary { background: var(--accent); color: var(--ink-inverse); }
 .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .btn-primary:active { transform: translateY(0); }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--ink-secondary);
-  border: 1px solid var(--surface-border);
-}
+.btn-ghost { background: transparent; color: var(--ink-secondary); border: 1px solid var(--surface-border); }
 .btn-ghost:hover { background: var(--surface-hover); color: var(--ink-primary); }
 
-.btn-icon {
-  padding: 8px;
-  border-radius: var(--radius-sm);
-}
+.btn-icon { padding: 8px; border-radius: var(--radius-sm); }
 
 .badge {
   display: inline-flex;
