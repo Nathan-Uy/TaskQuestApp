@@ -25,6 +25,7 @@ export const useTasksComposable = () => {
     minutes: 25,
     seconds: 0,
     notes: "",
+    dueDate: null as Date | null,
   });
 
   const submitTask = () => {
@@ -36,10 +37,11 @@ export const useTasksComposable = () => {
       priority: form.value.priority,
       duration: duration || 1500,
       notes: form.value.notes || undefined,
+      dueDate: form.value.dueDate ?? undefined, // ← add this
     });
     cancelAdd();
-  }
-
+  };
+  
   const cancelAdd = () => {
     showAddTask.value = false;
     form.value = {
@@ -49,15 +51,16 @@ export const useTasksComposable = () => {
       minutes: 25,
       seconds: 0,
       notes: "",
+      dueDate: null, // ← reset this
     };
-  }
+  };
 
-  return{
+  return {
     today,
     priorityOptions,
     showAddTask,
     form,
     submitTask,
     cancelAdd,
-  }
+  };
 };

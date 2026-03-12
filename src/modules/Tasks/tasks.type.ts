@@ -15,4 +15,5 @@ export interface Task {
   status: TaskStatus;
   createdAt: Date;
   completedAt?: Date;
+  dueDate?: Date;
 }
