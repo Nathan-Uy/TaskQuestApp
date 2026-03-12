@@ -1,89 +1,198 @@
 <template>
-  <aside class="sidebar">
+  <aside
+    class="w-56 h-screen flex flex-col bg-white border-r border-stone-200 overflow-y-auto"
+    style="padding: 28px 20px"
+  >
     <!-- Logo -->
-    <div class="sidebar-logo">
-      <span class="logo-mark">TQ</span>
-      <div>
-        <p class="logo-name">TaskQuest</p>
-        <p class="logo-sub">Productivity</p>
-      </div>
+    <div
+      style="
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e7e5e4;
+      "
+    >
+      <p class="font-serif text-xl leading-none text-stone-800">TaskQuest</p>
+      <p class="text-[0.7rem] text-stone-400 mt-1">Productivity</p>
     </div>
 
-    <!-- XP Bar -->
-    <div class="xp-bar-wrap">
-      <div class="xp-bar-header">
-        <span class="xp-level">Lv {{ profile.level }}</span>
-        <span class="xp-points"
-          >{{ profile.currentXP }} / {{ profile.xpToNextLevel }} XP</span
+    <!-- User + XP Bar -->
+    <div style="margin-bottom: 24px">
+      <div class="flex items-center gap-3" style="margin-bottom: 14px">
+        <div
+          class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 text-white"
+          style="background: var(--accent)"
         >
-      </div>
-      <div class="xp-track">
-        <div class="xp-fill" :style="{ width: progressPct + '%' }"></div>
+          {{ profile.displayName.charAt(0) }}
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-stone-800 leading-none mb-2">
+            {{ profile.displayName }}
+          </p>
+
+          <!-- Level badge with animated progress + tooltip -->
+          <div class="relative group/badge">
+            <div
+              class="relative overflow-hidden rounded-md"
+              style="
+                background: var(--accent-soft);
+                padding: 5px 10px;
+                box-shadow: 0 2px 8px rgba(194, 98, 42, 0.2);
+                width: 110px;
+              "
+            >
+              <!-- Progress fill — animates on mount via CSS -->
+              <div
+                class="absolute inset-0 rounded-md transition-[width] duration-700 ease-out"
+                style="background: var(--accent); opacity: 0.15; width: 0"
+                :style="{ width: mounted ? progressPct + '%' : '0%' }"
+              />
+              <!-- Label -->
+              <div class="relative flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1">
+                  <!-- Star pulses when XP changes -->
+                  <i
+                    class="pi pi-star-fill text-[0.55rem]"
+                    :class="xpPulse ? 'animate-ping' : ''"
+                    style="color: var(--accent)"
+                  />
+                  <span
+                    class="text-[0.7rem] font-semibold"
+                    style="color: var(--accent)"
+                  >
+                    Lv {{ profile.level }}
+                  </span>
+                </div>
+                <span
+                  class="text-[0.6rem] font-medium"
+                  style="color: var(--accent); opacity: 0.7"
+                >
+                  {{ profile.currentXP }}/{{ profile.xpToNextLevel }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Tooltip -->
+            <div
+              class="absolute left-0 top-full mt-2 z-50 pointer-events-none opacity-0 group-hover/badge:opacity-100 transition-opacity duration-150"
+              style="
+                background: #1a1714;
+                color: #fff;
+                font-size: 0.7rem;
+                padding: 6px 10px;
+                border-radius: 8px;
+                white-space: nowrap;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              "
+            >
+              {{ profile.xpToNextLevel - profile.currentXP }} XP to Level
+              {{ profile.level + 1 }}
+              <!-- Arrow -->
+              <div
+                class="absolute -top-1 left-4"
+                style="
+                  width: 0;
+                  height: 0;
+                  border-left: 5px solid transparent;
+                  border-right: 5px solid transparent;
+                  border-bottom: 5px solid #1a1714;
+                "
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Nav -->
-    <nav class="sidebar-nav">
+    <nav class="flex-1 flex flex-col" style="gap: 2px">
       <div
         v-for="section in navSections"
         :key="section.title"
-        class="nav-section"
+        class="flex flex-col"
+        style="margin-bottom: 8px"
       >
-        <button class="nav-section-toggle" @click="toggle(section.title)">
-          <span class="nav-section-label">{{ section.title }}</span>
-          <svg
-            :class="[
-              'nav-chevron',
-              { 'nav-chevron--open': !collapsed[section.title] },
-            ]"
-            viewBox="0 0 16 16"
-            fill="none"
+        <button
+          class="flex items-center justify-between w-full rounded-lg hover:bg-stone-100 transition-colors duration-150"
+          style="padding: 6px 8px; margin-bottom: 2px"
+          @click="toggle(section.title)"
+        >
+          <span
+            class="text-[0.68rem] font-semibold uppercase tracking-widest text-stone-400"
           >
-            <path
-              d="M4 6l4 4 4-4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+            {{ section.title }}
+          </span>
+          <i
+            :class="[
+              'pi pi-chevron-down text-stone-400 transition-transform duration-200 text-[0.6rem]',
+              collapsed[section.title] ? '-rotate-90' : 'rotate-0',
+            ]"
+          />
         </button>
 
         <div
-          class="nav-items-wrap"
-          :class="{ 'nav-items-wrap--hidden': collapsed[section.title] }"
+          class="flex flex-col overflow-hidden transition-all duration-200"
+          :class="
+            collapsed[section.title]
+              ? 'max-h-0 opacity-0'
+              : 'max-h-75 opacity-100'
+          "
+          style="gap: 2px"
         >
           <router-link
             v-for="item in section.items"
             :key="item.name"
             :to="item.path"
-            class="nav-item"
-            active-class="nav-item--active"
+            class="flex items-center rounded-lg text-sm font-medium text-stone-500 no-underline transition-all duration-150 hover:bg-stone-100 hover:text-stone-800"
+            style="gap: 10px; padding: 8px 12px"
+            active-class="!bg-[var(--accent-soft)] !text-[var(--accent)]"
           >
-            <span class="nav-item-icon">{{ item.icon }}</span>
-            <span class="nav-item-label">{{ item.label }}</span>
+            <span class="w-4 text-center text-[0.95rem]">{{ item.icon }}</span>
+            <span class="flex-1">{{ item.label }}</span>
           </router-link>
         </div>
       </div>
     </nav>
 
-    <!-- Footer -->
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="user-avatar">{{ profile.displayName.charAt(0) }}</div>
-        <div class="user-info">
-          <p class="user-name">{{ profile.displayName }}</p>
-          <p class="user-streak">🔥 {{ profile.streakDays }}d streak</p>
+    <!-- Footer — settings instead of duplicate avatar -->
+    <div
+      style="border-top: 1px solid #e7e5e4; padding-top: 16px; margin-top: 8px"
+    >
+      <div
+        class="flex items-center justify-between rounded-xl hover:bg-stone-100 transition-colors duration-150 cursor-default"
+        style="padding: 8px 10px"
+      >
+        <div class="flex items-center" style="gap: 10px">
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-[0.8rem] font-semibold shrink-0"
+            style="background: var(--accent-soft); color: var(--accent)"
+          >
+            {{ profile.displayName.charAt(0) }}
+          </div>
+          <div>
+            <p class="text-[0.8rem] font-semibold text-stone-800 leading-none">
+              {{ profile.displayName }}
+            </p>
+            <p class="text-[0.7rem] text-stone-400 mt-0.5">
+              🔥 {{ profile.streakDays }}d streak
+            </p>
+          </div>
         </div>
+        <!-- Settings icon replaces the redundant second avatar -->
+        <button
+          class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-200 transition-colors duration-150"
+          title="Settings"
+        >
+          <i class="pi pi-cog text-stone-400 text-sm" />
+        </button>
       </div>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useGamificationStore } from "./sidebar.store";
+import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { useGamificationStore } from "./sidebar.store";
 import type { NavSection } from "./sidebar.types";
 
 const { profile, progressPct } = storeToRefs(useGamificationStore());
@@ -111,231 +220,13 @@ const collapsed = ref<Record<string, boolean>>({});
 function toggle(title: string) {
   collapsed.value[title] = !collapsed.value[title];
 }
+
+const mounted = ref(false)
+onMounted(() => setTimeout(() => (mounted.value = true), 100))
+
+const xpPulse = ref(false)
+watch(() => profile.value.currentXP, () => {
+  xpPulse.value = true
+  setTimeout(() => (xpPulse.value = false), 600)
+})
 </script>
-
-<style scoped>
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 224px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface-card);
-  border-right: 1px solid var(--surface-border);
-  padding: 20px 12px;
-  overflow-y: auto;
-}
-
-/* Logo */
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 8px 20px;
-  border-bottom: 1px solid var(--surface-border);
-  margin-bottom: 16px;
-}
-.logo-mark {
-  width: 34px;
-  height: 34px;
-  background: var(--accent);
-  color: white;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "DM Serif Display", serif;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-.logo-name {
-  font-family: "DM Serif Display", serif;
-  font-size: 1rem;
-  line-height: 1;
-  color: var(--ink-primary);
-}
-.logo-sub {
-  font-size: 0.7rem;
-  color: var(--ink-muted);
-  margin-top: 2px;
-}
-
-/* XP bar */
-.xp-bar-wrap {
-  background: var(--surface-muted);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  margin-bottom: 20px;
-}
-.xp-bar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.xp-level {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ink-primary);
-}
-.xp-points {
-  font-size: 0.7rem;
-  color: var(--ink-muted);
-}
-.xp-track {
-  height: 5px;
-  background: var(--surface-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.xp-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 99px;
-  transition: width 0.4s var(--ease);
-}
-
-/* Nav */
-.sidebar-nav {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.nav-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-section-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 5px 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: background var(--duration-fast) var(--ease);
-}
-.nav-section-toggle:hover {
-  background: var(--surface-hover);
-}
-.nav-section-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-
-.nav-chevron {
-  width: 14px;
-  height: 14px;
-  color: var(--ink-muted);
-  transition: transform var(--duration-fast) var(--ease);
-  transform: rotate(-90deg);
-}
-.nav-chevron--open {
-  transform: rotate(0deg);
-}
-
-.nav-items-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  overflow: hidden;
-  max-height: 300px;
-  transition:
-    max-height var(--duration-normal) var(--ease),
-    opacity var(--duration-normal) var(--ease);
-  opacity: 1;
-  margin-bottom: 8px;
-}
-.nav-items-wrap--hidden {
-  max-height: 0;
-  opacity: 0;
-  margin-bottom: 0;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ink-secondary);
-  text-decoration: none;
-  transition: all var(--duration-fast) var(--ease);
-}
-.nav-item:hover {
-  background: var(--surface-hover);
-  color: var(--ink-primary);
-}
-.nav-item--active {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.nav-item--active .nav-item-icon {
-  opacity: 1;
-}
-
-.nav-item-icon {
-  font-size: 0.95rem;
-  width: 18px;
-  text-align: center;
-  opacity: 0.7;
-}
-.nav-item-label {
-  flex: 1;
-}
-
-/* Footer */
-.sidebar-footer {
-  border-top: 1px solid var(--surface-border);
-  padding-top: 14px;
-  margin-top: 8px;
-}
-.user-chip {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: var(--radius-md);
-  transition: background var(--duration-fast) var(--ease);
-  cursor: default;
-}
-.user-chip:hover {
-  background: var(--surface-hover);
-}
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.user-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--ink-primary);
-  line-height: 1;
-}
-.user-streak {
-  font-size: 0.7rem;
-  color: var(--ink-muted);
-  margin-top: 2px;
-}
-</style>
