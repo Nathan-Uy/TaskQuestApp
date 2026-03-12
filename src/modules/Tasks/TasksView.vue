@@ -181,6 +181,19 @@
             </div>
           </div>
         </div>
+        <div class="flex flex-col" style="gap: 6px; margin-bottom: 16px">
+          <label class="text-stone-500 font-medium" style="font-size: 0.75rem">
+            Due date <span class="font-normal text-stone-400">(optional)</span>
+          </label>
+          <DatePicker
+            v-model="form.dueDate"
+            placeholder="Pick a date"
+            date-format="M dd, yy"
+            class="w-full"
+            show-icon
+            icon-display="input"
+          />
+        </div>
 
         <div class="flex flex-col" style="gap: 6px; margin-bottom: 20px">
           <label class="text-stone-500 font-medium" style="font-size: 0.75rem">
@@ -281,6 +294,7 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
+import DatePicker from "primevue/datepicker";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
 import { useGamificationStore } from "@/components/sidebar.store";
 import { useTasksComposable } from "@/modules/Tasks/tasks.composable";
