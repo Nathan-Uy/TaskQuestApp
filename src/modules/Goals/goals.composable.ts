@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 import { storeToRefs } from "pinia";
-import { useGoalsStore } from "@/modules/Goals/goals.stores";
+import { useGoalsStore } from "@/modules/Goals/goals.store";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
 import type { GoalTimeframe } from "@/modules/Goals/goals.types";
 
