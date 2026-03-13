@@ -153,38 +153,18 @@
       </div>
     </nav>
 
-    <!-- Footer — settings instead of duplicate avatar -->
+    <!-- Footer — settings -->
     <div
-      style="border-top: 1px solid #e7e5e4; padding-top: 16px; margin-top: 8px"
+      style="border-top: 1px solid #e7e5e4; margin-top: 8px; padding-top: 8px"
     >
-      <div
-        class="flex items-center justify-between rounded-xl hover:bg-stone-100 transition-colors duration-150 cursor-default"
-        style="padding: 8px 10px"
+      <button
+        class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-150"
+        style="padding: 8px 12px"
+        @click="router.push('/settings')"
       >
-        <div class="flex items-center" style="gap: 10px">
-          <div
-            class="w-8 h-8 rounded-full flex items-center justify-center text-[0.8rem] font-semibold shrink-0"
-            style="background: var(--accent-soft); color: var(--accent)"
-          >
-            {{ profile.displayName.charAt(0) }}
-          </div>
-          <div>
-            <p class="text-[0.8rem] font-semibold text-stone-800 leading-none">
-              {{ profile.displayName }}
-            </p>
-            <p class="text-[0.7rem] text-stone-400 mt-0.5">
-              🔥 {{ profile.streakDays }}d streak
-            </p>
-          </div>
-        </div>
-        <!-- Settings icon replaces the redundant second avatar -->
-        <button
-          class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-200 transition-colors duration-150"
-          title="Settings"
-        >
-          <i class="pi pi-cog text-stone-400 text-sm" />
-        </button>
-      </div>
+        <i class="pi pi-cog text-sm" />
+        <span>Settings</span>
+      </button>
     </div>
   </aside>
 </template>
@@ -192,10 +172,13 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
 import { useGamificationStore } from "./sidebar.store";
 import type { NavSection } from "./sidebar.types";
+import Button from "primevue/button";
 
 const { profile, progressPct } = storeToRefs(useGamificationStore());
+const router = useRouter();
 
 const navSections: NavSection[] = [
   {
@@ -221,12 +204,15 @@ function toggle(title: string) {
   collapsed.value[title] = !collapsed.value[title];
 }
 
-const mounted = ref(false)
-onMounted(() => setTimeout(() => (mounted.value = true), 100))
+const mounted = ref(false);
+onMounted(() => setTimeout(() => (mounted.value = true), 100));
 
-const xpPulse = ref(false)
-watch(() => profile.value.currentXP, () => {
-  xpPulse.value = true
-  setTimeout(() => (xpPulse.value = false), 600)
-})
+const xpPulse = ref(false);
+watch(
+  () => profile.value.currentXP,
+  () => {
+    xpPulse.value = true;
+    setTimeout(() => (xpPulse.value = false), 600);
+  },
+);
 </script>
