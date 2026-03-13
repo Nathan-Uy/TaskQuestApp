@@ -34,6 +34,10 @@ const router = createRouter({
       component: () => import("@/modules/Analytics/AnalyticsView.vue"),
       meta: { title: "Analytics" },
     },
+    {
+      path: "/settings",
+      component: () => import("@/modules/Settings/SettingsView.vue"),
+    },
   ],
 });
 
