@@ -11,8 +11,7 @@ export const useGoals = () => {
   const { activeTasks } = storeToRefs(tasksStore);
 
   const showAddGoal = ref(false);
-  const expandedGoalId = ref<number | null>(null);
-
+  const expandedGoalId = ref<string | null>(null);
   const form = ref({
     title: "",
     description: "",
@@ -59,12 +58,11 @@ export const useGoals = () => {
     };
   };
 
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     expandedGoalId.value = expandedGoalId.value === id ? null : id;
   };
-
-  const getLinkedTasks = (linkedTaskIds: number[]) =>
-    tasksStore.tasks.filter((t) => linkedTaskIds.includes(t.id));
+  const getLinkedTasks = (linkedTaskIds: string[]) =>
+    tasksStore.tasks.filter((t) => linkedTaskIds.includes(t._id));
 
   const formatDeadline = (d: Date) =>
     new Date(d).toLocaleDateString("en-US", {
