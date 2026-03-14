@@ -38,7 +38,7 @@ export const completeGoal = async (req: AuthRequest, res: Response) => {
     const goal = await Goal.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       { status: "completed", completedAt: new Date() },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!goal) return res.status(404).json({ message: "Goal not found" });
 
@@ -78,7 +78,7 @@ export const linkTask = async (req: AuthRequest, res: Response) => {
     const goal = await Goal.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       { $addToSet: { linkedTaskIds: taskId } },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!goal) return res.status(404).json({ message: "Goal not found" });
     res.json(goal);
