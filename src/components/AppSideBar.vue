@@ -155,16 +155,26 @@
 
     <!-- Footer — settings -->
     <div
-      style="border-top: 1px solid #e7e5e4; margin-top: 8px; padding-top: 8px"
+      style="border-top: 1px solid #e7e5e4; padding-top: 16px; margin-top: 8px"
     >
-      <button
-        class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-150"
-        style="padding: 8px 12px"
-        @click="router.push('/settings')"
-      >
-        <i class="pi pi-cog text-sm" />
-        <span>Settings</span>
-      </button>
+      <div class="flex flex-col gap-1">
+        <button
+          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-150"
+          style="padding: 8px 12px"
+          @click="router.push('/settings')"
+        >
+          <i class="pi pi-cog text-sm" />
+          <span>Settings</span>
+        </button>
+        <button
+          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-red-50 hover:text-red-500 transition-all duration-150"
+          style="padding: 8px 12px"
+          @click="handleLogout"
+        >
+          <i class="pi pi-sign-out text-sm" />
+          <span>Logout</span>
+        </button>
+      </div>
     </div>
   </aside>
 </template>
@@ -176,9 +186,11 @@ import { useRouter } from "vue-router";
 import { useGamificationStore } from "./sidebar.store";
 import type { NavSection } from "./sidebar.types";
 import Button from "primevue/button";
+import { useAuthStore } from "@/stores/auth.store";
 
 const { profile, progressPct } = storeToRefs(useGamificationStore());
 const router = useRouter();
+const auth = useAuthStore();
 
 const navSections: NavSection[] = [
   {
@@ -208,6 +220,10 @@ const mounted = ref(false);
 onMounted(() => setTimeout(() => (mounted.value = true), 100));
 
 const xpPulse = ref(false);
+const handleLogout = () => {
+  auth.logout();
+  router.push("/");
+};
 watch(
   () => profile.value.currentXP,
   () => {
