@@ -248,10 +248,10 @@
       <div v-else class="flex flex-col" style="gap: 8px">
         <TaskCard
           v-for="task in activeTasks"
-          :key="task.id"
+          :key="task._id"
           :task="task"
-          @complete="tasksStore.completeTask"
-          @delete="tasksStore.deleteTask"
+          @complete="tasksStore.completeTask(task._id)"
+          @delete="tasksStore.deleteTask(task._id)"
         />
       </div>
     </section>

@@ -24,7 +24,7 @@
           ? 'border-emerald-400 bg-emerald-400'
           : 'border-stone-300 bg-white hover:border-emerald-400 hover:scale-110',
       ]"
-      @click="emit('complete', task.id)"
+      @click="emit('complete', task._id)"
     >
       <i
         v-if="task.status === 'completed'"
@@ -112,7 +112,7 @@
       class="opacity-0 group-hover:opacity-100 transition-all duration-150 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 shrink-0"
       style="margin-top: 1px; color: #b53a2f"
       title="Delete"
-      @click="emit('delete', task.id)"
+      @click="emit('delete', task._id)"
     >
       <i class="pi pi-times" style="font-size: 0.7rem" />
     </button>
@@ -124,10 +124,12 @@ import { computed } from "vue";
 import type { Task } from "@/modules/Tasks/tasks.type";
 import { useCalendar } from "@/modules/Calendar/calendar.composable";
 
-
 const { isOverdue, isToday, formatDueDate } = useCalendar();
 const props = defineProps<{ task: Task; readonly?: boolean }>();
-const emit = defineEmits<{ complete: [id: number]; delete: [id: number] }>();
+const emit = defineEmits<{
+  complete: [id: string];
+  delete: [id: string];
+}>();
 
 const priorityColor = computed(
   () =>
