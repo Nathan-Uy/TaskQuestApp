@@ -145,7 +145,7 @@
       <div v-else class="flex flex-col gap-3">
         <div
           v-for="goal in activeGoals"
-          :key="goal.id"
+          :key="goal._id"
           class="bg-white border border-stone-200 rounded-2xl overflow-hidden transition-all duration-150 hover:border-stone-300 hover:shadow-sm"
         >
           <!-- Goal header -->
@@ -154,7 +154,7 @@
             <button
               class="mt-0.5 w-5 h-5 shrink-0 rounded-full border-2 border-stone-300 hover:border-emerald-400 flex items-center justify-center transition-all duration-150"
               title="Mark complete"
-              @click="completeGoal(goal.id)"
+              @click="completeGoal(goal._id)"
             >
               <i
                 class="pi pi-check text-transparent hover:text-emerald-400 text-[0.5rem]"
@@ -214,20 +214,20 @@
             <div class="flex items-center gap-1 shrink-0">
               <button
                 class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all duration-150"
-                :title="expandedGoalId === goal.id ? 'Collapse' : 'Link tasks'"
-                @click="toggleExpand(goal.id)"
+                :title="expandedGoalId === goal._id ? 'Collapse' : 'Link tasks'"
+                @click="toggleExpand(goal._id)"
               >
                 <i
                   :class="[
                     'pi text-xs',
-                    expandedGoalId === goal.id ? 'pi-chevron-up' : 'pi-link',
+                    expandedGoalId === goal._id ? 'pi-chevron-up' : 'pi-link',
                   ]"
                 />
               </button>
               <button
                 class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
                 title="Delete"
-                @click="deleteGoal(goal.id)"
+                @click="deleteGoal(goal._id)"
               >
                 <i class="pi pi-times text-xs" />
               </button>
@@ -242,7 +242,7 @@
             leave-to-class="opacity-0 -translate-y-1"
           >
             <div
-              v-if="expandedGoalId === goal.id"
+              v-if="expandedGoalId === goal._id"
               class="border-t border-stone-100 px-5 py-4"
             >
               <p
@@ -282,18 +282,18 @@
                   <button
                     :class="[
                       'shrink-0 text-xs font-semibold px-2.5 py-1 rounded-lg transition-all duration-150',
-                      goal.linkedTaskIds.includes(task.id)
+                      goal.linkedTaskIds.includes(task._id)
                         ? 'bg-emerald-50 text-emerald-600 hover:bg-red-50 hover:text-red-500'
                         : 'bg-stone-100 text-stone-500 hover:bg-stone-200',
                     ]"
                     @click="
-                      goal.linkedTaskIds.includes(task.id)
-                        ? unlinkTask(goal.id, task.id)
-                        : linkTask(goal.id, task.id)
+                      goal.linkedTaskIds.includes(task._id)
+                        ? unlinkTask(goal._id, task._id)
+                        : linkTask(goal._id, task._id)
                     "
                   >
                     {{
-                      goal.linkedTaskIds.includes(task.id) ? "Unlink" : "Link"
+                      goal.linkedTaskIds.includes(task._id) ? "Unlink" : "Link"
                     }}
                   </button>
                 </div>
@@ -319,7 +319,7 @@
       <div class="flex flex-col gap-3">
         <div
           v-for="goal in completedGoals"
-          :key="goal.id"
+          :key="goal._id"
           class="bg-white border border-stone-100 rounded-2xl px-5 py-4 opacity-60 flex items-center gap-3"
         >
           <div
