@@ -42,14 +42,11 @@ export const useTasksStore = defineStore("tasks", () => {
     tasks.value.unshift(data);
   };
 
-  const completeTask = async (id: number | string) => {
+  const completeTask = async (id: string) => {
     const { data } = await api.patch(`/tasks/${id}/complete`);
-    const idx = tasks.value.findIndex(
-      (t) => t.id === id || (t as any)._id === id,
-    );
+    const idx = tasks.value.findIndex((t) => t._id === id);
     if (idx !== -1) tasks.value[idx] = { ...tasks.value[idx], ...data.task };
 
-    // Sync XP to gamification store
     if (data.user) {
       const { useGamificationStore } =
         await import("@/components/sidebar.store");
@@ -62,11 +59,9 @@ export const useTasksStore = defineStore("tasks", () => {
     }
   };
 
-  const deleteTask = async (id: number | string) => {
+  const deleteTask = async (id: string) => {
     await api.delete(`/tasks/${id}`);
-    tasks.value = tasks.value.filter(
-      (t) => t.id !== id && (t as any)._id !== id,
-    );
+    tasks.value = tasks.value.filter((t) => t._id !== id);
   };
 
   const updateTask = async (id: number | string, patch: Partial<Task>) => {
