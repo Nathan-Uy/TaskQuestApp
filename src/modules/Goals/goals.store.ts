@@ -1,13 +1,10 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { Goal, GoalTimeframe } from "@/modules/Goals/goals.types";
-import { useGamificationStore } from "@/components/sidebar.store";
+import api from "@/api/axios";
+import type { Goal } from "@/modules/Goals/goals.types";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
 
 export const useGoalsStore = defineStore("goals", () => {
-  const gamification = useGamificationStore();
-  const tasksStore = useTasksStore();
-
   const goals = ref<Goal[]>([]);
 
   const activeGoals = computed(() =>
@@ -17,75 +14,81 @@ export const useGoalsStore = defineStore("goals", () => {
     goals.value.filter((g) => g.status === "completed"),
   );
 
-  const getGoalProgress = (goal: Goal): number => {
-    if (goal.linkedTaskIds.length === 0) return 0;
-    const linked = tasksStore.tasks.filter((t) =>
-      goal.linkedTaskIds.includes(t.id),
-    );
-    if (linked.length === 0) return 0;
-    const completed = linked.filter((t) => t.status === "completed").length;
-    return Math.round((completed / linked.length) * 100);
+  const fetchGoals = async () => {
+    const { data } = await api.get("/goals");
+    goals.value = data;
   };
 
-  const addGoal = (payload: {
+  const addGoal = async (payload: {
     title: string;
     description?: string;
-    timeframe: GoalTimeframe;
+    timeframe: "daily" | "weekly" | "monthly" | "yearly";
     xpReward?: number;
     deadline?: Date;
   }) => {
-    goals.value.push({
-      id: Date.now(),
-      title: payload.title,
-      description: payload.description,
-      timeframe: payload.timeframe,
-      status: "active",
-      xpReward: payload.xpReward ?? 100,
-      linkedTaskIds: [],
-      createdAt: new Date(),
-      deadline: payload.deadline,
+    const { data } = await api.post("/goals", payload);
+    goals.value.unshift(data);
+  };
+
+  const completeGoal = async (id: string) => {
+    const { data } = await api.patch(`/goals/${id}/complete`);
+    const idx = goals.value.findIndex((g) => (g as any)._id === id);
+    if (idx !== -1) goals.value[idx] = { ...goals.value[idx], ...data.goal };
+
+    if (data.user) {
+      const { useGamificationStore } =
+        await import("@/components/sidebar.store");
+      const gamification = useGamificationStore();
+      gamification.profile.level = data.user.level;
+      gamification.profile.currentXP = data.user.currentXP;
+      gamification.profile.xpToNextLevel = data.user.xpToNextLevel;
+      gamification.profile.totalXP = data.user.totalXP;
+    }
+  };
+
+  const deleteGoal = async (id: string) => {
+    await api.delete(`/goals/${id}`);
+    goals.value = goals.value.filter((g) => (g as any)._id !== id);
+  };
+
+  const linkTask = async (goalId: string, taskId: string) => {
+    const { data } = await api.patch(`/goals/${goalId}/link-task`, { taskId });
+    const idx = goals.value.findIndex((g) => (g as any)._id === goalId);
+    if (idx !== -1) goals.value[idx] = data;
+  };
+
+  const unlinkTask = async (goalId: string, taskId: string) => {
+    const { data } = await api.patch(`/goals/${goalId}/unlink-task`, {
+      taskId,
     });
+    const idx = goals.value.findIndex((g) => (g as any)._id === goalId);
+    if (idx !== -1) goals.value[idx] = data;
   };
 
-  const completeGoal = (id: number) => {
-    const goal = goals.value.find((g) => g.id === id);
-    if (!goal) return;
-    goal.status = "completed";
-    goal.completedAt = new Date();
-    gamification.awardXP(goal.xpReward);
-  };
-
-  const deleteGoal = (id: number) => {
-    goals.value = goals.value.filter((g) => g.id !== id);
-  };
-
-  const linkTask = (goalId: number, taskId: number) => {
-    const goal = goals.value.find((g) => g.id === goalId);
-    if (!goal || goal.linkedTaskIds.includes(taskId)) return;
-    goal.linkedTaskIds.push(taskId);
-  };
-
-  const unlinkTask = (goalId: number, taskId: number) => {
-    const goal = goals.value.find((g) => g.id === goalId);
-    if (!goal) return;
-    goal.linkedTaskIds = goal.linkedTaskIds.filter((id) => id !== taskId);
-  };
-
-  const updateGoal = (id: number, patch: Partial<Goal>) => {
-    const goal = goals.value.find((g) => g.id === id);
-    if (goal) Object.assign(goal, patch);
+  const getGoalProgress = (goal: any): number => {
+    if (!goal.linkedTaskIds?.length) return 0;
+    const tasksStore = useTasksStore();
+    const linked = tasksStore.tasks.filter((t: any) =>
+      goal.linkedTaskIds.includes((t as any)._id?.toString()),
+    );
+    if (!linked.length) return 0;
+    return Math.round(
+      (linked.filter((t: any) => t.status === "completed").length /
+        linked.length) *
+        100,
+    );
   };
 
   return {
     goals,
     activeGoals,
     completedGoals,
-    getGoalProgress,
+    fetchGoals,
     addGoal,
     completeGoal,
     deleteGoal,
     linkTask,
     unlinkTask,
-    updateGoal,
+    getGoalProgress,
   };
 });

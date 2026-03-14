@@ -1,48 +1,69 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/auth.store";
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", redirect: "/tasks" },
+    {
+      path: "/",
+      component: () => import("@/components/LandingView.vue"),
+      meta: { guest: true },
+    },
+    {
+      path: "/login",
+      component: () => import("@/components/LandingView.vue"),
+      meta: { guest: true },
+    },
     {
       path: "/tasks",
-      name: "tasks",
       component: () => import("@/modules/Tasks/TasksView.vue"),
-      meta: { title: "Tasks" },
+      meta: { requiresAuth: true },
     },
     {
       path: "/pomodoro",
-      name: "pomodoro",
       component: () => import("@/modules/Pomodoro/PomodoroView.vue"),
-      meta: { title: "Pomodoro" },
+      meta: { requiresAuth: true },
     },
     {
       path: "/calendar",
-      name: "calendar",
       component: () => import("@/modules/Calendar/CalendarView.vue"),
-      meta: { title: "Calendar" },
+      meta: { requiresAuth: true },
     },
     {
       path: "/goals",
-      name: "goals",
       component: () => import("@/modules/Goals/GoalsView.vue"),
-      meta: { title: "Goals" },
+      meta: { requiresAuth: true },
     },
     {
       path: "/analytics",
-      name: "analytics",
       component: () => import("@/modules/Analytics/AnalyticsView.vue"),
-      meta: { title: "Analytics" },
+      meta: { requiresAuth: true },
     },
     {
       path: "/settings",
       component: () => import("@/modules/Settings/SettingsView.vue"),
+      meta: { requiresAuth: true },
     },
   ],
 });
 
-router.afterEach((to) => {
-  document.title = `${to.meta.title ?? "TaskQuest"} — TaskQuest`;
+router.beforeEach(async (to, _, next) => {
+  const auth = useAuthStore();
+
+  // Try to fetch user if token exists but user is not loaded
+  if (auth.token && !auth.user) {
+    await auth.fetchMe();
+  }
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return next("/");
+  }
+
+  if (to.meta.guest && auth.isAuthenticated) {
+    return next("/tasks");
+  }
+
+  next();
 });
 
 export default router;
