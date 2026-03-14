@@ -40,7 +40,7 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!task) return res.status(404).json({ message: "Task not found" });
     res.json(task);
@@ -54,7 +54,7 @@ export const completeTask = async (req: AuthRequest, res: Response) => {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       { status: "completed", completedAt: new Date() },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!task) return res.status(404).json({ message: "Task not found" });
 

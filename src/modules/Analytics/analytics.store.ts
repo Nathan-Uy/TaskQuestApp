@@ -28,11 +28,15 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     return days.map((dateStr) => {
       const tasksCompleted = tasksStore.tasks.filter(
         (t) =>
-          t.status === "completed" && t.completedAt?.toDateString() === dateStr,
+          t.status === "completed" &&
+          t.completedAt &&
+          new Date(t.completedAt).toDateString() === dateStr,
       ).length;
 
       const pomodoroSessions = pomodoroStore.history.filter(
-        (s) => s.phase === "work" && s.completedAt.toDateString() === dateStr,
+        (s) =>
+          s.phase === "work" &&
+          new Date(s.completedAt).toDateString() === dateStr,
       ).length;
 
       const xpEarned = tasksCompleted * 20 + pomodoroSessions * 25;
@@ -54,7 +58,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     tasksStore.tasks
       .filter((t) => {
         if (t.status !== "completed" || !t.completedAt) return false;
-        const diffMs = Date.now() - t.completedAt.getTime();
+        const diffMs = Date.now() - new Date(t.completedAt).getTime();
         return diffMs <= days * 24 * 60 * 60 * 1000;
       })
       .forEach((t) => {
@@ -66,7 +70,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     pomodoroStore.history
       .filter((s) => {
         if (s.phase !== "work") return false;
-        const diffMs = Date.now() - s.completedAt.getTime();
+        const diffMs = Date.now() - new Date(s.completedAt).getTime();
         return diffMs <= days * 24 * 60 * 60 * 1000;
       })
       .forEach((s) => {
