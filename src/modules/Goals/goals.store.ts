@@ -32,7 +32,7 @@ export const useGoalsStore = defineStore("goals", () => {
 
   const completeGoal = async (id: string) => {
     const { data } = await api.patch(`/goals/${id}/complete`);
-    const idx = goals.value.findIndex((g) => (g as any)._id === id);
+    const idx = goals.value.findIndex((g) => g._id === id);
     if (idx !== -1) goals.value[idx] = { ...goals.value[idx], ...data.goal };
 
     if (data.user) {
@@ -48,12 +48,12 @@ export const useGoalsStore = defineStore("goals", () => {
 
   const deleteGoal = async (id: string) => {
     await api.delete(`/goals/${id}`);
-    goals.value = goals.value.filter((g) => (g as any)._id !== id);
+    goals.value = goals.value.filter((g) => g._id !== id);
   };
 
   const linkTask = async (goalId: string, taskId: string) => {
     const { data } = await api.patch(`/goals/${goalId}/link-task`, { taskId });
-    const idx = goals.value.findIndex((g) => (g as any)._id === goalId);
+    const idx = goals.value.findIndex((g) => g._id === goalId);
     if (idx !== -1) goals.value[idx] = data;
   };
 
@@ -61,20 +61,19 @@ export const useGoalsStore = defineStore("goals", () => {
     const { data } = await api.patch(`/goals/${goalId}/unlink-task`, {
       taskId,
     });
-    const idx = goals.value.findIndex((g) => (g as any)._id === goalId);
+    const idx = goals.value.findIndex((g) => g._id === goalId);
     if (idx !== -1) goals.value[idx] = data;
   };
 
-  const getGoalProgress = (goal: any): number => {
+  const getGoalProgress = (goal: Goal): number => {
     if (!goal.linkedTaskIds?.length) return 0;
     const tasksStore = useTasksStore();
-    const linked = tasksStore.tasks.filter((t: any) =>
-      goal.linkedTaskIds.includes((t as any)._id?.toString()),
+    const linked = tasksStore.tasks.filter((t) =>
+      goal.linkedTaskIds.includes(t._id),
     );
     if (!linked.length) return 0;
     return Math.round(
-      (linked.filter((t: any) => t.status === "completed").length /
-        linked.length) *
+      (linked.filter((t) => t.status === "completed").length / linked.length) *
         100,
     );
   };
