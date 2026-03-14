@@ -1,0 +1,56 @@
+import { Schema, model, Document } from "mongoose";
+
+export interface IUser extends Document {
+  displayName: string;
+  email: string;
+  password: string;
+  level: number;
+  currentXP: number;
+  xpToNextLevel: number;
+  totalXP: number;
+  streakDays: number;
+  tasksCompleted: number;
+  pomodorosDone: number;
+  lastActiveDate?: Date;
+  settings: {
+    darkMode: boolean;
+    themeColor: string;
+    notifications: {
+      pomodoroEnd: boolean;
+      breakEnd: boolean;
+      taskDue: boolean;
+      dailyReminder: boolean;
+      dailyReminderTime: string;
+    };
+  };
+}
+
+const UserSchema = new Schema<IUser>(
+  {
+    displayName: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    level: { type: Number, default: 1 },
+    currentXP: { type: Number, default: 0 },
+    xpToNextLevel: { type: Number, default: 100 },
+    totalXP: { type: Number, default: 0 },
+    streakDays: { type: Number, default: 0 },
+    tasksCompleted: { type: Number, default: 0 },
+    pomodorosDone: { type: Number, default: 0 },
+    lastActiveDate: { type: Date },
+    settings: {
+      darkMode: { type: Boolean, default: false },
+      themeColor: { type: String, default: "terracotta" },
+      notifications: {
+        pomodoroEnd: { type: Boolean, default: true },
+        breakEnd: { type: Boolean, default: true },
+        taskDue: { type: Boolean, default: false },
+        dailyReminder: { type: Boolean, default: false },
+        dailyReminderTime: { type: String, default: "09:00" },
+      },
+    },
+  },
+  { timestamps: true },
+);
+
+export const User = model<IUser>("User", UserSchema);
