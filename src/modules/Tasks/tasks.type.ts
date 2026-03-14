@@ -2,15 +2,16 @@ export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "active" | "completed";
 
 export interface Task {
-  id: number;
+  _id: string;
+  id?: number;
   title: string;
   notes?: string;
   priority: TaskPriority;
   categoryId?: string;
-  goalId?: number;
+  goalId?: string;
   duration: number;
-  remainingTime: number;
-  isRunning: boolean;
+  remainingTime?: number;
+  isRunning?: boolean;
   xpReward: number;
   status: TaskStatus;
   createdAt: Date;
