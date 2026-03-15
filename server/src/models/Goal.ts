@@ -1,16 +1,5 @@
-import { Schema, model, Document, Types } from "mongoose";
-
-export interface IGoal extends Document {
-  userId: Types.ObjectId;
-  title: string;
-  description?: string;
-  timeframe: "daily" | "weekly" | "monthly" | "yearly";
-  status: "active" | "completed" | "archived";
-  xpReward: number;
-  linkedTaskIds: Types.ObjectId[];
-  deadline?: Date;
-  completedAt?: Date;
-}
+import { Schema, model } from "mongoose";
+import type { IGoal } from "../types/goals.types";
 
 const GoalSchema = new Schema<IGoal>(
   {
