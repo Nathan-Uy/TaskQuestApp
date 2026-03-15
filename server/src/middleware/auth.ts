@@ -10,8 +10,13 @@ export const protect = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Not authorized" });
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Not authorized" });
+  }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
@@ -19,7 +24,7 @@ export const protect = (
     };
     req.userId = decoded.id;
     next();
-  } catch {
-    res.status(401).json({ message: "Token invalid or expired" });
+  } catch (error) {
+    return res.status(401).json({ message: "Token invalid or expired" });
   }
 };

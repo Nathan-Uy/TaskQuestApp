@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import goalRoutes from "./routes/goals.routes";
+import aiRoutes from "./routes/ai.routes";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/goals", goalRoutes);
+app.use("/api/ai", aiRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI!)
