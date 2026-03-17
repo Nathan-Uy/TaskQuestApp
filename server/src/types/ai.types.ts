@@ -22,21 +22,25 @@ export interface ReportPeriod {
   label: string;
 }
 
-export interface GoalHealth {
-  status: "on-track" | "at-risk" | "behind";
-  summary: string;
-  nextAction: string;
-  recommendation: string;
+export interface TaskDescription {
+  notes: string;
+  duration: number;
 }
 
-export interface DailyFocusItem {
+export interface TriagedTask {
   taskId: string;
   title: string;
+  action: "reschedule" | "delegate" | "drop";
   reason: string;
-  suggestedDuration: number;
 }
 
-export interface DailyFocusResult {
-  focus: DailyFocusItem[];
-  overallStrategy: string;
+export interface GoalSuggestion {
+  title: string;
+  description: string;
+}
+
+export interface StreakCoach {
+  habit: string;
+  why: string;
+  howToStart: string;
 }
