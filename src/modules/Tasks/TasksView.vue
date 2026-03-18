@@ -15,7 +15,7 @@
       <Button
         label="New Task"
         icon="pi pi-plus"
-        class="bg-(--accent)]! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+        class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
         @click="showAddTask = true"
       />
     </div>
@@ -236,7 +236,6 @@
       </div>
     </Transition>
 
-    <!-- Overdue Triage -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -281,9 +280,8 @@
                     ? 'bg-violet-50 text-violet-600'
                     : 'bg-red-50 text-red-500',
               ]"
+              >{{ item.action }}</span
             >
-              {{ item.action }}
-            </span>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-stone-800">
                 {{ item.title }}
@@ -377,6 +375,37 @@
         />
       </div>
     </section>
+
+    <section
+      v-if="allCompleted.length > 0 && completedToday.length === 0"
+      style="margin-bottom: 32px"
+    >
+      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
+        <span
+          class="font-semibold uppercase tracking-widest"
+          style="font-size: 0.68rem; color: var(--success)"
+          >Completed</span
+        >
+        <span
+          class="font-semibold rounded-full"
+          style="
+            background: var(--success-soft);
+            color: var(--success);
+            font-size: 0.7rem;
+            padding: 1px 8px;
+          "
+          >{{ allCompleted.length }}</span
+        >
+      </div>
+      <div class="flex flex-col" style="gap: 8px">
+        <TaskCard
+          v-for="task in allCompleted"
+          :key="task._id"
+          :task="task"
+          :readonly="true"
+        />
+      </div>
+    </section>
   </div>
 </template>
 
@@ -394,10 +423,10 @@ import { useGamificationStore } from "@/components/sidebar.store";
 import { useTasksComposable } from "@/modules/Tasks/tasks.composable";
 import TaskCard from "@/modules/Tasks/TasksCard.vue";
 import { aiApi } from "@/api/ai.api";
-import type { TriagedTask } from "../../../server/src/types/ai.types";
+import type { TriagedTask } from "@/types/ai.types";
 
 const tasksStore = useTasksStore();
-const { activeTasks, completedToday } = storeToRefs(tasksStore);
+const { activeTasks, completedToday, allCompleted } = storeToRefs(tasksStore);
 const { profile } = storeToRefs(useGamificationStore());
 const { today, priorityOptions, showAddTask, form, submitTask, cancelAdd } =
   useTasksComposable();

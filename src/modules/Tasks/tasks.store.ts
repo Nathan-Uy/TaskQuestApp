@@ -21,6 +21,10 @@ export const useTasksStore = defineStore("tasks", () => {
     );
   });
 
+  const allCompleted = computed(() =>
+    tasks.value.filter((t) => t.status === "completed"),
+  );
+
   const fetchTasks = async () => {
     loading.value = true;
     try {
@@ -66,9 +70,7 @@ export const useTasksStore = defineStore("tasks", () => {
 
   const updateTask = async (id: number | string, patch: Partial<Task>) => {
     const { data } = await api.put(`/tasks/${id}`, patch);
-    const idx = tasks.value.findIndex(
-      (t) => t.id === id || (t as any)._id === id,
-    );
+    const idx = tasks.value.findIndex((t) => t.id === id || t._id === id);
     if (idx !== -1) tasks.value[idx] = data;
   };
 
@@ -77,6 +79,7 @@ export const useTasksStore = defineStore("tasks", () => {
     loading,
     activeTasks,
     completedToday,
+    allCompleted,
     fetchTasks,
     addTask,
     completeTask,

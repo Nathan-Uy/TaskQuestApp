@@ -22,12 +22,13 @@ export const useCalendar = () => {
     { key: "month", label: "Month" },
   ];
 
-  const isToday = (d: Date) => {
+  const isToday = (d: Date | string) => {
+    const date = new Date(d);
     const t = new Date();
     return (
-      d.getDate() === t.getDate() &&
-      d.getMonth() === t.getMonth() &&
-      d.getFullYear() === t.getFullYear()
+      date.getDate() === t.getDate() &&
+      date.getMonth() === t.getMonth() &&
+      date.getFullYear() === t.getFullYear()
     );
   };
 
@@ -84,7 +85,7 @@ export const useCalendar = () => {
     newTaskPriority.value = "medium";
   };
 
-  const isOverdue = (d: Date) => {
+  const isOverdue = (d: Date | string) => {
     const date = new Date(d);
     date.setHours(0, 0, 0, 0);
     const today = new Date();
@@ -92,7 +93,7 @@ export const useCalendar = () => {
     return date < today;
   };
 
-  const formatDueDate = (d: Date) => {
+  const formatDueDate = (d: Date | string) => {
     const date = new Date(d);
     const today = new Date();
     const tomorrow = new Date();
@@ -102,7 +103,6 @@ export const useCalendar = () => {
     if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
-
   return {
     currentView: computed(() => calendarStore.currentView),
     cursor: computed(() => calendarStore.cursor),
