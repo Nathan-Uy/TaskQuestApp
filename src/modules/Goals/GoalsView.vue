@@ -1,14 +1,12 @@
 <template>
   <div class="pl-8">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-7">
       <div>
         <h1 class="text-3xl font-serif text-stone-800 leading-tight">Goals</h1>
         <p class="text-xs text-stone-400 mt-1">Track what matters most</p>
       </div>
       <button
-        class="inline-flex items-center gap-2 text-white text-sm font-semibold rounded-xl px-4 py-2.5 transition-all duration-150 hover:-translate-y-px shadow-sm hover:shadow-md"
-        style="background: var(--accent)"
+        class="inline-flex items-center gap-2 text-white text-sm font-semibold rounded-xl px-4 py-2.5 transition-all duration-150 hover:-translate-y-px shadow-sm hover:shadow-md bg-(--accent)"
         @click="showAddGoal = true"
       >
         <i class="pi pi-plus text-xs" />
@@ -16,7 +14,6 @@
       </button>
     </div>
 
-    <!-- Stats -->
     <div class="grid grid-cols-3 gap-3 mb-7">
       <div class="bg-white border border-stone-200 rounded-xl p-4">
         <p class="text-2xl font-serif text-stone-800 leading-none mb-1.5">
@@ -50,7 +47,6 @@
       </div>
     </div>
 
-    <!-- Add Goal Panel -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -65,13 +61,32 @@
 
         <div class="flex flex-col gap-1.5 mb-4">
           <label class="text-xs font-medium text-stone-500">Goal title</label>
-          <InputText
-            v-model="form.title"
-            placeholder="What do you want to achieve?"
-            class="w-full"
-            @keyup.enter="submitGoal"
-            autofocus
-          />
+          <div class="flex gap-2">
+            <InputText
+              v-model="form.title"
+              placeholder="What do you want to achieve?"
+              class="flex-1"
+              @keyup.enter="submitGoal"
+              autofocus
+            />
+            <button
+              :disabled="!form.title.trim() || suggestLoading"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed bg-(--accent-soft) text-(--accent)] hover:bg-(--accent) hover:text-white shrink-0"
+              title="Improve goal with AI"
+              @click="suggestGoal"
+            >
+              <i
+                :class="[
+                  'pi text-xs',
+                  suggestLoading ? 'pi-spinner pi-spin' : 'pi-sparkles',
+                ]"
+              />
+              {{ suggestLoading ? "Thinking..." : "AI Improve" }}
+            </button>
+          </div>
+          <p v-if="suggestError" class="text-xs text-red-500 mt-1">
+            {{ suggestError }}
+          </p>
         </div>
 
         <div class="flex flex-col gap-1.5 mb-4">
@@ -122,7 +137,6 @@
       </div>
     </Transition>
 
-    <!-- Active Goals -->
     <section class="mb-8">
       <div class="flex items-center gap-2 mb-3">
         <span
@@ -148,9 +162,7 @@
           :key="goal._id"
           class="bg-white border border-stone-200 rounded-2xl overflow-hidden transition-all duration-150 hover:border-stone-300 hover:shadow-sm"
         >
-          <!-- Goal header -->
           <div class="flex items-start gap-3 px-5 py-4">
-            <!-- Complete button -->
             <button
               class="mt-0.5 w-5 h-5 shrink-0 rounded-full border-2 border-stone-300 hover:border-emerald-400 flex items-center justify-center transition-all duration-150"
               title="Mark complete"
@@ -161,7 +173,6 @@
               />
             </button>
 
-            <!-- Info -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1 flex-wrap">
                 <p class="text-sm font-semibold text-stone-800">
@@ -185,14 +196,12 @@
                 {{ goal.description }}
               </p>
 
-              <!-- Progress bar -->
               <div class="flex items-center gap-2">
                 <div
                   class="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden"
                 >
                   <div
-                    class="h-full rounded-full transition-[width] duration-500"
-                    style="background: var(--accent)"
+                    class="h-full rounded-full transition-[width] duration-500 bg-(--accent)"
                     :style="{ width: getGoalProgress(goal) + '%' }"
                   />
                 </div>
@@ -201,7 +210,6 @@
                 >
               </div>
 
-              <!-- Linked tasks count -->
               <p class="text-xs text-stone-400 mt-1.5">
                 {{ goal.linkedTaskIds.length }} task{{
                   goal.linkedTaskIds.length !== 1 ? "s" : ""
@@ -210,7 +218,6 @@
               </p>
             </div>
 
-            <!-- Actions -->
             <div class="flex items-center gap-1 shrink-0">
               <button
                 class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all duration-150"
@@ -234,7 +241,6 @@
             </div>
           </div>
 
-          <!-- Expanded: link tasks -->
           <Transition
             enter-active-class="transition-all duration-200 ease-out"
             enter-from-class="opacity-0 -translate-y-1"
@@ -261,7 +267,7 @@
               <div v-else class="flex flex-col gap-2">
                 <div
                   v-for="task in activeTasks"
-                  :key="task.id"
+                  :key="task._id"
                   class="flex items-center justify-between rounded-xl px-3 py-2 border border-stone-100 hover:border-stone-200 transition-all duration-150"
                 >
                   <div class="flex items-center gap-2 min-w-0">
@@ -304,7 +310,6 @@
       </div>
     </section>
 
-    <!-- Completed Goals -->
     <section v-if="completedGoals.length > 0" class="mb-8">
       <div class="flex items-center gap-2 mb-3">
         <span
@@ -350,12 +355,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import { useGoals } from "./goals.composable";
+import { aiApi } from "@/api/ai.api";
 
 const {
   activeGoals,
@@ -375,4 +382,22 @@ const {
   cancelAdd,
   toggleExpand,
 } = useGoals();
+
+const suggestLoading = ref(false);
+const suggestError = ref("");
+
+const suggestGoal = async () => {
+  if (!form.value.title.trim()) return;
+  suggestLoading.value = true;
+  suggestError.value = "";
+  try {
+    const result = await aiApi.suggestGoalTitle(form.value.title);
+    form.value.title = result.title;
+    form.value.description = result.description;
+  } catch {
+    suggestError.value = "Failed to improve goal. Try again.";
+  } finally {
+    suggestLoading.value = false;
+  }
+};
 </script>
