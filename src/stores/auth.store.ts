@@ -32,6 +32,15 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isAuthenticated = computed(() => !!token.value);
 
+  const syncStores = async () => {
+    const { useTasksStore } = await import("@/modules/Tasks/tasks.store");
+    const { useGoalsStore } = await import("@/modules/Goals/goals.store");
+    await Promise.all([
+      useTasksStore().fetchTasks(),
+      useGoalsStore().fetchGoals(),
+    ]);
+  };
+
   const login = async (email: string, password: string) => {
     const { data } = await api.post("/auth/login", { email, password });
     token.value = data.token;
@@ -69,5 +78,14 @@ export const useAuthStore = defineStore("auth", () => {
     sessionStorage.removeItem("token");
   };
 
-  return { token, user, isAuthenticated, login, register, fetchMe, logout };
+  return {
+    token,
+    user,
+    isAuthenticated,
+    login,
+    register,
+    fetchMe,
+    logout,
+    syncStores,
+  };
 });
