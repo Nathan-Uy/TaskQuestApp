@@ -47,12 +47,15 @@ const router = createRouter({
   ],
 });
 
+let initialized = false;
+
 router.beforeEach(async (to, _, next) => {
   const auth = useAuthStore();
 
-  // Try to fetch user if token exists but user is not loaded
-  if (auth.token && !auth.user) {
+  if (!initialized && auth.token && !auth.user) {
     await auth.fetchMe();
+    await auth.syncStores();
+    initialized = true;
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
