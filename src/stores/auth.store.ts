@@ -46,6 +46,10 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = data.token;
     user.value = data.user;
     sessionStorage.setItem("token", data.token);
+    await syncStores();
+    import("@/router/router").then(({ setInitialized }) =>
+      setInitialized(true),
+    );
   };
 
   const register = async (
@@ -61,6 +65,10 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = data.token;
     user.value = data.user;
     sessionStorage.setItem("token", data.token);
+    await syncStores();
+    import("@/router/router").then(({ setInitialized }) =>
+      setInitialized(true),
+    );
   };
 
   const fetchMe = async () => {
@@ -76,6 +84,11 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = "";
     user.value = null;
     sessionStorage.removeItem("token");
+
+    // Reset router initialized flag
+    import("@/router/router").then(({ setInitialized }) => {
+      setInitialized(false);
+    });
   };
 
   return {
