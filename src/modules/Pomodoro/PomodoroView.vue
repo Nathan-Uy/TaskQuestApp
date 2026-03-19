@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col pl-8">
-    <!-- Page Header -->
     <div class="flex items-end justify-between mb-7">
       <div>
         <h1 class="text-3xl font-serif text-stone-800 leading-tight">
@@ -12,9 +11,7 @@
       </div>
     </div>
 
-    <!-- Main layout -->
     <div class="grid grid-cols-[1fr_260px] gap-5 items-start">
-      <!-- Timer Card -->
       <PomodoroCard
         :phase="phase"
         :formatted-time="formattedTime"
@@ -28,9 +25,7 @@
         @switch-phase="switchPhase"
       />
 
-      <!-- Side Panel -->
       <div class="flex flex-col gap-4">
-        <!-- Focusing on -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
             class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-3"
@@ -47,7 +42,6 @@
           />
         </div>
 
-        <!-- Today's stats -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
             class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
@@ -86,7 +80,6 @@
           </div>
         </div>
 
-        <!-- Settings -->
         <div class="bg-white border border-stone-200 rounded-2xl p-5">
           <p
             class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
@@ -151,13 +144,12 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { storeToRefs } from "pinia";
 import Select from "primevue/select";
 import InputNumber from "primevue/inputnumber";
 import PomodoroCard from "./PomodoroCard.vue";
 import { usePomodoroTimer } from "./pomodoro.composable";
 import { usePomodoroStore } from "./pomodoro.store";
-import { useTasksStore } from "@/modules/Tasks/tasks.store";
+import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
 
 const {
   phase,
@@ -176,11 +168,13 @@ const {
 } = usePomodoroTimer();
 
 const pomodoroStore = usePomodoroStore();
-const { activeTasks } = storeToRefs(useTasksStore());
+const { data: tasks } = useTasksQuery();
 
 const taskOptions = computed(() => [
   { label: "No task selected", value: null },
-  ...activeTasks.value.map((t) => ({ label: t.title, value: t.id })),
+  ...(tasks.value
+    ?.filter((t) => t.status === "active")
+    .map((t) => ({ label: t.title, value: t._id })) ?? []),
 ]);
 
 const linkedTaskIdModel = computed({
