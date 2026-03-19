@@ -1,7 +1,8 @@
 import { watch, onUnmounted } from "vue";
-import { usePomodoroStore } from "./pomodoro.store";
 import { storeToRefs } from "pinia";
-export function usePomodoroTimer() {
+import { usePomodoroStore } from "./pomodoro.store";
+
+export const usePomodoroTimer = () => {
   const store = usePomodoroStore();
 
   const {
@@ -55,7 +56,6 @@ export function usePomodoroTimer() {
     todayFocusMinutes,
     linkedTaskId,
     settings,
-
     toggle: store.toggle,
     reset: store.reset,
     skip: store.skip,
@@ -63,4 +63,4 @@ export function usePomodoroTimer() {
     linkTask: store.linkTask,
     updateSettings: store.updateSettings,
   };
-}
+};
