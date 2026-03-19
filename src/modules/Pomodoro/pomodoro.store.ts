@@ -4,7 +4,7 @@ import type {
   PomodoroPhase,
   PomodoroSession,
   PomodoroSettings,
-} from "@/modules/Pomodoro/pomodoro.type";
+} from "./pomodoro.type";
 import { useGamificationStore } from "@/components/sidebar.store";
 
 const DEFAULT_SETTINGS: PomodoroSettings = {
@@ -21,7 +21,7 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
   const phase = ref<PomodoroPhase>("work");
   const status = ref<"idle" | "running" | "paused" | "completed">("idle");
   const sessionsCompleted = ref(0);
-  const linkedTaskId = ref<number | null>(null);
+  const linkedTaskId = ref<string | null>(null);
   const history = ref<PomodoroSession[]>([]);
 
   const totalSeconds = computed(() => {
@@ -53,7 +53,9 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
 
   const todaySessions = computed(() => {
     const today = new Date().toDateString();
-    return history.value.filter((s) => s.completedAt.toDateString() === today);
+    return history.value.filter(
+      (s) => new Date(s.completedAt).toDateString() === today,
+    );
   });
 
   const todayFocusMinutes = computed(() =>
@@ -65,7 +67,6 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
   const start = () => {
     status.value = "running";
   };
-
   const pause = () => {
     status.value = "paused";
   };
@@ -99,13 +100,12 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
         Math.round((totalSeconds.value - remainingSeconds.value) / 60) ||
         settings.value.workMins,
       completedAt: new Date(),
-      linkedTaskId: linkedTaskId.value,
+      linkedTaskId: (linkedTaskId.value),
     });
 
     if (phase.value === "work") {
       sessionsCompleted.value++;
       gamification.recordPomodoro();
-
       const isLongBreak =
         sessionsCompleted.value % settings.value.sessionsUntilLongBreak === 0;
       phase.value = isLongBreak ? "long-break" : "short-break";
@@ -116,9 +116,7 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     remainingSeconds.value = totalSeconds.value;
   };
 
-  const skip = () => {
-    completePhase();
-  };
+  const skip = () => completePhase();
 
   const switchPhase = (p: PomodoroPhase) => {
     phase.value = p;
@@ -126,14 +124,14 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     remainingSeconds.value = totalSeconds.value;
   };
 
-  const linkTask = (taskId: number | null) => {
+  const linkTask = (taskId: string | null) => {
     linkedTaskId.value = taskId;
-  }
+  };
 
   const updateSettings = (patch: Partial<PomodoroSettings>) => {
     settings.value = { ...settings.value, ...patch };
     reset();
-  }
+  };
 
   return {
     settings,

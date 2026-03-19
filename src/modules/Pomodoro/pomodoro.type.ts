@@ -14,7 +14,7 @@ export interface PomodoroSession {
   phase: PomodoroPhase
   durationMins: number
   completedAt: Date
-  linkedTaskId: number | null
+  linkedTaskId: string | null
 }
 
 export interface PomodoroState {
