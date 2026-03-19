@@ -49,11 +49,17 @@ const router = createRouter({
 
 let initialized = false;
 
+export const setInitialized = (val: boolean) => {
+  initialized = val;
+};
+
 router.beforeEach(async (to, _, next) => {
   const auth = useAuthStore();
 
-  if (!initialized && auth.token && !auth.user) {
-    await auth.fetchMe();
+  if (auth.token && !initialized) {
+    if (!auth.user) {
+      await auth.fetchMe();
+    }
     await auth.syncStores();
     initialized = true;
   }
