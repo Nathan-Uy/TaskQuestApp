@@ -18,3 +18,22 @@ export interface Task {
   completedAt?: Date;
   dueDate?: Date;
 }
+
+export interface CreateTaskPayload {
+  title: string;
+  priority: TaskPriority;
+  duration: number;
+  notes?: string;
+  dueDate?: Date;
+}
+
+export interface CompleteTaskResponse {
+  task: Task;
+  user: {
+    level: number;
+    currentXP: number;
+    xpToNextLevel: number;
+    totalXP: number;
+    tasksCompleted: number;
+  };
+}

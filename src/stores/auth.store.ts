@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import api from "@/api/axios";
+import { useQueryClient } from "@tanstack/vue-query";
 
 export interface AuthUser {
   _id: string;
@@ -29,6 +30,7 @@ export interface AuthUser {
 export const useAuthStore = defineStore("auth", () => {
   const token = ref(sessionStorage.getItem("token") || "");
   const user = ref<AuthUser | null>(null);
+  const queryClient = useQueryClient();
 
   const isAuthenticated = computed(() => !!token.value);
 
@@ -36,7 +38,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { useTasksStore } = await import("@/modules/Tasks/tasks.store");
     const { useGoalsStore } = await import("@/modules/Goals/goals.store");
     await Promise.all([
-      useTasksStore().fetchTasks(),
+      queryClient.invalidateQueries({ queryKey: ["tasks"] }),
       useGoalsStore().fetchGoals(),
     ]);
   };
