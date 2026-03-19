@@ -16,7 +16,7 @@
         label="New Task"
         icon="pi pi-plus"
         class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
-        @click="showAddTask = true"
+        @click="openAddTask"
       />
     </div>
 
@@ -228,7 +228,7 @@
           <Button label="Cancel" severity="secondary" text @click="cancelAdd" />
           <Button
             label="Add Task"
-            :disabled="!form.title.trim()"
+            :disabled="!form.title.trim() || isCreating"
             class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
             @click="submitTask"
           />
@@ -331,7 +331,14 @@
         </button>
       </div>
       <div
-        v-if="activeTasks.length === 0"
+        v-if="isLoading"
+        class="bg-white border border-stone-200 rounded-2xl text-center text-stone-400"
+        style="padding: 40px; font-size: 0.875rem"
+      >
+        <i class="pi pi-spinner pi-spin mr-2" />Loading tasks...
+      </div>
+      <div
+        v-else-if="activeTasks.length === 0"
         class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
         style="padding: 40px; font-size: 0.875rem"
       >
@@ -342,8 +349,8 @@
           v-for="task in activeTasks"
           :key="task._id"
           :task="task"
-          @complete="tasksStore.completeTask(task._id)"
-          @delete="tasksStore.deleteTask(task._id)"
+          @complete="completeTask(task._id)"
+          @delete="deleteTask(task._id)"
         />
       </div>
     </section>
@@ -410,7 +417,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
@@ -418,29 +425,60 @@ import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import DatePicker from "primevue/datepicker";
-import { useTasksStore } from "@/modules/Tasks/tasks.store";
 import { useGamificationStore } from "@/components/sidebar.store";
-import { useTasksComposable } from "@/modules/Tasks/tasks.composable";
+import { useTasksStore } from "@/modules/Tasks/tasks.store";
+import {
+  useTaskForm,
+  useTaskFilters,
+  useTaskDate,
+} from "@/modules/Tasks/tasks.composable";
 import TaskCard from "@/modules/Tasks/TasksCard.vue";
 import { aiApi } from "@/api/ai.api";
 import type { TriagedTask } from "@/types/ai.types";
+import {
+  useTasksQuery,
+  useCreateTaskMutation,
+  useCompleteTaskMutation,
+  useDeleteTaskMutation,
+} from "@/modules/Tasks/tasks.tanstack";
 
-const tasksStore = useTasksStore();
-const { activeTasks, completedToday, allCompleted } = storeToRefs(tasksStore);
+const { data: tasks, isLoading } = useTasksQuery();
+const { mutate: completeTask } = useCompleteTaskMutation();
+const { mutate: deleteTask } = useDeleteTaskMutation();
+const { mutate: createTask, isPending: isCreating } = useCreateTaskMutation();
+
 const { profile } = storeToRefs(useGamificationStore());
-const { today, priorityOptions, showAddTask, form, submitTask, cancelAdd } =
-  useTasksComposable();
+const tasksStore = useTasksStore();
+const { showAddTask } = storeToRefs(tasksStore);
+const { openAddTask, closeAddTask } = tasksStore;
+
+const { form, resetForm, getDuration, priorityOptions } = useTaskForm();
+const { activeTasks, completedToday, allCompleted, overdueCount } =
+  useTaskFilters(() => tasks.value);
+const { today } = useTaskDate();
 
 const descLoading = ref(false);
 const descError = ref("");
 const triageLoading = ref(false);
 const triageResult = ref<TriagedTask[]>([]);
 
-const overdueCount = computed(() => {
-  const now = new Date();
-  return activeTasks.value.filter((t) => t.dueDate && new Date(t.dueDate) < now)
-    .length;
-});
+const submitTask = () => {
+  if (!form.value.title.trim()) return;
+  createTask({
+    title: form.value.title.trim(),
+    priority: form.value.priority,
+    duration: getDuration(),
+    notes: form.value.notes || undefined,
+    dueDate: form.value.dueDate ?? undefined,
+  });
+  closeAddTask();
+  resetForm();
+};
+
+const cancelAdd = () => {
+  closeAddTask();
+  resetForm();
+};
 
 const generateDescription = async () => {
   if (!form.value.title.trim()) return;
