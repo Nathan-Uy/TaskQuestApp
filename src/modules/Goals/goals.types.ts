@@ -13,3 +13,25 @@ export interface Goal {
   completedAt?: Date;
   deadline?: Date;
 }
+
+export interface CreateGoalPayload {
+  title: string;
+  description?: string;
+  timeframe: GoalTimeframe;
+  xpReward?: number;
+  deadline?: Date;
+}
+
+export interface CompleteGoalResponse {
+  goal: Goal;
+  user: {
+    level: number;
+    currentXP: number;
+    xpToNextLevel: number;
+    totalXP: number;
+  };
+}
+
+export interface LinkTaskPayload {
+  taskId: string;
+}

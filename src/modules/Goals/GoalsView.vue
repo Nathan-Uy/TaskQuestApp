@@ -7,7 +7,7 @@
       </div>
       <button
         class="inline-flex items-center gap-2 text-white text-sm font-semibold rounded-xl px-4 py-2.5 transition-all duration-150 hover:-translate-y-px shadow-sm hover:shadow-md bg-(--accent)"
-        @click="showAddGoal = true"
+        @click="openAddGoal"
       >
         <i class="pi pi-plus text-xs" />
         New Goal
@@ -71,7 +71,7 @@
             />
             <button
               :disabled="!form.title.trim() || suggestLoading"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed bg-(--accent-soft) text-(--accent)] hover:bg-(--accent) hover:text-white shrink-0"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed bg-(--accent-soft) text-(--accent) hover:bg-(--accent) hover:text-white shrink-0"
               title="Improve goal with AI"
               @click="suggestGoal"
             >
@@ -129,7 +129,7 @@
           <Button label="Cancel" severity="secondary" text @click="cancelAdd" />
           <Button
             label="Add Goal"
-            :disabled="!form.title.trim()"
+            :disabled="!form.title.trim() || isCreating"
             class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold!"
             @click="submitGoal"
           />
@@ -150,7 +150,13 @@
       </div>
 
       <div
-        v-if="activeGoals.length === 0"
+        v-if="isLoading"
+        class="bg-white border border-stone-200 rounded-2xl p-10 text-center text-sm text-stone-400"
+      >
+        <i class="pi pi-spinner pi-spin mr-2" />Loading goals...
+      </div>
+      <div
+        v-else-if="activeGoals.length === 0"
         class="bg-white border border-dashed border-stone-200 rounded-2xl p-10 text-center text-sm text-stone-400"
       >
         No active goals. Add one above ↑
@@ -256,14 +262,12 @@
               >
                 Link Tasks
               </p>
-
               <div
                 v-if="activeTasks.length === 0"
                 class="text-xs text-stone-400"
               >
                 No active tasks available.
               </div>
-
               <div v-else class="flex flex-col gap-2">
                 <div
                   v-for="task in activeTasks"
@@ -294,8 +298,8 @@
                     ]"
                     @click="
                       goal.linkedTaskIds.includes(task._id)
-                        ? unlinkTask(goal._id, task._id)
-                        : linkTask(goal._id, task._id)
+                        ? unlinkTask({ goalId: goal._id, taskId: task._id })
+                        : linkTask({ goalId: goal._id, taskId: task._id })
                     "
                   >
                     {{
@@ -355,36 +359,72 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import Button from "primevue/button";
-import { useGoals } from "./goals.composable";
+import { useGoalsStore } from "./goals.store";
+import {
+  useGoalForm,
+  useGoalFormatters,
+  useGoalFilters,
+  useGoalProgress,
+} from "./goals.composable";
+import {
+  useGoalsQuery,
+  useCreateGoalMutation,
+  useCompleteGoalMutation,
+  useDeleteGoalMutation,
+  useLinkTaskMutation,
+  useUnlinkTaskMutation,
+} from "./goals.tanstack";
+import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
 import { aiApi } from "@/api/ai.api";
 
-const {
-  activeGoals,
-  completedGoals,
-  getGoalProgress,
-  linkTask,
-  unlinkTask,
-  completeGoal,
-  deleteGoal,
-  activeTasks,
-  showAddGoal,
-  expandedGoalId,
-  form,
-  timeframeOptions,
-  timeframeColor,
-  submitGoal,
-  cancelAdd,
-  toggleExpand,
-} = useGoals();
+const { data: goals, isLoading } = useGoalsQuery();
+const { data: tasks } = useTasksQuery();
+const { mutate: completeGoal } = useCompleteGoalMutation();
+const { mutate: deleteGoal } = useDeleteGoalMutation();
+const { mutate: createGoal, isPending: isCreating } = useCreateGoalMutation();
+const { mutate: linkTask } = useLinkTaskMutation();
+const { mutate: unlinkTask } = useUnlinkTaskMutation();
+
+const goalsStore = useGoalsStore();
+const { showAddGoal, expandedGoalId } = storeToRefs(goalsStore);
+const { openAddGoal, closeAddGoal, toggleExpand } = goalsStore;
+
+const { form, resetForm, timeframeOptions } = useGoalForm();
+const { timeframeColor } = useGoalFormatters();
+const { activeGoals, completedGoals } = useGoalFilters(() => goals.value);
+const { getGoalProgress } = useGoalProgress(() => tasks.value);
+
+const activeTasks = computed(
+  () => tasks.value?.filter((t) => t.status === "active") ?? [],
+);
 
 const suggestLoading = ref(false);
 const suggestError = ref("");
+
+const submitGoal = () => {
+  if (!form.value.title.trim()) return;
+  createGoal({
+    title: form.value.title.trim(),
+    description: form.value.description || undefined,
+    timeframe: form.value.timeframe,
+    xpReward: form.value.xpReward,
+    deadline: form.value.deadline ?? undefined,
+  });
+  closeAddGoal();
+  resetForm();
+};
+
+const cancelAdd = () => {
+  closeAddGoal();
+  resetForm();
+};
 
 const suggestGoal = async () => {
   if (!form.value.title.trim()) return;

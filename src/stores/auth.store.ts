@@ -35,11 +35,9 @@ export const useAuthStore = defineStore("auth", () => {
   const isAuthenticated = computed(() => !!token.value);
 
   const syncStores = async () => {
-    const { useTasksStore } = await import("@/modules/Tasks/tasks.store");
-    const { useGoalsStore } = await import("@/modules/Goals/goals.store");
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["tasks"] }),
-      useGoalsStore().fetchGoals(),
+      queryClient.invalidateQueries({ queryKey: ["goals"] }),
     ]);
   };
 
