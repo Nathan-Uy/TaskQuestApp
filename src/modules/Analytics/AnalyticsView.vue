@@ -168,7 +168,6 @@
             </p>
           </div>
         </div>
-
         <div class="flex flex-col gap-2">
           <p
             class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
@@ -207,7 +206,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -220,7 +220,8 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Bar } from "vue-chartjs";
-import { useAnalytics } from "./analytics.composable";
+import { useAnalyticsStore } from "./analytics.store";
+import { useAnalyticsCharts } from "./analytics.composable";
 import { aiApi } from "@/api/ai.api";
 import type { AnalyticsPeriod } from "./analytics.type";
 import type { ReportData } from "@/types/ai.types";
@@ -236,17 +237,25 @@ ChartJS.register(
   Legend,
 );
 
+const analyticsStore = useAnalyticsStore();
+const { period } = storeToRefs(analyticsStore);
+
+const totals = computed(() => analyticsStore.getTotals(period.value));
+
+const periodOptions = [
+  { label: "7 days", value: "7d" },
+  { label: "30 days", value: "30d" },
+  { label: "90 days", value: "90d" },
+];
+
 const {
-  period,
-  periodOptions,
-  totals,
   tasksChartData,
   pomodoroChartData,
   xpChartData,
   productivityChartData,
   baseLineOptions,
   productivityBarOptions,
-} = useAnalytics();
+} = useAnalyticsCharts();
 
 const reportLoading = ref(false);
 const pdfLoading = ref(false);
