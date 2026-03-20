@@ -6,7 +6,7 @@ import { AuthRequest } from "../middleware/auth";
 
 const signToken = (id: string) =>
   jwt.sign({ id }, process.env.JWT_SECRET!, {
-    expiresIn:'7d',
+    expiresIn: "7d",
   });
 
 const sanitizeUser = (user: any) => ({
@@ -52,10 +52,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "All fields are required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "No account found with that email" });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ message: "Invalid credentials" });
+    if (!match) return res.status(401).json({ message: "Incorrect password" });
 
     const token = signToken(user._id.toString());
     res.json({ token, user: sanitizeUser(user) });

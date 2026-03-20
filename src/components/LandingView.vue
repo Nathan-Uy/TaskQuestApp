@@ -273,8 +273,9 @@ const handleLogin = async () => {
   try {
     await auth.login(loginForm.value.email, loginForm.value.password);
     router.push("/tasks");
-  } catch (e: any) {
-    error.value = e.response?.data?.message || "Invalid credentials";
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { message?: string } } };
+    error.value = err.response?.data?.message || "Something went wrong";
   } finally {
     loading.value = false;
   }
