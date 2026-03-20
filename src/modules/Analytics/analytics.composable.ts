@@ -1,26 +1,18 @@
-import { ref, computed, watch, onMounted } from "vue";
-import { useAnalyticsStore } from "./analytics.store";
-import type { AnalyticsPeriod } from "./analytics.type";
+import { computed } from "vue";
 import type { ChartData, ChartOptions } from "chart.js";
+import { useAnalyticsStore } from "./analytics.store";
 
-export const useAnalytics = () => {
+export const useAnalyticsCharts = () => {
   const store = useAnalyticsStore();
-  const period = ref<AnalyticsPeriod>("7d");
 
-  const periodOptions = [
-    { label: "7 days", value: "7d" },
-    { label: "30 days", value: "30d" },
-    { label: "90 days", value: "90d" },
-  ];
+  const dailyStats = computed(() => store.getDailyStats(store.period));
+  const weekdayStats = computed(() => store.getWeekdayStats(store.period));
 
-  const dailyStats = computed(() => store.getDailyStats(period.value));
-  const weekdayStats = computed(() => store.getWeekdayStats(period.value));
-  const totals = computed(() => store.getTotals(period.value));
-
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
 
   const labels = computed(() =>
     dailyStats.value.map((d) => formatDate(d.date)),
@@ -72,7 +64,7 @@ export const useAnalytics = () => {
       {
         data: dailyStats.value.map((d) => d.tasksCompleted),
         borderColor: "#c2622a",
-        backgroundColor: "rgba(194, 98, 42, 0.08)",
+        backgroundColor: "rgba(194,98,42,0.08)",
         fill: true,
       },
     ],
@@ -84,7 +76,7 @@ export const useAnalytics = () => {
       {
         data: dailyStats.value.map((d) => d.pomodoroSessions),
         borderColor: "#10b981",
-        backgroundColor: "rgba(16, 185, 129, 0.08)",
+        backgroundColor: "rgba(16,185,129,0.08)",
         fill: true,
       },
     ],
@@ -96,7 +88,7 @@ export const useAnalytics = () => {
       {
         data: dailyStats.value.map((d) => d.xpEarned),
         borderColor: "#7c5cbf",
-        backgroundColor: "rgba(124, 92, 191, 0.08)",
+        backgroundColor: "rgba(124,92,191,0.08)",
         fill: true,
       },
     ],
@@ -108,12 +100,12 @@ export const useAnalytics = () => {
       {
         label: "Tasks",
         data: weekdayStats.value.map((d) => d.tasksCompleted),
-        backgroundColor: "rgba(194, 98, 42, 0.7)",
+        backgroundColor: "rgba(194,98,42,0.7)",
       },
       {
         label: "Pomodoros",
         data: weekdayStats.value.map((d) => d.pomodoroSessions),
-        backgroundColor: "rgba(16, 185, 129, 0.7)",
+        backgroundColor: "rgba(16,185,129,0.7)",
       },
     ],
   }));
@@ -129,9 +121,6 @@ export const useAnalytics = () => {
   } as ChartOptions<"bar">;
 
   return {
-    period,
-    periodOptions,
-    totals,
     tasksChartData,
     pomodoroChartData,
     xpChartData,
