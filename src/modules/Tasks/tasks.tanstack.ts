@@ -29,7 +29,7 @@ export const useCompleteTaskMutation = () => {
 
   return useMutation({
     mutationFn: (id: string) => tasksService.complete(id),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData<Task[]>(
         TASKS_KEY,
         (old) =>
@@ -44,10 +44,18 @@ export const useCompleteTaskMutation = () => {
         gamification.profile.totalXP = data.user.totalXP;
         gamification.profile.tasksCompleted = data.user.tasksCompleted;
       }
+
+      // Stop pomodoro if the completed task is currently linked
+      const { usePomodoroStore } =
+        await import("@/modules/Pomodoro/pomodoro.store");
+      const pomodoro = usePomodoroStore();
+      if (pomodoro.linkedTaskId === data.task._id && pomodoro.isRunning) {
+        pomodoro.pause();
+        pomodoro.linkTask(null);
+      }
     },
   });
 };
-
 export const useDeleteTaskMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
