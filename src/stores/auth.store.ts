@@ -34,6 +34,19 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isAuthenticated = computed(() => !!token.value);
 
+  const syncGamification = async (userData: AuthUser) => {
+    const { useGamificationStore } = await import("@/components/sidebar.store");
+    const gamification = useGamificationStore();
+    gamification.profile.displayName = userData.displayName;
+    gamification.profile.level = userData.level;
+    gamification.profile.currentXP = userData.currentXP;
+    gamification.profile.xpToNextLevel = userData.xpToNextLevel;
+    gamification.profile.totalXP = userData.totalXP;
+    gamification.profile.streakDays = userData.streakDays;
+    gamification.profile.tasksCompleted = userData.tasksCompleted;
+    gamification.profile.pomodorosDone = userData.pomodorosDone;
+  };
+
   const syncStores = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["tasks"] }),
@@ -46,6 +59,7 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = data.token;
     user.value = data.user;
     sessionStorage.setItem("token", data.token);
+    await syncGamification(data.user);
     await syncStores();
     import("@/router/router").then(({ setInitialized }) =>
       setInitialized(true),
@@ -65,6 +79,7 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = data.token;
     user.value = data.user;
     sessionStorage.setItem("token", data.token);
+    await syncGamification(data.user);
     await syncStores();
     import("@/router/router").then(({ setInitialized }) =>
       setInitialized(true),
@@ -75,6 +90,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const { data } = await api.get("/auth/me");
       user.value = data;
+      await syncGamification(data);
     } catch {
       logout();
     }
@@ -84,11 +100,9 @@ export const useAuthStore = defineStore("auth", () => {
     token.value = "";
     user.value = null;
     sessionStorage.removeItem("token");
-
-    // Reset router initialized flag
-    import("@/router/router").then(({ setInitialized }) => {
-      setInitialized(false);
-    });
+    import("@/router/router").then(({ setInitialized }) =>
+      setInitialized(false),
+    );
   };
 
   return {
