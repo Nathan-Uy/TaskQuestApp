@@ -1,7 +1,7 @@
-export type CalendarView = 'day' | 'week' | 'month'
+export type CalendarView = "day" | "week" | "month";
 
 export interface CalendarDay {
-  date: Date
-  isToday: boolean
-  isCurrentMonth: boolean
+  date: Date;
+  isToday: boolean;
+  isCurrentMonth: boolean;
 }
