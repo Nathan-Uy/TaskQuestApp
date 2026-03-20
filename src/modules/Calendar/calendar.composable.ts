@@ -1,27 +1,10 @@
 import { ref, computed } from "vue";
-import { useCalendarStore } from "@/modules/Calendar/calendar.store";
-import { useTasksStore } from "@/modules/Tasks/tasks.store";
+import { useCalendarStore } from "./calendar.store";
+import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
+import { useCreateTaskMutation } from "@/modules/Tasks/tasks.tanstack";
 import type { Task } from "@/modules/Tasks/tasks.type";
 
-export const useCalendar = () => {
-  const calendarStore = useCalendarStore();
-  const tasksStore = useTasksStore();
-
-  const newTaskTitle = ref("");
-  const newTaskPriority = ref<"low" | "medium" | "high">("medium");
-
-  const priorityOptions = [
-    { label: "Low", value: "low" },
-    { label: "Medium", value: "medium" },
-    { label: "High", value: "high" },
-  ];
-
-  const views = [
-    { key: "day", label: "Day" },
-    { key: "week", label: "Week" },
-    { key: "month", label: "Month" },
-  ];
-
+export const useCalendarFormatters = () => {
   const isToday = (d: Date | string) => {
     const date = new Date(d);
     const t = new Date();
@@ -37,6 +20,14 @@ export const useCalendar = () => {
     a.getMonth() === b.getMonth() &&
     a.getFullYear() === b.getFullYear();
 
+  const isOverdue = (d: Date | string) => {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
   const formatDayHeader = (d: Date) =>
     d.toLocaleDateString("en-US", {
       weekday: "long",
@@ -48,12 +39,66 @@ export const useCalendar = () => {
   const formatWeekDay = (d: Date) =>
     d.toLocaleDateString("en-US", { weekday: "short" });
 
-  const getTasksForDay = (day: Date): Task[] => {
-    return tasksStore.tasks.filter((task) => {
-      if (!task.dueDate) return false;
-      return isSameDay(new Date(task.dueDate), day);
-    });
+  const formatDueDate = (d: Date | string) => {
+    const date = new Date(d);
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
+
+  return {
+    isToday,
+    isSameDay,
+    isOverdue,
+    formatDayHeader,
+    formatWeekDay,
+    formatDueDate,
+  };
+};
+
+export const useCalendarTasks = (tasks: () => Task[] | undefined) => {
+  const { isSameDay } = useCalendarFormatters();
+
+  const getTasksForDay = (day: Date): Task[] =>
+    (tasks() ?? []).filter(
+      (t) => t.dueDate && isSameDay(new Date(t.dueDate), day),
+    );
+
+  return { getTasksForDay };
+};
+
+export const useCalendar = () => {
+  const calendarStore = useCalendarStore();
+  const { data: tasks } = useTasksQuery();
+  const { mutate: createTask } = useCreateTaskMutation();
+
+  const {
+    isToday,
+    isSameDay,
+    isOverdue,
+    formatDayHeader,
+    formatWeekDay,
+    formatDueDate,
+  } = useCalendarFormatters();
+  const { getTasksForDay } = useCalendarTasks(() => tasks.value);
+
+  const newTaskTitle = ref("");
+  const newTaskPriority = ref<"low" | "medium" | "high">("medium");
+
+  const priorityOptions = [
+    { label: "Low", value: "low" },
+    { label: "Medium", value: "medium" },
+    { label: "High", value: "high" },
+  ];
+
+  const views = [
+    { key: "day", label: "Day" },
+    { key: "week", label: "Week" },
+    { key: "month", label: "Month" },
+  ];
 
   const tasksForCursor = computed(() => getTasksForDay(calendarStore.cursor));
 
@@ -74,35 +119,16 @@ export const useCalendar = () => {
 
   const addTask = () => {
     if (!newTaskTitle.value.trim()) return;
-    tasksStore.addTask({
+    createTask({
       title: newTaskTitle.value.trim(),
       priority: newTaskPriority.value,
       duration: 1500,
-      notes: undefined,
       dueDate: new Date(calendarStore.cursor),
     });
     newTaskTitle.value = "";
     newTaskPriority.value = "medium";
   };
 
-  const isOverdue = (d: Date | string) => {
-    const date = new Date(d);
-    date.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  };
-
-  const formatDueDate = (d: Date | string) => {
-    const date = new Date(d);
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) return "Today";
-    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
   return {
     currentView: computed(() => calendarStore.currentView),
     cursor: computed(() => calendarStore.cursor),
@@ -112,7 +138,6 @@ export const useCalendar = () => {
     goToToday: calendarStore.goToToday,
     setView: calendarStore.setView,
     setCursor: calendarStore.setCursor,
-
     views,
     priorityOptions,
     newTaskTitle,
@@ -121,11 +146,11 @@ export const useCalendar = () => {
     headerSubtitle,
     isToday,
     isSameDay,
+    isOverdue,
+    formatDayHeader,
     formatWeekDay,
+    formatDueDate,
     getTasksForDay,
     addTask,
-    formatDayHeader,
-    isOverdue,
-    formatDueDate,
   };
 };
