@@ -117,19 +117,14 @@
         >
           New Task
         </p>
-
-        <div class="flex flex-col" style="gap: 6px; margin-bottom: 16px">
-          <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
-            >Task name</label
-          >
-          <div class="flex gap-2">
-            <InputText
-              v-model="form.title"
-              placeholder="What needs to be done?"
-              class="flex-1"
-              @keyup.enter="submitTask"
-              autofocus
-            />
+        <TaskForm
+          v-model:form="form"
+          submit-label="Add Task"
+          :loading="isCreating"
+          @submit="submitTask"
+          @cancel="cancelAdd"
+        >
+          <template #ai-button>
             <button
               :disabled="!form.title.trim() || descLoading"
               class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed bg-(--accent-soft) text-(--accent) hover:bg-(--accent) hover:text-white shrink-0"
@@ -144,95 +139,8 @@
               />
               {{ descLoading ? "Thinking..." : "AI Fill" }}
             </button>
-          </div>
-          <p v-if="descError" class="text-xs text-red-500 mt-1">
-            {{ descError }}
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2" style="gap: 16px; margin-bottom: 16px">
-          <div class="flex flex-col" style="gap: 6px">
-            <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
-              >Priority</label
-            >
-            <Select
-              v-model="form.priority"
-              :options="priorityOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col" style="gap: 6px">
-            <label class="text-stone-500 font-medium" style="font-size: 0.75rem"
-              >Duration</label
-            >
-            <div class="grid grid-cols-3" style="gap: 8px">
-              <InputNumber
-                v-model="form.hours"
-                :min="0"
-                :use-grouping="false"
-                placeholder="0h"
-                class="w-full"
-                input-class="w-full text-center"
-              />
-              <InputNumber
-                v-model="form.minutes"
-                :min="0"
-                :max="59"
-                :use-grouping="false"
-                placeholder="25m"
-                class="w-full"
-                input-class="w-full text-center"
-              />
-              <InputNumber
-                v-model="form.seconds"
-                :min="0"
-                :max="59"
-                :use-grouping="false"
-                placeholder="0s"
-                class="w-full"
-                input-class="w-full text-center"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col" style="gap: 6px; margin-bottom: 16px">
-          <label class="text-stone-500 font-medium" style="font-size: 0.75rem">
-            Due date <span class="font-normal text-stone-400">(optional)</span>
-          </label>
-          <DatePicker
-            v-model="form.dueDate"
-            placeholder="Pick a date"
-            date-format="M dd, yy"
-            class="w-full"
-            show-icon
-            icon-display="input"
-          />
-        </div>
-
-        <div class="flex flex-col" style="gap: 6px; margin-bottom: 20px">
-          <label class="text-stone-500 font-medium" style="font-size: 0.75rem">
-            Notes <span class="font-normal text-stone-400">(optional)</span>
-          </label>
-          <Textarea
-            v-model="form.notes"
-            placeholder="Any details..."
-            :rows="2"
-            class="w-full resize-none"
-          />
-        </div>
-
-        <div class="flex justify-end" style="gap: 8px">
-          <Button label="Cancel" severity="secondary" text @click="cancelAdd" />
-          <Button
-            label="Add Task"
-            :disabled="!form.title.trim() || isCreating"
-            class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
-            @click="submitTask"
-          />
-        </div>
+          </template>
+        </TaskForm>
       </div>
     </Transition>
 
@@ -383,30 +291,57 @@
       </div>
     </section>
 
-    <section
-      v-if="allCompleted.length > 0 && completedToday.length === 0"
-      style="margin-bottom: 32px"
-    >
-      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
-        <span
-          class="font-semibold uppercase tracking-widest"
-          style="font-size: 0.68rem; color: var(--success)"
-          >Completed</span
-        >
-        <span
-          class="font-semibold rounded-full"
-          style="
-            background: var(--success-soft);
-            color: var(--success);
-            font-size: 0.7rem;
-            padding: 1px 8px;
-          "
-          >{{ allCompleted.length }}</span
-        >
+    <section v-if="allCompleted.length > 0" style="margin-bottom: 32px">
+      <div
+        class="flex items-center justify-between"
+        style="margin-bottom: 12px"
+      >
+        <div class="flex items-center" style="gap: 8px">
+          <span
+            class="font-semibold uppercase tracking-widest"
+            style="font-size: 0.68rem; color: var(--success)"
+            >{{ selectedDate ? "Filtered" : "All Completed" }}</span
+          >
+          <span
+            class="font-semibold rounded-full"
+            style="
+              background: var(--success-soft);
+              color: var(--success);
+              font-size: 0.7rem;
+              padding: 1px 8px;
+            "
+            >{{ filteredCompleted.length }}</span
+          >
+        </div>
+        <div class="flex items-center gap-2">
+          <DatePicker
+            v-model="selectedDate"
+            placeholder="Filter by date"
+            date-format="M dd, yy"
+            show-icon
+            icon-display="input"
+            :show-button-bar="true"
+            @clear-click="clearDateFilter"
+          />
+          <button
+            v-if="selectedDate"
+            class="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+            @click="clearDateFilter"
+          >
+            <i class="pi pi-times text-xs" />
+          </button>
+        </div>
       </div>
-      <div class="flex flex-col" style="gap: 8px">
+      <div
+        v-if="filteredCompleted.length === 0"
+        class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
+        style="padding: 40px; font-size: 0.875rem"
+      >
+        No completed tasks for this date.
+      </div>
+      <div v-else class="flex flex-col" style="gap: 8px">
         <TaskCard
-          v-for="task in allCompleted"
+          v-for="task in filteredCompleted"
           :key="task._id"
           :task="task"
           :readonly="true"
@@ -420,10 +355,6 @@
 import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
 import DatePicker from "primevue/datepicker";
 import { useGamificationStore } from "@/components/sidebar.store";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
@@ -433,6 +364,7 @@ import {
   useTaskDate,
 } from "@/modules/Tasks/tasks.composable";
 import TaskCard from "@/modules/Tasks/TasksCard.vue";
+import TaskForm from "@/modules/Tasks/TaskForm.vue";
 import { aiApi } from "@/api/ai.api";
 import type { TriagedTask } from "@/types/ai.types";
 import {
@@ -453,8 +385,15 @@ const { showAddTask } = storeToRefs(tasksStore);
 const { openAddTask, closeAddTask } = tasksStore;
 
 const { form, resetForm, getDuration, priorityOptions } = useTaskForm();
-const { activeTasks, completedToday, allCompleted, overdueCount } =
-  useTaskFilters(() => tasks.value);
+const {
+  activeTasks,
+  completedToday,
+  allCompleted,
+  filteredCompleted,
+  overdueCount,
+  selectedDate,
+  clearDateFilter,
+} = useTaskFilters(() => tasks.value);
 const { today } = useTaskDate();
 
 const descLoading = ref(false);

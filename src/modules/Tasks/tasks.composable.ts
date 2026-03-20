@@ -39,6 +39,8 @@ export const useTaskForm = () => {
 };
 
 export const useTaskFilters = (tasks: () => Task[] | undefined) => {
+  const selectedDate = ref<Date | null>(null);
+
   const activeTasks = computed(
     () => tasks()?.filter((t) => t.status === "active") ?? [],
   );
@@ -59,6 +61,15 @@ export const useTaskFilters = (tasks: () => Task[] | undefined) => {
     () => tasks()?.filter((t) => t.status === "completed") ?? [],
   );
 
+  const filteredCompleted = computed(() => {
+    if (!selectedDate.value) return allCompleted.value;
+    const selected = new Date(selectedDate.value).toDateString();
+    return allCompleted.value.filter(
+      (t) =>
+        t.completedAt && new Date(t.completedAt).toDateString() === selected,
+    );
+  });
+
   const overdueCount = computed(() => {
     const now = new Date();
     return activeTasks.value.filter(
@@ -66,7 +77,19 @@ export const useTaskFilters = (tasks: () => Task[] | undefined) => {
     ).length;
   });
 
-  return { activeTasks, completedToday, allCompleted, overdueCount };
+  const clearDateFilter = () => {
+    selectedDate.value = null;
+  };
+
+  return {
+    activeTasks,
+    completedToday,
+    allCompleted,
+    filteredCompleted,
+    overdueCount,
+    selectedDate,
+    clearDateFilter,
+  };
 };
 
 export const useTaskDate = () => {
