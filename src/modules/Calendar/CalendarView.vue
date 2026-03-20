@@ -1,6 +1,5 @@
 <template>
   <div class="pl-8">
-    <!-- Page Header -->
     <div class="flex items-center justify-between mb-7">
       <div>
         <h1 class="text-3xl font-serif text-stone-800 leading-tight">
@@ -9,7 +8,6 @@
         <p class="text-xs text-stone-400 mt-1">{{ headerSubtitle }}</p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- View toggle -->
         <div class="flex gap-1 bg-stone-100 rounded-lg p-1">
           <button
             v-for="v in views"
@@ -25,7 +23,6 @@
             {{ v.label }}
           </button>
         </div>
-        <!-- Nav arrows -->
         <div class="flex items-center gap-1">
           <button
             class="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all duration-150"
@@ -49,12 +46,10 @@
       </div>
     </div>
 
-    <!-- Daily View -->
     <div
       v-if="currentView === 'day'"
       class="grid grid-cols-[1fr_260px] gap-5 items-start"
     >
-      <!-- Day schedule -->
       <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-stone-100">
           <p class="text-sm font-semibold text-stone-800">
@@ -76,7 +71,7 @@
           <div v-else class="flex flex-col gap-2">
             <div
               v-for="task in tasksForCursor"
-              :key="task.id"
+              :key="task._id"
               :class="[
                 'flex items-start gap-3 rounded-xl px-4 py-3 border transition-all duration-150',
                 task.status === 'completed'
@@ -132,7 +127,6 @@
         </div>
       </div>
 
-      <!-- Add task panel -->
       <div class="bg-white border border-stone-200 rounded-2xl p-5">
         <p
           class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
@@ -161,8 +155,7 @@
           </div>
           <button
             :disabled="!newTaskTitle.trim()"
-            class="w-full py-2 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-px"
-            style="background: var(--accent)"
+            class="w-full py-2 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-px bg-(--accent)"
             @click="addTask"
           >
             Add Task
@@ -171,7 +164,6 @@
       </div>
     </div>
 
-    <!-- Weekly View -->
     <div v-else-if="currentView === 'week'">
       <div class="grid grid-cols-7 gap-2 mb-2">
         <div
@@ -225,7 +217,7 @@
           <div v-else class="flex flex-col gap-1.5">
             <div
               v-for="task in getTasksForDay(day).slice(0, 3)"
-              :key="task.id"
+              :key="task._id"
               :class="[
                 'text-xs rounded-md px-2 py-1 font-medium truncate',
                 task.priority === 'high'
@@ -249,7 +241,6 @@
       </div>
     </div>
 
-    <!-- Monthly View -->
     <div v-else-if="currentView === 'month'">
       <div class="grid grid-cols-7 gap-2 mb-2">
         <div
@@ -288,7 +279,7 @@
             <div class="flex flex-col gap-1">
               <div
                 v-for="task in getTasksForDay(day).slice(0, 2)"
-                :key="task.id"
+                :key="task._id"
                 :class="[
                   'text-[0.6rem] rounded px-1.5 py-0.5 font-medium truncate',
                   task.priority === 'high'
