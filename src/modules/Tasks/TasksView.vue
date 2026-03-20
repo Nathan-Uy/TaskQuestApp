@@ -383,30 +383,57 @@
       </div>
     </section>
 
-    <section
-      v-if="allCompleted.length > 0 && completedToday.length === 0"
-      style="margin-bottom: 32px"
-    >
-      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
-        <span
-          class="font-semibold uppercase tracking-widest"
-          style="font-size: 0.68rem; color: var(--success)"
-          >Completed</span
-        >
-        <span
-          class="font-semibold rounded-full"
-          style="
-            background: var(--success-soft);
-            color: var(--success);
-            font-size: 0.7rem;
-            padding: 1px 8px;
-          "
-          >{{ allCompleted.length }}</span
-        >
+    <section v-if="allCompleted.length > 0" style="margin-bottom: 32px">
+      <div
+        class="flex items-center justify-between"
+        style="margin-bottom: 12px"
+      >
+        <div class="flex items-center" style="gap: 8px">
+          <span
+            class="font-semibold uppercase tracking-widest"
+            style="font-size: 0.68rem; color: var(--success)"
+            >{{ selectedDate ? "Filtered" : "All Completed" }}</span
+          >
+          <span
+            class="font-semibold rounded-full"
+            style="
+              background: var(--success-soft);
+              color: var(--success);
+              font-size: 0.7rem;
+              padding: 1px 8px;
+            "
+            >{{ filteredCompleted.length }}</span
+          >
+        </div>
+        <div class="flex items-center gap-2">
+          <DatePicker
+            v-model="selectedDate"
+            placeholder="Filter by date"
+            date-format="M dd, yy"
+            show-icon
+            icon-display="input"
+            :show-button-bar="true"
+            @clear-click="clearDateFilter"
+          />
+          <button
+            v-if="selectedDate"
+            class="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+            @click="clearDateFilter"
+          >
+            <i class="pi pi-times text-xs" />
+          </button>
+        </div>
       </div>
-      <div class="flex flex-col" style="gap: 8px">
+      <div
+        v-if="filteredCompleted.length === 0"
+        class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
+        style="padding: 40px; font-size: 0.875rem"
+      >
+        No completed tasks for this date.
+      </div>
+      <div v-else class="flex flex-col" style="gap: 8px">
         <TaskCard
-          v-for="task in allCompleted"
+          v-for="task in filteredCompleted"
           :key="task._id"
           :task="task"
           :readonly="true"
@@ -453,8 +480,15 @@ const { showAddTask } = storeToRefs(tasksStore);
 const { openAddTask, closeAddTask } = tasksStore;
 
 const { form, resetForm, getDuration, priorityOptions } = useTaskForm();
-const { activeTasks, completedToday, allCompleted, overdueCount } =
-  useTaskFilters(() => tasks.value);
+const {
+  activeTasks,
+  completedToday,
+  allCompleted,
+  filteredCompleted,
+  overdueCount,
+  selectedDate,
+  clearDateFilter,
+} = useTaskFilters(() => tasks.value);
 const { today } = useTaskDate();
 
 const descLoading = ref(false);
