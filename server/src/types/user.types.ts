@@ -23,4 +23,6 @@ export interface IUser extends Document {
       dailyReminderTime: string;
     };
   };
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
