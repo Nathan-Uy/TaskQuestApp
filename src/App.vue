@@ -2,13 +2,17 @@
   <div
     v-if="!isAuthPage"
     class="grid grid-cols-[224px_1fr] h-screen overflow-hidden"
+    style="background: var(--surface-bg)"
   >
     <AppSideBar />
-    <main class="overflow-y-auto pl-10 pr-8 py-8">
+    <main
+      class="overflow-y-auto pl-10 pr-8 py-8"
+      style="background: var(--surface-bg)"
+    >
       <RouterView />
     </main>
   </div>
-  <div v-else>
+  <div v-else style="background: var(--surface-bg)">
     <RouterView />
   </div>
 </template>

@@ -1,5 +1,17 @@
 import { Document } from "mongoose";
 
+export interface IUserSettings {
+  darkMode: boolean;
+  themeColor: string;
+  notifications: {
+    pomodoroEnd: boolean;
+    breakEnd: boolean;
+    taskDue: boolean;
+    dailyReminder: boolean;
+    dailyReminderTime: string;
+  };
+}
+
 export interface IUser extends Document {
   displayName: string;
   email: string;
@@ -12,17 +24,7 @@ export interface IUser extends Document {
   tasksCompleted: number;
   pomodorosDone: number;
   lastActiveDate?: Date;
-  settings: {
-    darkMode: boolean;
-    themeColor: string;
-    notifications: {
-      pomodoroEnd: boolean;
-      breakEnd: boolean;
-      taskDue: boolean;
-      dailyReminder: boolean;
-      dailyReminderTime: string;
-    };
-  };
+  settings: IUserSettings;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
 }

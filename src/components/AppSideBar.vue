@@ -1,10 +1,18 @@
 <template>
   <aside
-    class="w-56 h-screen flex flex-col bg-white border-r border-stone-200 overflow-y-auto px-5 py-7"
+    class="w-56 h-screen flex flex-col overflow-y-auto px-5 py-7 border-r transition-colors duration-200"
+    style="background: var(--sidebar-bg); border-color: var(--sidebar-border)"
   >
-    <div class="pb-5 mb-5 border-b border-stone-200">
-      <p class="font-serif text-xl leading-none text-stone-800">TaskQuest</p>
-      <p class="text-[0.7rem] text-stone-400 mt-1">Productivity</p>
+    <div class="pb-5 mb-5 border-b" style="border-color: var(--sidebar-border)">
+      <p
+        class="font-serif text-xl leading-none"
+        style="color: var(--ink-primary)"
+      >
+        TaskQuest
+      </p>
+      <p class="text-[0.7rem] mt-1" style="color: var(--ink-muted)">
+        Productivity
+      </p>
     </div>
 
     <div class="mb-6">
@@ -15,12 +23,16 @@
           {{ profile.displayName.charAt(0) }}
         </div>
         <div>
-          <p class="text-sm font-semibold text-stone-800 leading-none mb-2">
+          <p
+            class="text-sm font-semibold leading-none mb-2"
+            style="color: var(--ink-primary)"
+          >
             {{ profile.displayName }}
           </p>
           <div class="relative group/badge">
             <div
-              class="relative overflow-hidden rounded-md w-[27.5] bg-(--accent-soft) px-2.5 py-1.5 shadow-[0_2px_8px_rgba(194,98,42,0.2)]"
+              class="relative overflow-hidden rounded-md w-27.5 px-2.5 py-1.5 shadow-[0_2px_8px_rgba(194,98,42,0.2)]"
+              style="background: var(--accent-soft)"
             >
               <div
                 class="absolute inset-0 rounded-md transition-[width] duration-700 ease-out bg-(--accent) opacity-15"
@@ -44,12 +56,14 @@
               </div>
             </div>
             <div
-              class="absolute left-0 top-full mt-2 z-50 pointer-events-none opacity-0 group-hover/badge:opacity-100 transition-opacity duration-150 bg-[#1a1714] text-white text-[0.7rem] px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg"
+              class="absolute left-0 top-full mt-2 z-50 pointer-events-none opacity-0 group-hover/badge:opacity-100 transition-opacity duration-150 text-white text-[0.7rem] px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg"
+              style="background: var(--ink-primary)"
             >
               {{ profile.xpToNextLevel - profile.currentXP }} XP to Level
               {{ profile.level + 1 }}
               <div
-                class="absolute -top-1 left-4 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px] border-b-[#1a1714]"
+                class="absolute -top-1 left-4 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px]"
+                style="border-bottom-color: var(--ink-primary)"
               />
             </div>
           </div>
@@ -64,16 +78,25 @@
         class="flex flex-col mb-2"
       >
         <button
-          class="flex items-center justify-between w-full rounded-lg hover:bg-stone-100 transition-colors duration-150 px-2 py-1.5 mb-0.5"
+          class="flex items-center justify-between w-full rounded-lg transition-colors duration-150 px-2 py-1.5 mb-0.5"
+          style="color: var(--ink-muted)"
+          @mouseenter="
+            ($event.currentTarget as HTMLElement).style.background =
+              'var(--nav-hover)'
+          "
+          @mouseleave="
+            ($event.currentTarget as HTMLElement).style.background =
+              'transparent'
+          "
           @click="toggle(section.title)"
         >
           <span
-            class="text-[0.68rem] font-semibold uppercase tracking-widest text-stone-400"
+            class="text-[0.68rem] font-semibold uppercase tracking-widest"
             >{{ section.title }}</span
           >
           <i
             :class="[
-              'pi pi-chevron-down text-stone-400 transition-transform duration-200 text-[0.6rem]',
+              'pi pi-chevron-down transition-transform duration-200 text-[0.6rem]',
               collapsed[section.title] ? '-rotate-90' : 'rotate-0',
             ]"
           />
@@ -90,8 +113,16 @@
             v-for="item in section.items"
             :key="item.name"
             :to="item.path"
-            class="flex items-center gap-2.5 rounded-lg text-sm font-medium text-stone-500 no-underline transition-all duration-150 hover:bg-stone-100 hover:text-stone-800 px-3 py-2"
+            class="flex items-center gap-2.5 rounded-lg text-sm font-medium no-underline transition-all duration-150 px-3 py-2"
+            :style="{ color: 'var(--ink-secondary)' }"
             active-class="!bg-[var(--accent-soft)] !text-[var(--accent)]"
+            @mouseenter="
+              ($event.currentTarget as HTMLElement).style.background =
+                'var(--nav-hover)'
+            "
+            @mouseleave="
+              ($event.currentTarget as HTMLElement).style.cssText = ''
+            "
           >
             <span class="w-4 text-center text-[0.95rem]">{{ item.icon }}</span>
             <span class="flex-1">{{ item.label }}</span>
@@ -101,7 +132,11 @@
     </nav>
 
     <div class="mb-3">
-      <div v-if="streakCoach" class="bg-(--accent-soft) rounded-xl p-3">
+      <div
+        v-if="streakCoach"
+        class="rounded-xl p-3"
+        style="background: var(--accent-soft)"
+      >
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-1.5">
             <i class="pi pi-sparkles text-(--accent) text-xs" />
@@ -117,20 +152,26 @@
             <i class="pi pi-times text-[0.6rem]" />
           </button>
         </div>
-        <p class="text-xs font-semibold text-stone-800 leading-snug mb-1">
+        <p
+          class="text-xs font-semibold leading-snug mb-1"
+          style="color: var(--ink-primary)"
+        >
           {{ streakCoach.habit }}
         </p>
-        <p class="text-[0.65rem] text-stone-500 leading-relaxed mb-1.5">
+        <p
+          class="text-[0.65rem] leading-relaxed mb-1.5"
+          style="color: var(--ink-secondary)"
+        >
           {{ streakCoach.why }}
         </p>
-        <p class="text-[0.65rem] font-medium text(--accent)">
+        <p class="text-[0.65rem] font-medium text-(--accent)">
           ▶ {{ streakCoach.howToStart }}
         </p>
       </div>
       <button
         v-else
         :disabled="streakLoading"
-        class="w-full flex items-center justify-center gap-1.5 text-[0.7rem] font-semibold text(--accent) bg-(--accent-soft) hover:bg-(--accent) hover:text-white rounded-xl py-2 transition-all duration-150 disabled:opacity-50"
+        class="w-full flex items-center justify-center gap-1.5 text-[0.7rem] font-semibold text-(--accent) bg-(--accent-soft) hover:bg-(--accent) hover:text-white rounded-xl py-2 transition-all duration-150 disabled:opacity-50"
         @click="fetchStreakCoach"
       >
         <i
@@ -143,17 +184,27 @@
       </button>
     </div>
 
-    <div class="border-t border-stone-200 pt-4 mt-2">
+    <div class="pt-4 mt-2 border-t" style="border-color: var(--sidebar-border)">
       <div class="flex flex-col gap-1">
         <button
-          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-150 px-3 py-2"
+          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2"
+          style="color: var(--ink-secondary)"
+          @mouseenter="
+            ($event.currentTarget as HTMLElement).style.background =
+              'var(--nav-hover)'
+          "
+          @mouseleave="
+            ($event.currentTarget as HTMLElement).style.background =
+              'transparent'
+          "
           @click="router.push('/settings')"
         >
           <i class="pi pi-cog text-sm" />
           <span>Settings</span>
         </button>
         <button
-          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium text-stone-500 hover:bg-red-50 hover:text-red-500 transition-all duration-150 px-3 py-2"
+          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2 hover:bg-red-50 hover:text-red-500"
+          style="color: var(--ink-secondary)"
           @click="handleLogout"
         >
           <i class="pi pi-sign-out text-sm" />
