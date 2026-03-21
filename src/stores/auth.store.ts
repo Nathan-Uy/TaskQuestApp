@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import api from "@/api/axios";
 import { useQueryClient } from "@tanstack/vue-query";
+import type { AppSettings } from "@/modules/Settings/settings.type";
 
 export interface AuthUser {
   _id: string;
@@ -14,17 +15,7 @@ export interface AuthUser {
   streakDays: number;
   tasksCompleted: number;
   pomodorosDone: number;
-  settings: {
-    darkMode: boolean;
-    themeColor: string;
-    notifications: {
-      pomodoroEnd: boolean;
-      breakEnd: boolean;
-      taskDue: boolean;
-      dailyReminder: boolean;
-      dailyReminderTime: string;
-    };
-  };
+  settings: AppSettings;
 }
 
 export const useAuthStore = defineStore("auth", () => {
@@ -45,6 +36,12 @@ export const useAuthStore = defineStore("auth", () => {
     gamification.profile.streakDays = userData.streakDays;
     gamification.profile.tasksCompleted = userData.tasksCompleted;
     gamification.profile.pomodorosDone = userData.pomodorosDone;
+
+    if (userData.settings) {
+      const { useSettingsStore } =
+        await import("@/modules/Settings/settings.store");
+      useSettingsStore().loadSettings(userData.settings);
+    }
   };
 
   const syncStores = async () => {
