@@ -25,6 +25,8 @@ const UserSchema = new Schema<IUser>(
         dailyReminderTime: { type: String, default: "09:00" },
       },
     },
+    resetPasswordToken:   { type: String },
+    resetPasswordExpires: { type: Date   },
   },
   { timestamps: true },
 );
