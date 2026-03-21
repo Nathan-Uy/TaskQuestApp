@@ -1,10 +1,11 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import api from "@/api/axios";
 import type { AppSettings, ThemeColor } from "./settings.type";
 import { useGamificationStore } from "@/components/sidebar.store";
 import { usePomodoroStore } from "@/modules/Pomodoro/pomodoro.store";
 
-const THEME_COLORS: Record<ThemeColor, Record<string, string>> = {
+export const THEME_COLORS: Record<ThemeColor, Record<string, string>> = {
   terracotta: {
     "--accent": "#c2622a",
     "--accent-soft": "#f5e9e1",
@@ -41,6 +42,14 @@ const DARK_VARS: Record<string, string> = {
   "--ink-primary": "#f5f0eb",
   "--ink-secondary": "#b0a89e",
   "--ink-muted": "#7a7068",
+  "--card-bg": "#242019",
+  "--card-border": "#3a342d",
+  "--input-bg": "#2e2924",
+  "--input-border": "#4a4238",
+  "--input-text": "#f5f0eb",
+  "--sidebar-bg": "#1e1b17",
+  "--sidebar-border": "#3a342d",
+  "--nav-hover": "#2e2924",
 };
 
 const LIGHT_VARS: Record<string, string> = {
@@ -52,6 +61,14 @@ const LIGHT_VARS: Record<string, string> = {
   "--ink-primary": "#1a1714",
   "--ink-secondary": "#6b6560",
   "--ink-muted": "#a09890",
+  "--card-bg": "#ffffff",
+  "--card-border": "#e7e5e4",
+  "--input-bg": "#ffffff",
+  "--input-border": "#d6d3d1",
+  "--input-text": "#1a1714",
+  "--sidebar-bg": "#ffffff",
+  "--sidebar-border": "#e7e5e4",
+  "--nav-hover": "#f5f5f4",
 };
 
 export const useSettingsStore = defineStore("settings", () => {
@@ -84,23 +101,48 @@ export const useSettingsStore = defineStore("settings", () => {
     }
   };
 
-  const setDarkMode = (val: boolean) => {
+  const persistSettings = async () => {
+    try {
+      await api.patch("/auth/settings", settings.value);
+    } catch {
+      console.error("Failed to persist settings");
+    }
+  };
+
+  const loadSettings = (incoming: Partial<AppSettings>) => {
+    settings.value = {
+      ...settings.value,
+      ...incoming,
+      themeColor:
+        (incoming.themeColor as ThemeColor) ?? settings.value.themeColor,
+      notifications: {
+        ...settings.value.notifications,
+        ...incoming.notifications,
+      },
+    };
+    applyTheme();
+  };
+
+  const setDarkMode = async (val: boolean) => {
     settings.value.darkMode = val;
     applyTheme();
+    await persistSettings();
   };
 
-  const setThemeColor = (color: ThemeColor) => {
+  const setThemeColor = async (color: ThemeColor) => {
     settings.value.themeColor = color;
     applyTheme();
+    await persistSettings();
   };
 
-  const updateNotifications = (
+  const updateNotifications = async (
     patch: Partial<AppSettings["notifications"]>,
   ) => {
     settings.value.notifications = {
       ...settings.value.notifications,
       ...patch,
     };
+    await persistSettings();
   };
 
   const updateDisplayName = (name: string) => {
@@ -110,13 +152,10 @@ export const useSettingsStore = defineStore("settings", () => {
   const resetData = async () => {
     const { useQueryClient } = await import("@tanstack/vue-query");
     const queryClient = useQueryClient();
-
     queryClient.setQueryData(["tasks"], []);
     queryClient.setQueryData(["goals"], []);
-
     pomodoroStore.history.splice(0);
     pomodoroStore.sessionsCompleted = 0;
-
     gamificationStore.profile.currentXP = 0;
     gamificationStore.profile.totalXP = 0;
     gamificationStore.profile.level = 1;
@@ -131,6 +170,7 @@ export const useSettingsStore = defineStore("settings", () => {
   return {
     settings,
     applyTheme,
+    loadSettings,
     setDarkMode,
     setThemeColor,
     updateNotifications,
