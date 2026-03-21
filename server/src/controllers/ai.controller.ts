@@ -112,16 +112,15 @@ Medium priority tasks done: ${priorityBreakdown.medium}
 Low priority tasks done: ${priorityBreakdown.low}
 Most productive day: ${mostProductiveDay}
 
-Write exactly 6 bullet points covering:
+Write exactly 5 bullet points covering:
 1. Overall performance summary
 2. Task completion highlights
 3. Goal achievements
-4. XP and leveling progress
-5. Productivity patterns observed
-6. Specific recommendations for next period
+4. Productivity patterns observed
+5. Specific recommendations for next period
 
-Respond with ONLY a JSON array of 6 strings. No bullet symbols, no markdown, no code blocks.
-Example: ["Point 1", "Point 2", "Point 3", "Point 4", "Point 5", "Point 6"]`);
+Respond with ONLY a JSON array of 5 strings. No bullet symbols, no markdown, no code blocks.
+Example: ["Point 1", "Point 2", "Point 3", "Point 4", "Point 5"]`);
 
   const clean = text.replace(/```json|```/g, "").trim();
   return JSON.parse(clean) as string[];
