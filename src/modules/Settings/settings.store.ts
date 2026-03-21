@@ -2,8 +2,6 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { AppSettings, ThemeColor } from "./settings.type";
 import { useGamificationStore } from "@/components/sidebar.store";
-import { useTasksStore } from "@/modules/Tasks/tasks.store";
-import { useGoalsStore } from "@/modules/Goals/goals.store";
 import { usePomodoroStore } from "@/modules/Pomodoro/pomodoro.store";
 
 const THEME_COLORS: Record<ThemeColor, Record<string, string>> = {
@@ -58,8 +56,6 @@ const LIGHT_VARS: Record<string, string> = {
 
 export const useSettingsStore = defineStore("settings", () => {
   const gamificationStore = useGamificationStore();
-  const tasksStore = useTasksStore();
-  const goalsStore = useGoalsStore();
   const pomodoroStore = usePomodoroStore();
 
   const settings = ref<AppSettings>({
@@ -78,11 +74,9 @@ export const useSettingsStore = defineStore("settings", () => {
     const root = document.documentElement;
     const modeVars = settings.value.darkMode ? DARK_VARS : LIGHT_VARS;
     const colorVars = THEME_COLORS[settings.value.themeColor];
-
     Object.entries({ ...modeVars, ...colorVars }).forEach(([k, v]) => {
       root.style.setProperty(k, v);
     });
-
     if (settings.value.darkMode) {
       root.classList.add("dark");
     } else {
@@ -113,11 +107,16 @@ export const useSettingsStore = defineStore("settings", () => {
     gamificationStore.profile.displayName = name;
   };
 
-  const resetData = () => {
-    tasksStore.tasks.splice(0);
-    goalsStore.goals.splice(0);
+  const resetData = async () => {
+    const { useQueryClient } = await import("@tanstack/vue-query");
+    const queryClient = useQueryClient();
+
+    queryClient.setQueryData(["tasks"], []);
+    queryClient.setQueryData(["goals"], []);
+
     pomodoroStore.history.splice(0);
     pomodoroStore.sessionsCompleted = 0;
+
     gamificationStore.profile.currentXP = 0;
     gamificationStore.profile.totalXP = 0;
     gamificationStore.profile.level = 1;
@@ -127,7 +126,6 @@ export const useSettingsStore = defineStore("settings", () => {
     gamificationStore.profile.streakDays = 0;
   };
 
-  // Apply theme on init
   applyTheme();
 
   return {
