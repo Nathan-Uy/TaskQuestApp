@@ -71,11 +71,25 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
 export const updateSettings = async (req: AuthRequest, res: Response) => {
   try {
+    const { darkMode, themeColor, notifications } = req.body;
+
     const user = await User.findByIdAndUpdate(
       req.userId,
-      { $set: { settings: req.body } },
-      { new: true },
+      {
+        $set: {
+          "settings.darkMode": darkMode,
+          "settings.themeColor": themeColor,
+          "settings.notifications.pomodoroEnd": notifications.pomodoroEnd,
+          "settings.notifications.breakEnd": notifications.breakEnd,
+          "settings.notifications.taskDue": notifications.taskDue,
+          "settings.notifications.dailyReminder": notifications.dailyReminder,
+          "settings.notifications.dailyReminderTime":
+            notifications.dailyReminderTime,
+        },
+      },
+      { returnDocument: "after" },
     ).select("-password");
+
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(sanitizeUser(user));
   } catch {
