@@ -18,15 +18,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
+import { useNotifications } from "@/components/notification";
+import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
 import AppSideBar from "@/components/AppSideBar.vue";
 
 const auth = useAuthStore();
 const route = useRoute();
+const { data: tasks } = useTasksQuery();
+const { init } = useNotifications();
 
 const isAuthPage = computed(
   () => route.path === "/" || route.path === "/login",
+);
+
+watch(
+  () => auth.isAuthenticated,
+  (val) => {
+    if (val) init(tasks);
+  },
+  { immediate: true, once: true },
 );
 </script>

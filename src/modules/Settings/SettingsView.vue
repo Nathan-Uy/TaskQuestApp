@@ -1,13 +1,21 @@
 <template>
   <div class="pl-8">
     <div class="mb-7">
-      <h1 class="text-3xl font-serif text-stone-800 leading-tight">Settings</h1>
-      <p class="text-xs text-stone-400 mt-1">Manage your preferences</p>
+      <h1
+        class="text-3xl font-serif leading-tight"
+        style="color: var(--ink-primary)"
+      >
+        Settings
+      </h1>
+      <p class="text-xs mt-1" style="color: var(--ink-muted)">
+        Manage your preferences
+      </p>
     </div>
 
     <div class="grid grid-cols-[200px_1fr] gap-6 items-start">
       <div
-        class="bg-white border border-stone-200 rounded-2xl p-2 flex flex-col gap-1"
+        class="rounded-2xl p-2 flex flex-col gap-1 border"
+        style="background: var(--card-bg); border-color: var(--card-border)"
       >
         <button
           v-for="tab in tabs"
@@ -15,22 +23,53 @@
           type="button"
           :class="[
             'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left',
-            activeTab === tab.key
-              ? 'text-white bg-(--accent)'
-              : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800',
+            activeTab === tab.key ? 'text-white bg-(--accent)' : '',
           ]"
-          @click="activeTab = tab.key as SettingsTab"
+          :style="
+            activeTab !== tab.key
+              ? { color: 'var(--ink-secondary)' }
+              : { color: 'white' }
+          "
+          @mouseenter="
+            (e) => {
+              if (activeTab !== tab.key)
+                (e.currentTarget as HTMLElement).style.background =
+                  'var(--nav-hover)';
+            }
+          "
+          @mouseleave="
+            (e) => {
+              if (activeTab !== tab.key)
+                (e.currentTarget as HTMLElement).style.background =
+                  'transparent';
+            }
+          "
+          @click="
+            (e) => {
+              activeTab = tab.key as SettingsTab;
+              (e.currentTarget as HTMLElement).style.background = '';
+            }
+          "
         >
           <i :class="['pi text-sm', tab.icon]" />
           {{ tab.label }}
         </button>
       </div>
 
-      <div class="bg-white border border-stone-200 rounded-2xl p-6">
+      <div
+        class="rounded-2xl p-6 border"
+        style="background: var(--card-bg); border-color: var(--card-border)"
+      >
         <div v-if="activeTab === 'profile'">
-          <p class="text-sm font-semibold text-stone-800 mb-5">Profile</p>
+          <p
+            class="text-sm font-semibold mb-5"
+            style="color: var(--ink-primary)"
+          >
+            Profile
+          </p>
           <div
-            class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100"
+            class="flex items-center gap-4 mb-6 pb-6 border-b"
+            style="border-color: var(--card-border)"
           >
             <div
               class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-semibold text-white shrink-0 bg-(--accent)"
@@ -38,56 +77,93 @@
               {{ profile.displayName.charAt(0).toUpperCase() }}
             </div>
             <div>
-              <p class="text-sm font-semibold text-stone-800">
+              <p
+                class="text-sm font-semibold"
+                style="color: var(--ink-primary)"
+              >
                 {{ profile.displayName }}
               </p>
-              <p class="text-xs text-stone-400 mt-0.5">
+              <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
                 Level {{ profile.level }} · {{ profile.totalXP }} XP total
               </p>
             </div>
           </div>
           <div class="flex flex-col gap-1.5 mb-4">
-            <label class="text-xs font-medium text-stone-500"
+            <label
+              class="text-xs font-medium"
+              style="color: var(--ink-secondary)"
               >Display name</label
             >
-            <InputText
+            <input
               v-model="displayNameInput"
               placeholder="Your name"
-              class="w-full"
+              class="w-full px-3 py-2 text-sm rounded-lg border outline-none transition-all duration-150"
+              style="
+                background: var(--input-bg);
+                border-color: var(--input-border);
+                color: var(--input-text);
+              "
             />
           </div>
           <div class="grid grid-cols-3 gap-3 mb-6">
-            <div class="bg-stone-50 rounded-xl p-3 text-center">
-              <p class="text-lg font-serif text-stone-800 leading-none mb-1">
+            <div
+              class="rounded-xl p-3 text-center"
+              style="background: var(--surface-muted)"
+            >
+              <p
+                class="text-lg font-serif leading-none mb-1"
+                style="color: var(--ink-primary)"
+              >
                 {{ profile.tasksCompleted }}
               </p>
-              <p class="text-[0.65rem] font-medium text-stone-400">
+              <p
+                class="text-[0.65rem] font-medium"
+                style="color: var(--ink-muted)"
+              >
                 Tasks Done
               </p>
             </div>
-            <div class="bg-stone-50 rounded-xl p-3 text-center">
-              <p class="text-lg font-serif text-stone-800 leading-none mb-1">
+            <div
+              class="rounded-xl p-3 text-center"
+              style="background: var(--surface-muted)"
+            >
+              <p
+                class="text-lg font-serif leading-none mb-1"
+                style="color: var(--ink-primary)"
+              >
                 {{ profile.pomodorosDone }}
               </p>
-              <p class="text-[0.65rem] font-medium text-stone-400">Pomodoros</p>
+              <p
+                class="text-[0.65rem] font-medium"
+                style="color: var(--ink-muted)"
+              >
+                Pomodoros
+              </p>
             </div>
-            <div class="bg-stone-50 rounded-xl p-3 text-center">
-              <p class="text-lg font-serif text-stone-800 leading-none mb-1">
+            <div
+              class="rounded-xl p-3 text-center"
+              style="background: var(--surface-muted)"
+            >
+              <p
+                class="text-lg font-serif leading-none mb-1"
+                style="color: var(--ink-primary)"
+              >
                 {{ profile.streakDays }}
               </p>
-              <p class="text-[0.65rem] font-medium text-stone-400">
+              <p
+                class="text-[0.65rem] font-medium"
+                style="color: var(--ink-muted)"
+              >
                 Day Streak
               </p>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              class="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-px bg-(--accent)"
+            <Button
+              label="Save Changes"
+              class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold!"
               @click="saveProfile"
-            >
-              Save Changes
-            </button>
+            />
             <Transition
               enter-active-class="transition-all duration-200"
               enter-from-class="opacity-0"
@@ -104,13 +180,21 @@
         </div>
 
         <div v-else-if="activeTab === 'appearance'">
-          <p class="text-sm font-semibold text-stone-800 mb-5">Appearance</p>
+          <p
+            class="text-sm font-semibold mb-5"
+            style="color: var(--ink-primary)"
+          >
+            Appearance
+          </p>
           <div
-            class="flex items-center justify-between py-3 border-b border-stone-100 mb-5"
+            class="flex items-center justify-between py-3 border-b mb-5"
+            style="border-color: var(--card-border)"
           >
             <div>
-              <p class="text-sm font-medium text-stone-800">Dark mode</p>
-              <p class="text-xs text-stone-400 mt-0.5">
+              <p class="text-sm font-medium" style="color: var(--ink-primary)">
+                Dark mode
+              </p>
+              <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
                 Switch to a darker interface
               </p>
             </div>
@@ -130,7 +214,12 @@
               />
             </button>
           </div>
-          <p class="text-xs font-medium text-stone-500 mb-3">Accent color</p>
+          <p
+            class="text-xs font-medium mb-3"
+            style="color: var(--ink-secondary)"
+          >
+            Accent color
+          </p>
           <div class="flex items-center gap-3 flex-wrap">
             <button
               v-for="theme in themeOptions"
@@ -140,35 +229,63 @@
               :class="[
                 'flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-150',
                 settings.themeColor === theme.value
-                  ? 'border-stone-400 bg-stone-50'
+                  ? 'border-stone-400'
                   : 'border-transparent hover:border-stone-200',
               ]"
+              :style="
+                settings.themeColor === theme.value
+                  ? { background: 'var(--surface-muted)' }
+                  : {}
+              "
               @click="setThemeColor(theme.value)"
             >
               <div
                 class="w-8 h-8 rounded-full"
                 :style="{ background: theme.color }"
               />
-              <span class="text-[0.65rem] font-medium text-stone-500">{{
-                theme.label
-              }}</span>
+              <span
+                class="text-[0.65rem] font-medium"
+                style="color: var(--ink-secondary)"
+                >{{ theme.label }}</span
+              >
             </button>
           </div>
         </div>
 
         <div v-else-if="activeTab === 'notifications'">
-          <p class="text-sm font-semibold text-stone-800 mb-5">Notifications</p>
+          <p
+            class="text-sm font-semibold mb-5"
+            style="color: var(--ink-primary)"
+          >
+            Notifications
+          </p>
+
+          <div
+            v-if="notificationBlocked"
+            class="flex items-center gap-2 rounded-xl px-4 py-3 mb-4 bg-amber-50 border border-amber-100"
+          >
+            <i class="pi pi-exclamation-triangle text-amber-500 text-sm" />
+            <p class="text-xs text-amber-600 font-medium">
+              Notifications are blocked. Please allow them in your browser
+              settings.
+            </p>
+          </div>
+
           <div class="flex flex-col gap-4">
             <div
               v-for="pref in notificationPrefs"
               :key="pref.key"
-              class="flex items-center justify-between py-3 border-b border-stone-100 last:border-0"
+              class="flex items-center justify-between py-3 border-b last:border-0"
+              style="border-color: var(--card-border)"
             >
               <div>
-                <p class="text-sm font-medium text-stone-800">
+                <p
+                  class="text-sm font-medium"
+                  style="color: var(--ink-primary)"
+                >
                   {{ pref.label }}
                 </p>
-                <p class="text-xs text-stone-400 mt-0.5">
+                <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
                   {{ pref.description }}
                 </p>
               </div>
@@ -181,9 +298,10 @@
                     : 'bg-stone-200',
                 ]"
                 @click="
-                  updateNotifications({
-                    [pref.key]: !settings.notifications[pref.key],
-                  })
+                  handleNotificationToggle(
+                    pref.key,
+                    !settings.notifications[pref.key],
+                  )
                 "
               >
                 <span
@@ -201,13 +319,20 @@
               v-if="settings.notifications.dailyReminder"
               class="flex items-center justify-between pt-1"
             >
-              <label class="text-sm font-medium text-stone-800"
+              <label
+                class="text-sm font-medium"
+                style="color: var(--ink-primary)"
                 >Reminder time</label
               >
               <div class="flex items-center gap-2">
                 <select
                   :value="reminderHour"
-                  class="text-sm text-stone-600 border border-stone-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-stone-400 bg-white"
+                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
+                  style="
+                    background: var(--input-bg);
+                    border-color: var(--input-border);
+                    color: var(--input-text);
+                  "
                   @change="
                     updateReminderHour(
                       ($event.target as HTMLSelectElement).value,
@@ -218,10 +343,19 @@
                     {{ h }}
                   </option>
                 </select>
-                <span class="text-stone-400 text-sm font-medium">:</span>
+                <span
+                  class="text-sm font-medium"
+                  style="color: var(--ink-muted)"
+                  >:</span
+                >
                 <select
                   :value="reminderMinute"
-                  class="text-sm text-stone-600 border border-stone-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-stone-400 bg-white"
+                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
+                  style="
+                    background: var(--input-bg);
+                    border-color: var(--input-border);
+                    color: var(--input-text);
+                  "
                   @change="
                     updateReminderMinute(
                       ($event.target as HTMLSelectElement).value,
@@ -235,7 +369,12 @@
                 </select>
                 <select
                   :value="reminderPeriod"
-                  class="text-sm text-stone-600 border border-stone-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-stone-400 bg-white"
+                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
+                  style="
+                    background: var(--input-bg);
+                    border-color: var(--input-border);
+                    color: var(--input-text);
+                  "
                   @change="
                     updateReminderPeriod(
                       ($event.target as HTMLSelectElement).value,
@@ -251,7 +390,12 @@
         </div>
 
         <div v-else-if="activeTab === 'data'">
-          <p class="text-sm font-semibold text-stone-800 mb-5">Data</p>
+          <p
+            class="text-sm font-semibold mb-5"
+            style="color: var(--ink-primary)"
+          >
+            Data
+          </p>
           <div class="bg-red-50 border border-red-100 rounded-2xl p-5">
             <div class="flex items-start gap-3">
               <i class="pi pi-exclamation-triangle text-red-500 mt-0.5" />
@@ -263,13 +407,12 @@
                   This will permanently delete all tasks, goals, pomodoro
                   history, and reset your XP and level. This cannot be undone.
                 </p>
-                <button
-                  type="button"
-                  class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-all duration-150"
+                <Button
+                  label="Reset all data"
+                  severity="danger"
+                  class="rounded-xl! text-sm! font-semibold!"
                   @click="showResetConfirm = true"
-                >
-                  Reset all data
-                </button>
+                />
               </div>
             </div>
           </div>
@@ -287,29 +430,37 @@
                 class="absolute inset-0 bg-black/20"
                 @click="showResetConfirm = false"
               />
-              <div class="relative bg-white rounded-2xl p-6 shadow-xl w-80">
-                <p class="text-sm font-semibold text-stone-800 mb-2">
+              <div
+                class="relative rounded-2xl p-6 shadow-xl w-80 border"
+                style="
+                  background: var(--card-bg);
+                  border-color: var(--card-border);
+                "
+              >
+                <p
+                  class="text-sm font-semibold mb-2"
+                  style="color: var(--ink-primary)"
+                >
                   Are you sure?
                 </p>
-                <p class="text-xs text-stone-400 mb-5">
+                <p class="text-xs mb-5" style="color: var(--ink-muted)">
                   All your data will be permanently deleted. This cannot be
                   undone.
                 </p>
                 <div class="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    class="px-4 py-2 rounded-xl text-sm font-medium text-stone-600 hover:bg-stone-100 transition-all duration-150"
+                  <Button
+                    label="Cancel"
+                    severity="secondary"
+                    text
+                    class="rounded-xl! text-sm!"
                     @click="showResetConfirm = false"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-all duration-150"
+                  />
+                  <Button
+                    label="Yes, reset everything"
+                    severity="danger"
+                    class="rounded-xl! text-sm! font-semibold!"
                     @click="confirmReset"
-                  >
-                    Yes, reset everything
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -321,9 +472,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import InputText from "primevue/inputtext";
+import { ref, computed } from "vue";
+import Button from "primevue/button";
 import { useSettings } from "./settings.composable";
+import { useNotifications } from "@/components/notification";
 import type { SettingsTab } from "./settings.type";
 
 const {
@@ -341,6 +493,12 @@ const {
   setThemeColor,
   updateNotifications,
 } = useSettings();
+
+const { requestPermission } = useNotifications();
+
+const notificationBlocked = ref(
+  "Notification" in window && Notification.permission === "denied",
+);
 
 const notificationPrefs = [
   {
@@ -393,7 +551,7 @@ const buildTime = (hour: string, minute: string, period: string) => {
   return `${String(h).padStart(2, "0")}:${minute}`;
 };
 
-const updateReminderHour = (hour: string) => {
+const updateReminderHour = (hour: string) =>
   updateNotifications({
     dailyReminderTime: buildTime(
       hour,
@@ -401,9 +559,7 @@ const updateReminderHour = (hour: string) => {
       reminderPeriod.value,
     ),
   });
-};
-
-const updateReminderMinute = (minute: string) => {
+const updateReminderMinute = (minute: string) =>
   updateNotifications({
     dailyReminderTime: buildTime(
       reminderHour.value,
@@ -411,9 +567,7 @@ const updateReminderMinute = (minute: string) => {
       reminderPeriod.value,
     ),
   });
-};
-
-const updateReminderPeriod = (period: string) => {
+const updateReminderPeriod = (period: string) =>
   updateNotifications({
     dailyReminderTime: buildTime(
       reminderHour.value,
@@ -421,5 +575,16 @@ const updateReminderPeriod = (period: string) => {
       period,
     ),
   });
+
+const handleNotificationToggle = async (key: string, val: boolean) => {
+  if (val) {
+    const granted = await requestPermission();
+    if (!granted) {
+      notificationBlocked.value = true;
+      return;
+    }
+    notificationBlocked.value = false;
+  }
+  updateNotifications({ [key]: val });
 };
 </script>
