@@ -3,12 +3,12 @@
     <div class="flex items-center justify-between" style="margin-bottom: 28px">
       <div>
         <h1
-          class="font-serif text-stone-800"
-          style="font-size: 2rem; line-height: 1.1"
+          class="font-serif"
+          style="font-size: 2rem; line-height: 1.1; color: var(--ink-primary)"
         >
           Tasks
         </h1>
-        <p class="text-stone-400" style="font-size: 0.8rem; margin-top: 4px">
+        <p style="font-size: 0.8rem; margin-top: 4px; color: var(--ink-muted)">
           {{ today }}
         </p>
       </div>
@@ -22,52 +22,79 @@
 
     <div class="grid grid-cols-4 gap-3" style="margin-bottom: 28px">
       <div
-        class="bg-white border border-stone-200 rounded-2xl"
-        style="padding: 16px 18px"
+        class="rounded-2xl border"
+        style="
+          padding: 16px 18px;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+        "
       >
         <p
-          class="font-serif text-stone-800"
-          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+          class="font-serif"
+          style="
+            font-size: 1.75rem;
+            line-height: 1;
+            margin-bottom: 6px;
+            color: var(--ink-primary);
+          "
         >
           {{ activeTasks.length }}
         </p>
         <p
-          class="text-stone-400 font-semibold uppercase tracking-wide"
-          style="font-size: 0.65rem"
+          class="font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem; color: var(--ink-muted)"
         >
           Active
         </p>
       </div>
       <div
-        class="bg-white border border-stone-200 rounded-2xl"
-        style="padding: 16px 18px"
+        class="rounded-2xl border"
+        style="
+          padding: 16px 18px;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+        "
       >
         <p
-          class="font-serif text-stone-800"
-          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+          class="font-serif"
+          style="
+            font-size: 1.75rem;
+            line-height: 1;
+            margin-bottom: 6px;
+            color: var(--ink-primary);
+          "
         >
           {{ completedToday.length }}
         </p>
         <p
-          class="text-stone-400 font-semibold uppercase tracking-wide"
-          style="font-size: 0.65rem"
+          class="font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem; color: var(--ink-muted)"
         >
           Done Today
         </p>
       </div>
       <div
-        class="bg-white border border-stone-200 rounded-2xl"
-        style="padding: 16px 18px"
+        class="rounded-2xl border"
+        style="
+          padding: 16px 18px;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+        "
       >
         <p
-          class="font-serif text-stone-800"
-          style="font-size: 1.75rem; line-height: 1; margin-bottom: 6px"
+          class="font-serif"
+          style="
+            font-size: 1.75rem;
+            line-height: 1;
+            margin-bottom: 6px;
+            color: var(--ink-primary);
+          "
         >
           {{ profile.tasksCompleted }}
         </p>
         <p
-          class="text-stone-400 font-semibold uppercase tracking-wide"
-          style="font-size: 0.65rem"
+          class="font-semibold uppercase tracking-wide"
+          style="font-size: 0.65rem; color: var(--ink-muted)"
         >
           All Time
         </p>
@@ -104,16 +131,22 @@
     >
       <div
         v-if="showAddTask"
-        class="bg-white border border-stone-200 rounded-2xl"
+        class="rounded-2xl border"
         style="
           padding: 24px;
           margin-bottom: 24px;
           box-shadow: 0 4px 20px rgba(26, 23, 20, 0.08);
+          background: var(--card-bg);
+          border-color: var(--card-border);
         "
       >
         <p
-          class="font-semibold text-stone-800"
-          style="font-size: 0.95rem; margin-bottom: 20px"
+          class="font-semibold"
+          style="
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            color: var(--ink-primary);
+          "
         >
           New Task
         </p>
@@ -125,20 +158,14 @@
           @cancel="cancelAdd"
         >
           <template #ai-button>
-            <button
+            <Button
+              :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
+              :label="descLoading ? 'Thinking...' : 'AI Fill'"
               :disabled="!form.title.trim() || descLoading"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed bg-(--accent-soft) text-(--accent) hover:bg-(--accent) hover:text-white shrink-0"
+              class="bg-(--accent-soft)! text-(--accent)! border-none! rounded-lg! text-xs! font-semibold! hover:bg-(--accent)! hover:text-white! shrink-0!"
               title="Generate description with AI"
               @click="generateDescription"
-            >
-              <i
-                :class="[
-                  'pi text-xs',
-                  descLoading ? 'pi-spinner pi-spin' : 'pi-sparkles',
-                ]"
-              />
-              {{ descLoading ? "Thinking..." : "AI Fill" }}
-            </button>
+            />
           </template>
         </TaskForm>
       </div>
@@ -152,13 +179,13 @@
     >
       <div
         v-if="triageResult.length > 0"
-        class="bg-white border border-amber-200 rounded-2xl mb-6"
-        style="padding: 20px"
+        class="rounded-2xl border border-amber-200 mb-6"
+        style="padding: 20px; background: var(--card-bg)"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             <i class="pi pi-exclamation-triangle text-amber-500 text-sm" />
-            <p class="text-sm font-semibold text-stone-800">
+            <p class="text-sm font-semibold" style="color: var(--ink-primary)">
               Overdue Task Triage
             </p>
             <span
@@ -166,18 +193,21 @@
               >{{ triageResult.length }} tasks</span
             >
           </div>
-          <button
-            class="text-stone-400 hover:text-stone-600 transition-colors"
+          <Button
+            icon="pi pi-times"
+            text
+            rounded
+            severity="secondary"
+            class="w-7! h-7!"
             @click="triageResult = []"
-          >
-            <i class="pi pi-times text-xs" />
-          </button>
+          />
         </div>
         <div class="flex flex-col gap-2">
           <div
             v-for="item in triageResult"
             :key="item.taskId"
-            class="flex items-start gap-3 rounded-xl px-3 py-2.5 border border-stone-100"
+            class="flex items-start gap-3 rounded-xl px-3 py-2.5 border"
+            style="border-color: var(--card-border)"
           >
             <span
               :class="[
@@ -191,10 +221,15 @@
               >{{ item.action }}</span
             >
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-stone-800">
+              <p
+                class="text-sm font-semibold"
+                style="color: var(--ink-primary)"
+              >
                 {{ item.title }}
               </p>
-              <p class="text-xs text-stone-400 mt-0.5">{{ item.reason }}</p>
+              <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
+                {{ item.reason }}
+              </p>
             </div>
           </div>
         </div>
@@ -208,8 +243,8 @@
       >
         <div class="flex items-center" style="gap: 8px">
           <span
-            class="text-stone-400 font-semibold uppercase tracking-widest"
-            style="font-size: 0.68rem"
+            class="font-semibold uppercase tracking-widest"
+            style="font-size: 0.68rem; color: var(--ink-muted)"
             >Active</span
           >
           <span
@@ -220,35 +255,44 @@
               font-size: 0.7rem;
               padding: 1px 8px;
             "
-            >{{ activeTasks.length }}</span
           >
+            {{ activeTasks.length }}
+          </span>
         </div>
-        <button
+        <Button
           v-if="overdueCount > 0"
+          :icon="triageLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
+          :label="
+            triageLoading ? 'Triaging...' : `Triage ${overdueCount} overdue`
+          "
           :disabled="triageLoading"
-          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 disabled:opacity-50 bg-amber-50 text-amber-600 hover:bg-amber-100"
+          class="bg-amber-50! text-amber-600! border-none! rounded-lg! text-xs! font-semibold! hover:bg-amber-100!"
           @click="runTriage"
-        >
-          <i
-            :class="[
-              'pi text-xs',
-              triageLoading ? 'pi-spinner pi-spin' : 'pi-sparkles',
-            ]"
-          />
-          {{ triageLoading ? "Triaging..." : `Triage ${overdueCount} overdue` }}
-        </button>
+        />
       </div>
       <div
         v-if="isLoading"
-        class="bg-white border border-stone-200 rounded-2xl text-center text-stone-400"
-        style="padding: 40px; font-size: 0.875rem"
+        class="rounded-2xl border text-center"
+        style="
+          padding: 40px;
+          font-size: 0.875rem;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+          color: var(--ink-muted);
+        "
       >
         <i class="pi pi-spinner pi-spin mr-2" />Loading tasks...
       </div>
       <div
         v-else-if="activeTasks.length === 0"
-        class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
-        style="padding: 40px; font-size: 0.875rem"
+        class="rounded-2xl border border-dashed text-center"
+        style="
+          padding: 40px;
+          font-size: 0.875rem;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+          color: var(--ink-muted);
+        "
       >
         No active tasks. Add one above ↑
       </div>
@@ -278,8 +322,9 @@
             font-size: 0.7rem;
             padding: 1px 8px;
           "
-          >{{ completedToday.length }}</span
         >
+          {{ completedToday.length }}
+        </span>
       </div>
       <div class="flex flex-col" style="gap: 8px">
         <TaskCard
@@ -300,8 +345,9 @@
           <span
             class="font-semibold uppercase tracking-widest"
             style="font-size: 0.68rem; color: var(--success)"
-            >{{ selectedDate ? "Filtered" : "All Completed" }}</span
           >
+            {{ selectedDate ? "Filtered" : "All Completed" }}
+          </span>
           <span
             class="font-semibold rounded-full"
             style="
@@ -310,8 +356,9 @@
               font-size: 0.7rem;
               padding: 1px 8px;
             "
-            >{{ filteredCompleted.length }}</span
           >
+            {{ filteredCompleted.length }}
+          </span>
         </div>
         <div class="flex items-center gap-2">
           <DatePicker
@@ -323,19 +370,27 @@
             :show-button-bar="true"
             @clear-click="clearDateFilter"
           />
-          <button
+          <Button
             v-if="selectedDate"
-            class="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+            icon="pi pi-times"
+            text
+            rounded
+            severity="secondary"
+            class="w-7! h-7!"
             @click="clearDateFilter"
-          >
-            <i class="pi pi-times text-xs" />
-          </button>
+          />
         </div>
       </div>
       <div
         v-if="filteredCompleted.length === 0"
-        class="bg-white border border-dashed border-stone-200 rounded-2xl text-center text-stone-400"
-        style="padding: 40px; font-size: 0.875rem"
+        class="rounded-2xl border border-dashed text-center"
+        style="
+          padding: 40px;
+          font-size: 0.875rem;
+          background: var(--card-bg);
+          border-color: var(--card-border);
+          color: var(--ink-muted);
+        "
       >
         No completed tasks for this date.
       </div>
@@ -384,7 +439,7 @@ const tasksStore = useTasksStore();
 const { showAddTask } = storeToRefs(tasksStore);
 const { openAddTask, closeAddTask } = tasksStore;
 
-const { form, resetForm, getDuration, priorityOptions } = useTaskForm();
+const { form, resetForm, getDuration } = useTaskForm();
 const {
   activeTasks,
   completedToday,
