@@ -1,13 +1,15 @@
 <template>
   <div
     :class="[
-      'group relative flex flex-col bg-white rounded-2xl border transition-all duration-200',
-      task.status === 'completed'
-        ? 'border-stone-100 opacity-60'
-        : 'border-stone-200 hover:border-stone-300 hover:shadow-md',
-      isEditing ? 'shadow-md border-stone-300' : 'hover:-translate-y-0.5',
+      'group relative flex flex-col rounded-2xl border transition-all duration-200',
+      task.status === 'completed' ? 'opacity-60' : 'hover:shadow-md',
+      isEditing ? 'shadow-md' : 'hover:-translate-y-0.5',
     ]"
-    style="padding: 14px 16px"
+    style="
+      padding: 14px 16px;
+      background: var(--card-bg);
+      border-color: var(--card-border);
+    "
   >
     <div
       class="absolute left-0 top-3 bottom-3 w-0.5 rounded-full"
@@ -21,8 +23,11 @@
           'mt-0.5 w-5 h-5 shrink-0 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
           task.status === 'completed'
             ? 'border-emerald-400 bg-emerald-400'
-            : 'border-stone-300 bg-white hover:border-emerald-400 hover:scale-110',
+            : 'border-stone-300 hover:border-emerald-400 hover:scale-110',
         ]"
+        :style="
+          task.status !== 'completed' ? { background: 'var(--card-bg)' } : {}
+        "
         @click="emit('complete', task._id)"
       >
         <i
@@ -40,8 +45,8 @@
       <div class="flex-1 min-w-0">
         <div v-if="isEditing">
           <p
-            class="font-semibold text-stone-800 mb-3"
-            style="font-size: 0.85rem"
+            class="font-semibold mb-3"
+            style="font-size: 0.85rem; color: var(--ink-primary)"
           >
             Edit Task
           </p>
@@ -58,14 +63,18 @@
           <p
             :class="[
               'text-sm font-semibold leading-snug',
-              task.status === 'completed'
-                ? 'line-through text-stone-400'
-                : 'text-stone-800',
+              task.status === 'completed' ? 'line-through' : '',
               !readonly
                 ? 'cursor-pointer hover:text-(--accent) transition-colors duration-150'
                 : '',
             ]"
-            style="margin-bottom: 4px"
+            :style="{
+              color:
+                task.status === 'completed'
+                  ? 'var(--ink-muted)'
+                  : 'var(--ink-primary)',
+              marginBottom: '4px',
+            }"
             @click="!readonly && startEdit()"
           >
             {{ task.title }}
@@ -74,12 +83,10 @@
           <p
             v-if="task.notes"
             :class="[
-              'text-xs text-stone-400 leading-relaxed',
-              !readonly
-                ? 'cursor-pointer hover:text-stone-600 transition-colors duration-150'
-                : '',
+              'text-xs leading-relaxed',
+              !readonly ? 'cursor-pointer transition-colors duration-150' : '',
             ]"
-            style="margin-bottom: 8px"
+            :style="{ color: 'var(--ink-muted)', marginBottom: '8px' }"
             @click="!readonly && startEdit()"
           >
             {{ task.notes }}
@@ -98,7 +105,8 @@
 
             <span
               v-if="task.duration"
-              class="inline-flex items-center gap-1 text-xs text-stone-400"
+              class="inline-flex items-center gap-1 text-xs"
+              style="color: var(--ink-muted)"
             >
               <i class="pi pi-clock" style="font-size: 0.65rem" />
               {{ formatDuration(task.duration) }}
@@ -133,24 +141,27 @@
           {{ formatDueDate(task.dueDate) }}
         </span>
 
-        <button
+        <Button
           v-if="!readonly"
-          class="opacity-0 group-hover:opacity-100 transition-all duration-150 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 text-stone-400 hover:text-stone-600 shrink-0"
+          icon="pi pi-pencil"
+          text
+          rounded
+          severity="secondary"
+          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-150"
           title="Edit"
           @click="startEdit"
-        >
-          <i class="pi pi-pencil text-xs" />
-        </button>
+        />
 
-        <button
+        <Button
           v-if="!readonly"
-          class="opacity-0 group-hover:opacity-100 transition-all duration-150 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 shrink-0"
-          style="color: #b53a2f"
+          icon="pi pi-times"
+          text
+          rounded
+          severity="danger"
+          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-150"
           title="Delete"
           @click="emit('delete', task._id)"
-        >
-          <i class="pi pi-times" style="font-size: 0.7rem" />
-        </button>
+        />
       </div>
     </div>
   </div>
@@ -158,6 +169,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import Button from "primevue/button";
 import type { Task, TaskPriority } from "@/modules/Tasks/tasks.type";
 import { useCalendarFormatters } from "@/modules/Calendar/calendar.composable";
 import { useUpdateTaskMutation } from "@/modules/Tasks/tasks.tanstack";
