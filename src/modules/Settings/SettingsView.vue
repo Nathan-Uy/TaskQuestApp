@@ -94,15 +94,10 @@
               style="color: var(--ink-secondary)"
               >Display name</label
             >
-            <input
+            <InputText
               v-model="displayNameInput"
               placeholder="Your name"
-              class="w-full px-3 py-2 text-sm rounded-lg border outline-none transition-all duration-150"
-              style="
-                background: var(--input-bg);
-                border-color: var(--input-border);
-                color: var(--input-text);
-              "
+              class="w-full"
             />
           </div>
           <div class="grid grid-cols-3 gap-3 mb-6">
@@ -325,65 +320,31 @@
                 >Reminder time</label
               >
               <div class="flex items-center gap-2">
-                <select
-                  :value="reminderHour"
-                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
-                  style="
-                    background: var(--input-bg);
-                    border-color: var(--input-border);
-                    color: var(--input-text);
-                  "
-                  @change="
-                    updateReminderHour(
-                      ($event.target as HTMLSelectElement).value,
-                    )
-                  "
-                >
-                  <option v-for="h in hours" :key="h" :value="h">
-                    {{ h }}
-                  </option>
-                </select>
+                <Select
+                  :model-value="reminderHour"
+                  :options="hours"
+                  class="w-24!"
+                  @update:model-value="updateReminderHour($event)"
+                />
                 <span
                   class="text-sm font-medium"
                   style="color: var(--ink-muted)"
                   >:</span
                 >
-                <select
-                  :value="reminderMinute"
-                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
-                  style="
-                    background: var(--input-bg);
-                    border-color: var(--input-border);
-                    color: var(--input-text);
-                  "
-                  @change="
-                    updateReminderMinute(
-                      ($event.target as HTMLSelectElement).value,
-                    )
-                  "
-                >
-                  <option value="00">00</option>
-                  <option value="15">15</option>
-                  <option value="30">30</option>
-                  <option value="45">45</option>
-                </select>
-                <select
-                  :value="reminderPeriod"
-                  class="text-sm rounded-lg px-3 py-1.5 border outline-none transition-all"
-                  style="
-                    background: var(--input-bg);
-                    border-color: var(--input-border);
-                    color: var(--input-text);
-                  "
-                  @change="
-                    updateReminderPeriod(
-                      ($event.target as HTMLSelectElement).value,
-                    )
-                  "
-                >
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                </select>
+                <Select
+                  :model-value="reminderMinute"
+                  :options="minuteOptions"
+                  option-label="label"
+                  option-value="value"
+                  class="w-24!"
+                  @update:model-value="updateReminderMinute($event)"
+                />
+                <Select
+                  :model-value="reminderPeriod"
+                  :options="['AM', 'PM']"
+                  class="w-24!"
+                  @update:model-value="updateReminderPeriod($event)"
+                />
               </div>
             </div>
           </div>
@@ -474,6 +435,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
 import { useSettings } from "./settings.composable";
 import { useNotifications } from "@/components/notification";
 import type { SettingsTab } from "./settings.type";
@@ -526,6 +489,12 @@ const notificationPrefs = [
 const hours = Array.from({ length: 12 }, (_, i) =>
   String(i + 1).padStart(2, "0"),
 );
+const minuteOptions = [
+  { label: "00", value: "00" },
+  { label: "15", value: "15" },
+  { label: "30", value: "30" },
+  { label: "45", value: "45" },
+];
 
 const reminderHour = computed(() => {
   const parts = settings.value.notifications.dailyReminderTime.split(":");
