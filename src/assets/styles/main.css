@@ -132,3 +132,292 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 h1, h2, h3, h4 {
   color: var(--ink-primary);
 }
+
+.p-component {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink-primary);
+}
+
+.p-button {
+  border-radius: var(--radius-md) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  transition: all var(--duration-fast) var(--ease) !important;
+  box-shadow: none !important;
+}
+
+.p-button:focus {
+  box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.15) !important;
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--ink-inverse) !important;
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.p-button.p-button-secondary,
+.p-button.p-button-outlined {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--surface-border) !important;
+  color: var(--ink-secondary) !important;
+}
+
+.p-button.p-button-secondary:hover,
+.p-button.p-button-outlined:hover {
+  background: var(--surface-hover) !important;
+  color: var(--ink-primary) !important;
+}
+
+.p-button.p-button-text {
+  background: transparent !important;
+  border: none !important;
+  color: var(--ink-secondary) !important;
+}
+
+.p-button.p-button-text:hover {
+  background: var(--surface-hover) !important;
+  color: var(--ink-primary) !important;
+}
+
+.p-button.p-button-icon-only {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.p-inputtext,
+.p-inputnumber-input,
+.p-textarea,
+.p-select-label,
+.p-datepicker-input,
+.p-multiselect-label {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.875rem !important;
+  padding: 0.75rem 0.875rem !important;
+  box-shadow: none !important;
+  transition: all var(--duration-fast) var(--ease) !important;
+}
+
+.p-inputtext:enabled:hover,
+.p-inputnumber-input:enabled:hover,
+.p-textarea:enabled:hover,
+.p-select:not(.p-disabled):hover,
+.p-datepicker:not(.p-disabled):hover,
+.p-multiselect:not(.p-disabled):hover {
+  border-color: var(--ink-muted) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-inputnumber-input:enabled:focus,
+.p-textarea:enabled:focus,
+.p-select.p-focus,
+.p-datepicker.p-focus,
+.p-multiselect.p-focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.12) !important;
+  outline: none !important;
+}
+
+.p-inputtext::placeholder,
+.p-inputnumber-input::placeholder,
+.p-textarea::placeholder {
+  color: var(--ink-muted) !important;
+}
+
+.p-select,
+.p-multiselect,
+.p-datepicker {
+  width: 100%;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--input-border) !important;
+  background: var(--input-bg) !important;
+  min-height: 44px;
+}
+
+.p-select-label {
+  padding: 0.75rem 0.875rem !important;
+}
+
+.p-select-dropdown,
+.p-multiselect-dropdown,
+.p-datepicker-trigger {
+  color: var(--ink-muted) !important;
+}
+
+.p-select-overlay,
+.p-datepicker-panel,
+.p-multiselect-overlay,
+.p-popover,
+.p-dialog,
+.p-menu,
+.p-tieredmenu,
+.p-overlaypanel {
+  border: 1px solid var(--surface-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
+  background: var(--surface-card) !important;
+  overflow: hidden;
+}
+
+.p-select-option,
+.p-multiselect-option {
+  padding: 0.75rem 0.875rem !important;
+  font-size: 0.875rem !important;
+  color: var(--ink-primary) !important;
+}
+
+.p-select-option:hover,
+.p-multiselect-option:hover {
+  background: var(--surface-hover) !important;
+}
+
+.p-select-option.p-select-option-selected,
+.p-multiselect-option.p-multiselect-option-selected {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.p-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.p-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.p-card .p-card-body {
+  padding: 1.25rem !important;
+}
+
+.p-tabmenu {
+  background: transparent !important;
+  border: none !important;
+}
+
+.p-tabmenu .p-tabmenu-nav {
+  background: var(--surface-muted) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  gap: 4px;
+}
+
+.p-tabmenu .p-tabmenuitem .p-menuitem-link {
+  border-radius: 10px !important;
+  padding: 0.5rem 0.9rem !important;
+  border: none !important;
+  color: var(--ink-muted) !important;
+  background: transparent !important;
+  transition: all var(--duration-fast) var(--ease) !important;
+}
+
+.p-tabmenu .p-tabmenuitem.p-highlight .p-menuitem-link {
+  background: var(--surface-card) !important;
+  color: var(--ink-primary) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.p-tabmenu .p-tabmenuitem:not(.p-highlight) .p-menuitem-link:hover {
+  color: var(--ink-secondary) !important;
+}
+
+.p-progressbar {
+  background: var(--surface-muted) !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  height: 8px !important;
+}
+
+.p-progressbar .p-progressbar-value {
+  background: var(--accent) !important;
+}
+
+.p-tag {
+  border-radius: 10px !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  padding: 0.2rem 0.55rem !important;
+}
+
+.p-checkbox .p-checkbox-box,
+.p-radiobutton .p-radiobutton-box {
+  border-radius: 8px !important;
+  border-color: var(--input-border) !important;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight,
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.p-divider.p-divider-horizontal:before {
+  border-top: 1px solid var(--surface-border) !important;
+}
+
+.p-skeleton {
+  background: var(--surface-muted) !important;
+}
+
+.p-message,
+.p-panel,
+.p-fieldset {
+  border-radius: var(--radius-lg) !important;
+  border-color: var(--surface-border) !important;
+}
+
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-footer {
+  background: var(--surface-card) !important;
+  color: var(--ink-primary) !important;
+}
+
+.p-dialog .p-dialog-header {
+  border-bottom: 1px solid var(--surface-border) !important;
+}
+
+.p-dialog .p-dialog-footer {
+  border-top: 1px solid var(--surface-border) !important;
+}
+
+.p-datatable {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-header,
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+  background: var(--surface-card) !important;
+  color: var(--ink-primary) !important;
+  border-color: var(--surface-border) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--surface-hover) !important;
+}
+
+.report-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  text-align: center;
+}
