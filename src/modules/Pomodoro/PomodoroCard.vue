@@ -83,7 +83,10 @@
             :disabled="!isRunning && progress === 0"
             class="w-11! h-11!"
             title="Skip"
-            @click="emit('skip')"
+            @click="
+              emit('complete-task');
+              emit('skip');
+            "
           />
         </div>
 
@@ -136,6 +139,7 @@ const emit = defineEmits<{
   reset: [];
   skip: [];
   "switch-phase": [phase: PomodoroPhase];
+  "complete-task": [];
 }>();
 
 const phaseOptions = [

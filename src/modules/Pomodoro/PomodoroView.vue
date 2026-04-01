@@ -23,6 +23,7 @@
         @reset="reset"
         @skip="skip"
         @switch-phase="switchPhase"
+        @complete-task="completeLinkedTask"
       />
 
       <div class="flex flex-col gap-4">
@@ -81,12 +82,12 @@
               <div
                 class="flex flex-col items-center text-center bg-violet-50 rounded-xl p-3 gap-1"
               >
-                <span class="text-xl font-serif text-violet-600 leading-none">
-                  +{{ sessionsCompleted * 25 }}
-                </span>
-                <span class="text-[0.65rem] text-violet-400 font-medium">
-                  XP
-                </span>
+                <span class="text-xl font-serif text-violet-600 leading-none"
+                  >+{{ linkedSessionsXP }}</span
+                >
+                <span class="text-[0.65rem] text-violet-400 font-medium"
+                  >XP</span
+                >
               </div>
             </div>
           </template>
@@ -172,6 +173,7 @@ import PomodoroCard from "./PomodoroCard.vue";
 import { usePomodoroTimer } from "./pomodoro.composable";
 import { usePomodoroStore } from "./pomodoro.store";
 import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
+import { useCompleteTaskMutation } from "@/modules/Tasks/tasks.tanstack";
 
 const {
   phase,
@@ -203,4 +205,23 @@ const linkedTaskIdModel = computed({
   get: () => pomodoroStore.linkedTaskId,
   set: (val) => linkTask(val),
 });
+
+const linkedSessionsXP = computed(() => {
+  const today = new Date().toDateString();
+  return (
+    pomodoroStore.history.filter(
+      (s) =>
+        s.phase === "work" &&
+        s.linkedTaskId !== null &&
+        new Date(s.completedAt).toDateString() === today,
+    ).length * 25
+  );
+});
+
+const { mutate: completeTask } = useCompleteTaskMutation();
+
+const completeLinkedTask = () => {
+  if (!pomodoroStore.linkedTaskId) return;
+  completeTask(pomodoroStore.linkedTaskId);
+};
 </script>
