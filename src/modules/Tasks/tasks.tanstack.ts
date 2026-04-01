@@ -45,7 +45,6 @@ export const useCompleteTaskMutation = () => {
         gamification.profile.tasksCompleted = data.user.tasksCompleted;
       }
 
-      // Stop pomodoro if the completed task is currently linked
       const { usePomodoroStore } =
         await import("@/modules/Pomodoro/pomodoro.store");
       const pomodoro = usePomodoroStore();
@@ -56,6 +55,7 @@ export const useCompleteTaskMutation = () => {
     },
   });
 };
+
 export const useDeleteTaskMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
