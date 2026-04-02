@@ -8,16 +8,22 @@ import type {
 } from "./workspace.types";
 
 export const teamsApi = {
-  createTeam: (data: { teamName: string; description: string }) =>
-    api.post<Team>("/teams", data),
-  listTeams: () => api.get<Team[]>("/teams"),
-  getTeam: (teamId: string) => api.get<Team>(`/teams/${teamId}`),
+  createTeam: (data: { teamName?: string; name?: string; description: string }) => {
+    // Support both teamName and name for compatibility
+    const payload = {
+      name: data.name || data.teamName,
+      description: data.description,
+    };
+    return api.post<Team>("/workspace/teams", payload);
+  },
+  listTeams: () => api.get<Team[]>("/workspace/teams"),
+  getTeam: (teamId: string) => api.get<Team>(`/workspace/teams/${teamId}`),
   updateTeam: (teamId: string, data: Partial<Team>) =>
-    api.patch<Team>(`/teams/${teamId}`, data),
+    api.put<Team>(`/workspace/teams/${teamId}`, data),
   inviteMember: (teamId: string, email: string) =>
-    api.post(`/teams/${teamId}/members/invite`, { email }),
+    api.post(`/workspace/teams/${teamId}/members/invite`, { email }),
   removeMember: (teamId: string, userId: string) =>
-    api.delete(`/teams/${teamId}/members/${userId}`),
+    api.delete(`/workspace/teams/${teamId}/members/${userId}`),
 };
 
 export const sprintsApi = {
@@ -26,12 +32,13 @@ export const sprintsApi = {
     name: string;
     startDate: string;
     endDate: string;
-  }) => api.post<Sprint>("/sprints", data),
+  }) => api.post<Sprint>(`/workspace/sprints/team/${data.teamId}`, data),
   listSprints: (teamId: string) =>
-    api.get<Sprint[]>(`/teams/${teamId}/sprints`),
+    api.get<Sprint[]>(`/workspace/sprints/team/${teamId}`),
   updateSprint: (sprintId: string, data: Partial<Sprint>) =>
-    api.patch<Sprint>(`/sprints/${sprintId}`, data),
-  deleteSprint: (sprintId: string) => api.delete(`/sprints/${sprintId}`),
+    api.put<Sprint>(`/workspace/sprints/${sprintId}`, data),
+  deleteSprint: (sprintId: string) =>
+    api.delete(`/workspace/sprints/${sprintId}`),
 };
 
 export const tasksApi = {
@@ -40,19 +47,20 @@ export const tasksApi = {
     title: string;
     description: string;
     priority: string;
-  }) => api.post<WorkspaceTask>(`/sprints/${data.sprintId}/tasks`, data),
+  }) =>
+    api.post<WorkspaceTask>(`/workspace/tasks/sprint/${data.sprintId}`, data),
   listTasks: (sprintId: string) =>
-    api.get<WorkspaceTask[]>(`/sprints/${sprintId}/tasks`),
+    api.get<WorkspaceTask[]>(`/workspace/tasks/sprint/${sprintId}`),
   updateTask: (taskId: string, data: Partial<WorkspaceTask>) =>
-    api.patch<WorkspaceTask>(`/tasks/${taskId}`, data),
-  deleteTask: (taskId: string) => api.delete(`/tasks/${taskId}`),
+    api.put<WorkspaceTask>(`/workspace/tasks/${taskId}`, data),
+  deleteTask: (taskId: string) => api.delete(`/workspace/tasks/${taskId}`),
 };
 
 export const chatApi = {
-  sendMessage: (teamId: string, content: string) =>
-    api.post<ChatMessage>(`/teams/${teamId}/messages`, { content }),
-  getMessages: (teamId: string, limit = 50, offset = 0) =>
+  sendMessage: (teamId: string, message: string) =>
+    api.post<ChatMessage>(`/workspace/chat/team/${teamId}`, { message }),
+  getMessages: (teamId: string, limit = 50, page = 1) =>
     api.get<ChatMessage[]>(
-      `/teams/${teamId}/messages?limit=${limit}&offset=${offset}`,
+      `/workspace/chat/team/${teamId}?limit=${limit}&page=${page}`,
     ),
 };
