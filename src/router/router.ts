@@ -45,6 +45,29 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/workspace",
+      component: () => import("@/modules/Workspace/WorkspaceView.vue"),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: "",
+          component: () => import("@/modules/Workspace/views/TeamsView.vue"),
+        },
+        {
+          path: "teams/:teamId/sprints",
+          component: () => import("@/modules/Workspace/views/SprintsView.vue"),
+        },
+        {
+          path: "sprints/:sprintId/tasks",
+          component: () => import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
+        },
+        {
+          path: "teams/:teamId/chat",
+          component: () => import("@/modules/Workspace/views/ChatView.vue"),
+        },
+      ],
+    },
+    {
       path: "/reset-password",
       component: () => import("@/components/ResetPasswordView.vue"),
       meta: { guest: true },
