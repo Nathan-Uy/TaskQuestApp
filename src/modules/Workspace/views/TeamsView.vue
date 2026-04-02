@@ -46,7 +46,7 @@
       >
         <template #title>
           <h3 class="font-semibold" style="color: var(--ink-primary)">
-            {{ team.teamName }}
+            {{ team.name }}
           </h3>
         </template>
 
