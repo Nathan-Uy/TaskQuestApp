@@ -45,6 +45,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/workspace",
+      component: () => import("@/modules/Workspace/WorkspaceView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/reset-password",
       component: () => import("@/components/ResetPasswordView.vue"),
       meta: { guest: true },
