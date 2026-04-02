@@ -9,6 +9,21 @@ const getTransporter = () =>
     },
   });
 
+export const sendMail = async (options: {
+  to: string;
+  subject: string;
+  html: string;
+}) => {
+  const transporter = getTransporter();
+
+  await transporter.sendMail({
+    from: `"TaskQuest" <${process.env.EMAIL_USER}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  });
+};
+
 export const sendResetEmail = async (to: string, resetUrl: string) => {
   const transporter = getTransporter();
 
