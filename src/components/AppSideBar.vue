@@ -236,6 +236,7 @@ const navSections: NavSection[] = [
       { name: "tasks", label: "Tasks", icon: "✓", path: "/tasks" },
       { name: "pomodoro", label: "Pomodoro", icon: "⏱", path: "/pomodoro" },
       { name: "calendar", label: "Calendar", icon: "📅", path: "/calendar" },
+      { name: "workspace", label: "Workspace", icon: "🗂", path: "/workspace" },
     ],
   },
   {
