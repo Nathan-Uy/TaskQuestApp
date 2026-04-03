@@ -46,10 +46,13 @@ export interface WorkspaceTask {
 
 export interface ChatMessage {
   _id: string;
-  teamId: string;
+  sender?: string;
+  name: string;
   userId: string;
   userName: string;
-  userEmail: string;
+  content: string;
+  userEmail?: string; // Add this
   message: string;
-  createdAt: Date;
+  createdAt: string | null;
+  displayName?:string;
 }
