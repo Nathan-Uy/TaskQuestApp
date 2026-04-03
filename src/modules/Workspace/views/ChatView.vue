@@ -3,7 +3,7 @@
     <!-- Messages -->
     <div class="flex-1 overflow-y-auto mb-4 space-y-3">
       <div
-        v-if="!chatStore.loading && messages.length === 0"
+        v-if="!chatStore.loading && messagesWithDisplayName.length === 0"
         class="flex items-center justify-center h-full"
       >
         <p style="color: var(--ink-muted)">
@@ -12,7 +12,7 @@
       </div>
 
       <Card
-        v-for="msg in messages"
+        v-for="msg in messagesWithDisplayName"
         :key="msg._id"
         :pt="{
           root: {
@@ -32,9 +32,9 @@
       >
         <template #content>
           <div class="flex gap-3">
-            <!-- Avatar -->
+            <!-- Avatar – safe charAt -->
             <Avatar
-              :label="msg.displayName.charAt(0).toUpperCase()"
+              :label="msg.displayName?.charAt(0)?.toUpperCase() || '?'"
               shape="circle"
               size="normal"
               :style="{
@@ -62,7 +62,7 @@
                 class="text-sm whitespace-pre-wrap"
                 style="color: var(--ink-secondary)"
               >
-                {{ msg.content }}
+                {{ msg.content || msg.message || "" }}
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useWorkspaceChatStore } from "../workspace-chat.store";
@@ -122,17 +122,35 @@ const { messages } = storeToRefs(chatStore);
 const messageText = ref("");
 const teamId = route.params.teamId as string;
 
+// ✅ Enrich messages with a guaranteed displayName
+const messagesWithDisplayName = computed(() => {
+  return (messages.value || []).map((msg) => ({
+    ...msg,
+    displayName:
+      msg.displayName || msg.userName || msg.sender || msg.name || "Unknown",
+  }));
+});
+
 onMounted(() => {
   if (teamId) {
     chatStore.fetchMessages(teamId);
   }
 });
 
-const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+// ✅ Safe formatTime – accepts null/undefined
+const formatTime = (date: string | null | undefined): string => {
+  if (!date) return "";
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
 
 const sendMessage = async () => {
   if (messageText.value.trim() && teamId) {

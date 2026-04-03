@@ -33,6 +33,7 @@ export const useWorkspaceTasksStore = defineStore("workspaceTasks", () => {
     title: string,
     description: string,
     priority: string,
+    dueDate: string | null,
   ) => {
     loading.value = true;
     error.value = null;
@@ -42,7 +43,9 @@ export const useWorkspaceTasksStore = defineStore("workspaceTasks", () => {
         title,
         description,
         priority,
+        dueDate,
       });
+
       tasks.value.push(data);
       return data;
     } catch (err) {

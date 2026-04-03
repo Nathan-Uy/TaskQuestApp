@@ -68,6 +68,32 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
     currentTeamId.value = teamId;
   };
 
+  const inviteMember = async (teamId: string, email: string) => {
+    try {
+      const { data } = await teamsApi.inviteMember(teamId, email);
+      const idx = teams.value.findIndex((t) => t._id === teamId);
+      if (idx !== -1) teams.value[idx] = data;
+      return data;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Failed to invite member";
+      throw err;
+    }
+  };
+
+  const removeMember = async (teamId: string, userId: string) => {
+    try {
+      const { data } = await teamsApi.removeMember(teamId, userId);
+      const idx = teams.value.findIndex((t) => t._id === teamId);
+      if (idx !== -1) teams.value[idx] = data;
+      return data;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Failed to remove member";
+      throw err;
+    }
+  };
+
   return {
     teams,
     currentTeamId,
@@ -79,5 +105,7 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
     createTeam,
     updateTeam,
     setCurrentTeam,
+    inviteMember,
+    removeMember,
   };
 });

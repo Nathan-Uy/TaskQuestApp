@@ -10,12 +10,33 @@ export const useWorkspaceChatStore = defineStore("workspaceChat", () => {
 
   const messageHistory = computed(() => messages.value);
 
+  const normalizeMessage = (msg: any): ChatMessage => {
+    const messageText = msg?.message || msg?.content || "";
+    const userName =
+      msg?.userName ||
+      msg?.senderName ||
+      msg?.user?.name ||
+      msg?.sender?.name ||
+      "Unknown";
+
+    return {
+      _id: msg?._id || crypto.randomUUID(),
+      userId: msg?.userId || msg?.sender?._id || msg?.user?._id || "",
+      userName: userName,
+      sender: userName,
+      name: userName,
+      message: messageText,
+      content: messageText,
+      createdAt: msg?.createdAt || null,
+    };
+  };
+
   const fetchMessages = async (teamId: string) => {
     loading.value = true;
     error.value = null;
     try {
       const { data } = await chatApi.getMessages(teamId);
-      messages.value = data;
+      messages.value = Array.isArray(data) ? data.map(normalizeMessage) : [];
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to fetch messages";
@@ -25,14 +46,19 @@ export const useWorkspaceChatStore = defineStore("workspaceChat", () => {
   };
 
   const sendMessage = async (teamId: string, content: string) => {
+    loading.value = true;
+    error.value = null;
     try {
       const { data } = await chatApi.sendMessage(teamId, content);
-      messages.value.push(data);
-      return data;
+      const normalized = normalizeMessage(data);
+      messages.value.push(normalized);
+      return normalized;
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to send message";
       throw err;
+    } finally {
+      loading.value = false;
     }
   };
 

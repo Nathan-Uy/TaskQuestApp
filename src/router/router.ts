@@ -59,11 +59,17 @@ const router = createRouter({
         },
         {
           path: "sprints/:sprintId/tasks",
-          component: () => import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
+          component: () =>
+            import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
         },
         {
           path: "teams/:teamId/chat",
           component: () => import("@/modules/Workspace/views/ChatView.vue"),
+        },
+        {
+          path: "teams/:teamId/members",
+          component: () =>
+            import("@/modules/Workspace/components/MemberView.vue"),
         },
       ],
     },
