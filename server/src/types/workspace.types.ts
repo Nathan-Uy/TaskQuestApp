@@ -1,8 +1,8 @@
 // Workspace Types
 
-export type TaskStatus = 'todo' | 'in-progress' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
-export type MemberRole = 'owner' | 'admin' | 'member';
+export type TaskStatus = "todo" | "in-progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
+export type MemberRole = "owner" | "admin" | "member";
 
 export interface ITeamMember {
   userId: string;
@@ -10,7 +10,7 @@ export interface ITeamMember {
   name: string;
   role: MemberRole;
   joinedAt?: Date;
-  inviteStatus: 'pending' | 'accepted';
+  inviteStatus: "pending" | "accepted";
 }
 
 export interface ITeam {
@@ -28,7 +28,7 @@ export interface ISprint {
   description?: string;
   startDate: Date;
   endDate: Date;
-  status: 'planning' | 'active' | 'completed';
+  status: "planning" | "active" | "completed";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -48,10 +48,18 @@ export interface IWorkspaceTask {
 }
 
 export interface IChatMessage {
-  teamId: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  message: string;
-  createdAt?: Date;
+  _id: string;
+  userId?: string;
+  userName?: string;
+  message?: string;
+  content?: string;
+  createdAt?: string | null;
+  sender?: {
+    _id?: string;
+    name?: string;
+  };
+  user?: {
+    _id?: string;
+    name?: string;
+  };
 }
