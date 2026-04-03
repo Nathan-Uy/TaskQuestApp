@@ -1,14 +1,21 @@
-import { Schema, model, Document } from 'mongoose';
-import { IChatMessage } from '../types/workspace.types';
+import { Schema, model, Document, Types } from "mongoose";
 
-interface IChatMessageDocument extends Omit<IChatMessage, '_id'>, Document {}
+export interface IChatMessageDocument extends Document {
+  teamId: Types.ObjectId;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  message: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const chatMessageSchema = new Schema<IChatMessageDocument>(
   {
     teamId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "WorkspaceTeam",
       required: true,
-      ref: 'WorkspaceTeam',
       index: true,
     },
     userId: {
@@ -31,9 +38,12 @@ const chatMessageSchema = new Schema<IChatMessageDocument>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 chatMessageSchema.index({ teamId: 1, createdAt: -1 });
 
-export default model<IChatMessageDocument>('WorkspaceChatMessage', chatMessageSchema);
+export default model<IChatMessageDocument>(
+  "WorkspaceChatMessage",
+  chatMessageSchema,
+);
