@@ -1,137 +1,126 @@
 <template>
   <div
-    class="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition cursor-pointer border-l-4"
-    :class="priorityBorderClass"
+    draggable="true"
+    class="group relative rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-grab active:cursor-grabbing"
+    style="
+      padding: 12px 14px;
+      background: var(--card-bg);
+      border-color: var(--card-border);
+    "
+    @dragstart="$emit('dragstart', $event)"
+    @dragend="$emit('dragend')"
   >
-    <!-- Title -->
-    <h4 class="font-semibold text-gray-800 line-clamp-2 mb-2">
-      {{ task.title }}
-    </h4>
+    <div
+      class="absolute left-0 top-3 bottom-3 w-0.5 rounded-full"
+      :style="{ background: accentColor }"
+    />
 
-    <!-- Description -->
-    <p v-if="task.description" class="text-sm text-gray-600 line-clamp-2 mb-3">
+    <div class="flex items-start justify-between gap-2 mb-2">
+      <p
+        class="text-sm font-semibold leading-snug flex-1"
+        style="color: var(--ink-primary)"
+      >
+        {{ task.title }}
+      </p>
+      <span
+        class="text-[0.65rem] font-semibold px-2 py-0.5 rounded-md shrink-0 capitalize"
+        :style="{ background: priorityBg, color: priorityColor }"
+        >{{ task.priority }}</span
+      >
+    </div>
+
+    <p
+      v-if="task.description"
+      class="text-xs leading-relaxed mb-3 line-clamp-2"
+      style="color: var(--ink-muted)"
+    >
       {{ task.description }}
     </p>
 
-    <!-- Priority & Status Badge -->
-    <div class="flex gap-2 mb-3 flex-wrap">
+    <div class="flex items-center justify-between mt-2">
       <span
-        class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
-        :class="priorityClass"
+        v-if="task.dueDate"
+        :class="[
+          'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md',
+          isOverdue ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500',
+        ]"
       >
-        {{ priorityLabel }}
+        <i class="pi pi-calendar text-[0.65rem]" />
+        {{ formatDate(task.dueDate) }}
       </span>
-    </div>
+      <span v-else />
 
-    <!-- Assigned To & Due Date -->
-    <div class="text-xs text-gray-500 space-y-1 mb-3">
-      <div v-if="task.assignedTo" class="flex items-center gap-1">
-        👤 <span>Assigned</span>
+      <div
+        class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-150"
+      >
+        <Button
+          icon="pi pi-pencil"
+          text
+          rounded
+          severity="secondary"
+          class="w-7! h-7!"
+          @click.stop="$emit('update', task._id, {})"
+        />
+        <Button
+          icon="pi pi-times"
+          text
+          rounded
+          severity="danger"
+          class="w-7! h-7!"
+          @click.stop="$emit('delete', task._id)"
+        />
       </div>
-      <div v-if="task.dueDate" class="flex items-center gap-1">
-        📅 <span>{{ formatDate(task.dueDate) }}</span>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex gap-2 justify-end">
-      <button
-        @click.stop="openStatusMenu"
-        class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition"
-      >
-        Change Status
-      </button>
-      <button
-        @click.stop="$emit('delete', task._id)"
-        class="px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded transition"
-      >
-        Delete
-      </button>
-    </div>
-
-    <!-- Status Menu -->
-    <div
-      v-if="showStatusMenu"
-      class="absolute bg-white border rounded-lg shadow-lg z-10 mt-1"
-    >
-      <button
-        v-for="status in ['todo', 'in-progress', 'done']"
-        :key="status"
-        @click="changeStatus(status)"
-        class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-      >
-        {{ statusLabel(status) }}
-      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed } from "vue";
+import Button from "primevue/button";
 import type { WorkspaceTask } from "../workspace.types";
 
-interface Props {
+const props = defineProps<{
   task: WorkspaceTask;
-}
+  accentColor: string;
+}>();
 
-interface Emits {
-  (e: "update", taskId: string, updates: Partial<WorkspaceTask>): void;
-  (e: "delete", taskId: string): void;
-}
+defineEmits<{
+  update: [taskId: string, updates: Partial<WorkspaceTask>];
+  delete: [taskId: string];
+  dragstart: [event: DragEvent];
+  dragend: [];
+}>();
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+const priorityColor = computed(
+  () =>
+    ({
+      low: "#2d7a4f",
+      medium: "#a07620",
+      high: "#b53a2f",
+    })[props.task.priority] ?? "#a07620",
+);
 
-const showStatusMenu = ref(false);
+const priorityBg = computed(
+  () =>
+    ({
+      low: "#e5f3ec",
+      medium: "#fdf3dc",
+      high: "#fbeae8",
+    })[props.task.priority] ?? "#fdf3dc",
+);
 
-const priorityLabel = computed(() => {
-  const labels: Record<string, string> = {
-    low: "🟢 Low",
-    medium: "🟡 Medium",
-    high: "🔴 High",
-  };
-  return labels[props.task.priority] || "Medium";
-});
-
-const priorityClass = computed(() => {
-  const classes: Record<string, string> = {
-    low: "bg-green-50 text-green-700",
-    medium: "bg-yellow-50 text-yellow-700",
-    high: "bg-red-50 text-red-700",
-  };
-  return classes[props.task.priority] || "bg-gray-50 text-gray-700";
-});
-
-const priorityBorderClass = computed(() => {
-  const classes: Record<string, string> = {
-    low: "border-green-300",
-    medium: "border-yellow-300",
-    high: "border-red-400",
-  };
-  return classes[props.task.priority] || "border-gray-300";
+const isOverdue = computed(() => {
+  if (!props.task.dueDate) return false;
+  return new Date(props.task.dueDate) < new Date();
 });
 
 const formatDate = (date: Date | string) => {
-  if (!date) return "";
   const d = new Date(date);
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
-
-const statusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    todo: "📋 To Do",
-    "in-progress": "🔄 In Progress",
-    done: "✅ Done",
-  };
-  return labels[status] || status;
-};
-
-const openStatusMenu = () => {
-  showStatusMenu.value = !showStatusMenu.value;
-};
-
-const changeStatus = (newStatus: string) => {
-  emit("update", props.task._id, { status: newStatus as any });
-  showStatusMenu.value = false;
 };
 </script>
