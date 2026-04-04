@@ -1,20 +1,18 @@
-import { Schema, model } from "mongoose";
-import { IProject, IProjectMember } from "../types/project.types";
+import { Schema, model, Document } from "mongoose";
 
-const ProjectMemberSchema = new Schema<IProjectMember>({
-  userId: { type: String, required: true },
-  email: { type: String, required: true },
-  name: { type: String, required: true },
-  role: { type: String, enum: ["owner", "admin", "member"], default: "member" },
-  joinedAt: { type: Date, default: Date.now },
-});
+export interface IProject extends Document {
+  name: string;
+  description: string;
+  owner: string; // userId
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const ProjectSchema = new Schema<IProject>(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     owner: { type: String, required: true },
-    members: [ProjectMemberSchema],
   },
   { timestamps: true },
 );
