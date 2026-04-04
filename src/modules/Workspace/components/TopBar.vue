@@ -1,5 +1,5 @@
 <template>
-  <Card class="mb-4">
+  <Card>
     <template #title>
       {{ currentTeam?.name || "Workspace" }}
     </template>

@@ -15,6 +15,9 @@
   <div v-else style="background: var(--surface-bg)">
     <RouterView />
   </div>
+
+  <ConfirmDialog />
+  <Toast />
 </template>
 
 <script setup lang="ts">
@@ -24,6 +27,8 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useNotifications } from "@/components/notification";
 import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
 import AppSideBar from "@/components/AppSideBar.vue";
+import ConfirmDialog from "primevue/confirmdialog";
+import Toast from "primevue/toast"; 
 
 const auth = useAuthStore();
 const route = useRoute();

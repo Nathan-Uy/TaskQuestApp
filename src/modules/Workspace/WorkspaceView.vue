@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col h-screen gap-4 p-6"
+    class="flex flex-col h-screen gap-4"
     style="background: var(--surface-bg)"
   >
     <!-- Top Bar - Only show when in nested team routes -->
