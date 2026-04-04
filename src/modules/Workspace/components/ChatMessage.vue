@@ -1,125 +1,116 @@
 <template>
   <div
-    v-if="message && message._id"
-    class="flex gap-3"
-    :class="{ 'flex-row-reverse': isOwn, 'items-start': true }"
+    v-if="message?._id"
+    class="flex gap-2"
+    :class="[
+      isOwn ? 'flex-row-reverse' : 'flex-row',
+      isLastInGroup ? 'mb-3' : 'mb-0.5',
+    ]"
   >
-    <!-- Avatar -->
-    <Avatar
-      v-if="showAvatar"
-      :label="getInitials(getSenderName(message))"
-      class="shrink-0"
-      :style="{
-        backgroundColor: getAvatarColor(getUserId(message)),
-        color: '#fff',
-      }"
-    />
-    <div v-else class="w-12 shrink-0" />
+    <div class="shrink-0 w-8">
+      <div
+        v-if="showAvatar && !isOwn"
+        class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white"
+        :style="{ background: getAvatarColor(message.userId) }"
+      >
+        {{ getInitials(getSenderName(message)) }}
+      </div>
+    </div>
 
-    <!-- Message Bubble -->
     <div
-      class="max-w-xs lg:max-w-md rounded-lg p-3"
-      :class="
-        isOwn
-          ? 'bg-blue-600 text-white rounded-br-none'
-          : 'bg-gray-100 text-gray-800 rounded-bl-none'
-      "
+      class="flex flex-col max-w-[65%]"
+      :class="isOwn ? 'items-end' : 'items-start'"
     >
-      <p
-        v-if="showAvatar"
-        :class="[
-          'text-xs font-semibold mb-1',
-          isOwn ? 'opacity-70 text-white' : 'text-gray-600',
-        ]"
+      <div
+        v-if="showAvatar && !isOwn"
+        class="text-[0.7rem] font-semibold mb-1 px-1"
+        style="color: var(--ink-secondary)"
       >
         {{ getSenderName(message) }}
-      </p>
+      </div>
 
-      <p class="wrap-break-words">{{ getMessageText(message) }}</p>
-
-      <p v-if="message?.createdAt" class="text-xs mt-1 opacity-70">
-        {{ formatTime(message.createdAt) }}
-      </p>
+      <div
+        class="flex items-end gap-1.5"
+        :class="isOwn ? 'flex-row-reverse' : 'flex-row'"
+      >
+        <div
+          class="px-3.5 py-2 text-sm leading-relaxed"
+          :class="[
+            isOwn ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm',
+          ]"
+          :style="
+            isOwn
+              ? { background: 'var(--accent)', color: 'white' }
+              : {
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--card-border)',
+                  color: 'var(--ink-primary)',
+                }
+          "
+        >
+          {{ getMessageText(message) }}
+        </div>
+        <span
+          v-if="isLastInGroup"
+          class="text-[0.6rem] shrink-0 mb-0.5"
+          style="color: var(--ink-muted)"
+        >
+          {{ formatTime(message.createdAt) }}
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import Avatar from "primevue/avatar";
 import type { ChatMessage } from "../workspace.types";
 
-interface Props {
+defineProps<{
   message: ChatMessage;
   isOwn: boolean;
   showAvatar: boolean;
-}
+  isLastInGroup: boolean;
+}>();
 
-const props = defineProps<Props>();
+const getSenderName = (msg: any): string =>
+  msg?.userName || msg?.senderName || msg?.user?.name || "Unknown";
+const getMessageText = (msg: any): string => msg?.message || msg?.content || "";
 
-const getSenderName = (msg: any): string => {
-  if (!msg) return "Unknown";
+const getInitials = (name?: string | null): string => {
+  if (!name?.trim()) return "U";
   return (
-    msg.userName ||
-    msg.senderName ||
-    msg.user?.name ||
-    msg.sender?.name ||
-    "Unknown"
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("")
+      .slice(0, 2) || "U"
   );
 };
 
-const getUserId = (msg: any): string => {
-  if (!msg) return "unknown";
-  return msg.userId || msg.sender?._id || msg.user?._id || "unknown";
-};
-
-const getMessageText = (msg: any): string => {
-  if (!msg) return "";
-  return msg.message || msg.content || "";
-};
-
-// ✅ Safe initials – never calls charAt on undefined
-const getInitials = (name?: string | null): string => {
-  if (!name || typeof name !== "string") return "U";
-  const trimmed = name.trim();
-  if (trimmed.length === 0) return "U";
-
-  const words = trimmed.split(/\s+/);
-  let initials = words
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("")
-    .slice(0, 2);
-  return initials || "U";
-};
-
-// ✅ Safe avatar color – never calls charCodeAt on undefined
 const getAvatarColor = (userId?: string | null): string => {
-  if (!userId || typeof userId !== "string") return "#3b82f6";
-
+  if (!userId) return "var(--accent)";
   const colors = [
-    "#3b82f6",
-    "#ef4444",
-    "#10b981",
-    "#f59e0b",
-    "#8b5cf6",
-    "#ec4899",
+    "#c2622a",
+    "#0077b6",
+    "#2d7a4f",
+    "#7c5cbf",
+    "#be3455",
+    "#a07620",
   ];
-
   let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
+  for (let i = 0; i < userId.length; i++)
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length] ?? "#3b82f6";
+  return colors[Math.abs(hash) % colors.length] ?? "var(--accent)";
 };
 
 const formatTime = (date?: Date | string | null): string => {
   if (!date) return "";
   try {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return isNaN(d.getTime())
+      ? ""
+      : d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
   } catch {
     return "";
   }

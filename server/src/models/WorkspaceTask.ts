@@ -1,19 +1,20 @@
-import { Schema, model, Document } from 'mongoose';
-import { IWorkspaceTask } from '../types/workspace.types';
+import { Schema, model, Document } from "mongoose";
+import { IWorkspaceTask } from "../types/workspace.types";
 
-interface IWorkspaceTaskDocument extends Omit<IWorkspaceTask, '_id'>, Document {}
+interface IWorkspaceTaskDocument
+  extends Omit<IWorkspaceTask, "_id">, Document {}
 
 const workspaceTaskSchema = new Schema<IWorkspaceTaskDocument>(
   {
     sprintId: {
       type: String,
       required: true,
-      ref: 'WorkspaceSprint',
+      ref: "WorkspaceSprint",
     },
     teamId: {
       type: String,
       required: true,
-      ref: 'WorkspaceTeam',
+      ref: "WorkspaceTeam",
     },
     title: {
       type: String,
@@ -26,15 +27,19 @@ const workspaceTaskSchema = new Schema<IWorkspaceTaskDocument>(
     },
     status: {
       type: String,
-      enum: ['todo', 'in-progress', 'done'],
-      default: 'todo',
+      enum: ["todo", "in-progress", "done"],
+      default: "todo",
     },
     priority: {
       type: String,
-      enum: ['low', 'medium', 'high'],
-      default: 'medium',
+      enum: ["low", "medium", "high"],
+      default: "medium",
     },
     assignedTo: {
+      type: String,
+      default: null,
+    },
+    ownerName: {
       type: String,
       default: null,
     },
@@ -46,10 +51,15 @@ const workspaceTaskSchema = new Schema<IWorkspaceTaskDocument>(
       type: Date,
       default: null,
     },
+    duration: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 workspaceTaskSchema.index({ sprintId: 1 });
@@ -57,4 +67,7 @@ workspaceTaskSchema.index({ teamId: 1 });
 workspaceTaskSchema.index({ status: 1 });
 workspaceTaskSchema.index({ assignedTo: 1 });
 
-export default model<IWorkspaceTaskDocument>('WorkspaceTask', workspaceTaskSchema);
+export default model<IWorkspaceTaskDocument>(
+  "WorkspaceTask",
+  workspaceTaskSchema,
+);

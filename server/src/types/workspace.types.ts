@@ -40,11 +40,13 @@ export interface IWorkspaceTask {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  assignedTo?: string | null; // userId
-  createdBy: string; // userId
+  assignedTo?: string | null; // userId of the owner
+  ownerName?: string | null; // display name of the owner (denormalized)
+  createdBy: string; // userId of creator
   createdAt?: Date;
   updatedAt?: Date;
-  dueDate?: Date | null;
+  dueDate?: Date | null; // keep for backward compatibility
+  duration?: number | null; // estimated hours
 }
 
 export interface IChatMessage {

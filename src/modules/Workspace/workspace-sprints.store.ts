@@ -34,6 +34,29 @@ export const useWorkspaceSprintsStore = defineStore("workspaceSprints", () => {
     }
   };
 
+  // NEW: Fetch a single sprint by ID (with caching)
+  const fetchSprintById = async (sprintId: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      // Check cache first
+      let sprint = sprints.value.find((s) => s._id === sprintId);
+      if (sprint) {
+        return sprint;
+      }
+      // Otherwise fetch from API
+      const { data } = await sprintsApi.getSprint(sprintId);
+      sprints.value.push(data);
+      return data;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Failed to fetch sprint";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const createSprint = async (
     teamId: string,
     name: string,
@@ -100,6 +123,7 @@ export const useWorkspaceSprintsStore = defineStore("workspaceSprints", () => {
     loading,
     error,
     fetchSprints,
+    fetchSprintById, // exported
     createSprint,
     updateSprint,
     deleteSprint,
