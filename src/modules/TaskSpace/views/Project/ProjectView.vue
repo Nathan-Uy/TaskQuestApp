@@ -10,7 +10,16 @@
       />
     </div>
 
+    <div v-if="isLoading" class="flex justify-center py-8">
+      <ProgressSpinner />
+    </div>
+
+    <div v-else-if="error" class="text-center text-red-500 py-8">
+      Failed to load projects.
+    </div>
+
     <div
+      v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
     >
       <Card
@@ -71,11 +80,14 @@
 import { useProjectView } from "./projectview.composable";
 import Card from "primevue/card";
 import Button from "primevue/button";
+import ProgressSpinner from "primevue/progressspinner";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import CustomizeProjectAppearanceDialog from "./CustomizeProjectAppearanceDialog.vue";
 
 const {
   projects,
+  isLoading,
+  error,
   showCreateDialog,
   showCustomizeDialog,
   customizingProject,
