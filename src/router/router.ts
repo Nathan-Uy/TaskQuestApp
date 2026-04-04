@@ -44,33 +44,41 @@ const router = createRouter({
       component: () => import("@/modules/Settings/SettingsView.vue"),
       meta: { requiresAuth: true },
     },
+
     {
-      path: "/workspace",
-      component: () => import("@/modules/Workspace/WorkspaceView.vue"),
+      path: "/taskspace",
+      component: () => import("@/modules/TaskSpace/TaskSpaceLayout.vue"),
       meta: { requiresAuth: true },
       children: [
         {
-          path: "",
-          component: () => import("@/modules/Workspace/views/TeamsView.vue"),
+          path: "projects",
+          name: "TaskSpaceProjects",
+          component: () =>
+            import("@/modules/TaskSpace/views/Project/ProjectView.vue"),
+          meta: { requiresAuth: true },
         },
         {
-          path: "teams/:teamId/sprints",
-          component: () => import("@/modules/Workspace/views/SprintsView.vue"),
+          path: "project/:teamId/members",
+          name: "TaskSpaceMembers",
+          component: () =>
+            import("@/modules/TaskSpace/views/TeamMembersView.vue"),
+          meta: { requiresAuth: true },
         },
         {
-          path: "sprints/:sprintId/tasks",
+          path: "project/:teamId/chat",
+          name: "TaskSpaceChat",
+          component: () => import("@/modules/Workspace/views/ChatView.vue"),
+          meta: { requiresAuth: true },
+        },
+        // tasks route
+        {
+          path: "project/:teamId/sprint/:sprintId/tasks",
+          name: "TaskSpaceTasks",
           component: () =>
             import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
+          meta: { requiresAuth: true },
         },
-        {
-          path: "teams/:teamId/chat",
-          component: () => import("@/modules/Workspace/views/ChatView.vue"),
-        },
-        {
-          path: "teams/:teamId/members",
-          component: () =>
-            import("@/modules/Workspace/components/MemberView.vue"),
-        },
+        { path: "", redirect: "/taskspace/projects" },
       ],
     },
     {
