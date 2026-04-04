@@ -57,16 +57,22 @@ const router = createRouter({
             import("@/modules/TaskSpace/views/Project/ProjectView.vue"),
         },
         {
-          path: "project/:projectId/members",
-          name: "TaskSpaceMembers",
+          path: "project/:projectId/teams",
+          name: "TaskSpaceTeams",
           component: () =>
-            import("@/modules/TaskSpace/views/Project/ProjectMembersView.vue"),
+            import("@/modules/TaskSpace/views/Teams/TeamsView.vue"),
         },
         {
-         path: "project/:projectId/chat",
-         name: "TaskSpaceChat",
-         component: () =>
-           import("@/modules/TaskSpace/views/Project/ProjectChatView.vue"),
+          path: "team/:teamId/members",
+          name: "TaskSpaceTeamMembers",
+          component: () =>
+            import("@/modules/TaskSpace/views/Teams/TeamMembersView.vue"),
+        },
+        {
+          path: "team/:teamId/chat",
+          name: "TaskSpaceTeamChat",
+          component: () =>
+            import("@/modules/TaskSpace/views/Teams/TeamChatView.vue"),
         },
         { path: "", redirect: "/taskspace/projects" },
       ],
