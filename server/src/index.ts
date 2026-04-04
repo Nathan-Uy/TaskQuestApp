@@ -7,6 +7,8 @@ import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import goalRoutes from "./routes/goals.routes";
 import aiRoutes from "./routes/ai.routes";
+import projectRoutes from "./routes/project.routes";
+
 import workspaceTeamRoutes from "./routes/workspace.team.routes";
 import workspaceSprintRoutes from "./routes/workspace.sprint.routes";
 import workspaceTaskRoutes from "./routes/workspace.task.routes";
@@ -23,6 +25,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/projects", projectRoutes);
+
 app.use("/api/workspace/teams", workspaceTeamRoutes);
 app.use("/api/workspace/sprints", workspaceSprintRoutes);
 app.use("/api/workspace/tasks", workspaceTaskRoutes);
