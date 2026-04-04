@@ -1,5 +1,3 @@
-// Backend types – used by Mongoose models and controllers
-
 import { Document } from "mongoose";
 
 export interface IProjectMember {
