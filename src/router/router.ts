@@ -55,28 +55,18 @@ const router = createRouter({
           name: "TaskSpaceProjects",
           component: () =>
             import("@/modules/TaskSpace/views/Project/ProjectView.vue"),
-          meta: { requiresAuth: true },
         },
         {
-          path: "project/:teamId/members",
+          path: "project/:projectId/members",
           name: "TaskSpaceMembers",
           component: () =>
-            import("@/modules/TaskSpace/views/TeamMembersView.vue"),
-          meta: { requiresAuth: true },
+            import("@/modules/TaskSpace/views/Project/ProjectMembersView.vue"),
         },
         {
-          path: "project/:teamId/chat",
-          name: "TaskSpaceChat",
-          component: () => import("@/modules/Workspace/views/ChatView.vue"),
-          meta: { requiresAuth: true },
-        },
-        // tasks route
-        {
-          path: "project/:teamId/sprint/:sprintId/tasks",
-          name: "TaskSpaceTasks",
-          component: () =>
-            import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
-          meta: { requiresAuth: true },
+         path: "project/:projectId/chat",
+         name: "TaskSpaceChat",
+         component: () =>
+           import("@/modules/TaskSpace/views/Project/ProjectChatView.vue"),
         },
         { path: "", redirect: "/taskspace/projects" },
       ],

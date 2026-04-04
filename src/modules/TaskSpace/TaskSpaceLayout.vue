@@ -13,7 +13,6 @@
         />
       </template>
     </Menubar>
-
     <div class="p-6">
       <Card>
         <template #content>
@@ -25,10 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
-import { useWorkspaceTeamsStore } from "@/modules/Workspace/workspace-team.store";
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import Card from "primevue/card";
@@ -36,52 +34,40 @@ import Card from "primevue/card";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
-const teamsStore = useWorkspaceTeamsStore();
 
-const selectedTeamId = ref<string | null>(null);
+const selectedProjectId = ref<string | null>(
+  localStorage.getItem("taskSpace_lastProjectId"),
+);
 
 const menuItems = computed(() => [
   { label: "Projects", command: () => router.push("/taskspace/projects") },
   {
     label: "Members",
-    visible: !!selectedTeamId.value,
+    visible: !!selectedProjectId.value,
     command: () =>
-      router.push(`/taskspace/project/${selectedTeamId.value}/members`),
+      router.push(`/taskspace/project/${selectedProjectId.value}/members`),
   },
   {
     label: "Chat",
-    visible: !!selectedTeamId.value,
+    visible: !!selectedProjectId.value,
     command: () =>
-      router.push(`/taskspace/project/${selectedTeamId.value}/chat`),
+      router.push(`/taskspace/project/${selectedProjectId.value}/chat`),
   },
 ]);
 
-const loadTeams = async () => {
-  if (teamsStore.teams.length === 0) await teamsStore.fetchTeams();
-  if (teamsStore.teams.length > 0 && !selectedTeamId.value) {
-    const lastTeamId = localStorage.getItem("taskSpace_lastTeamId");
-    const teamExists = teamsStore.teams.some((t) => t._id === lastTeamId);
-    selectedTeamId.value =
-      lastTeamId && teamExists ? lastTeamId : teamsStore.teams[0]!._id;
-    localStorage.setItem("taskSpace_lastTeamId", selectedTeamId.value);
-  }
-};
+watch(
+  () => route.params.projectId,
+  (newId) => {
+    if (newId && typeof newId === "string") {
+      selectedProjectId.value = newId;
+      localStorage.setItem("taskSpace_lastProjectId", newId);
+    }
+  },
+  { immediate: true },
+);
 
 const handleLogout = () => {
   auth.logout();
   router.push("/login");
 };
-
-onMounted(() => loadTeams());
-
-watch(
-  () => route.params.teamId,
-  (newTeamId) => {
-    if (newTeamId && typeof newTeamId === "string") {
-      selectedTeamId.value = newTeamId;
-      localStorage.setItem("taskSpace_lastTeamId", newTeamId);
-    }
-  },
-  { immediate: true },
-);
 </script>
