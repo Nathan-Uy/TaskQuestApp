@@ -1,23 +1,23 @@
-// src/modules/TaskSpace/Team/teamview.composable.ts
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
-import { useWorkspaceTeamsStore } from "@/modules/Workspace/workspace-team.store";
-import { useWorkspaceSprintsStore } from "@/modules/Workspace/workspace-sprints.store";
+import { teamApi } from "./team.services";
+import type { Team, CreateTeamDto } from "./team.types";
 
-export function useTeamView() {
-  const teamsStore = useWorkspaceTeamsStore();
-  const sprintsStore = useWorkspaceSprintsStore();
+export function useTeamView(projectId: string) {
   const router = useRouter();
   const toast = useToast();
 
-  const teams = ref<any[]>([]);
+  // Data
+  const teams = ref<Team[]>([]);
   const showCreateDialog = ref(false);
   const showCustomizeDialog = ref(false);
-  const customizingTeam = ref<any>(null);
+  const customizingTeam = ref<Team | null>(null);
   const tempColor = ref("");
   const tempCover = ref("");
+  const isLoading = ref(false);
 
+  // Color palette (same as before)
   const colorPalette = [
     "#ef4444",
     "#f97316",
@@ -41,11 +41,7 @@ export function useTeamView() {
     "#1e293b",
   ];
 
-  const loadTeams = async () => {
-    if (teamsStore.teams.length === 0) await teamsStore.fetchTeams();
-    teams.value = teamsStore.teams;
-  };
-
+  // Local storage helpers for appearance
   const getTeamStyle = (teamId: string) => {
     const saved = localStorage.getItem(`team_style_${teamId}`);
     return saved ? JSON.parse(saved) : {};
@@ -63,7 +59,7 @@ export function useTeamView() {
     return style.coverImage || null;
   };
 
-  const openCustomizeDialog = (team: any) => {
+  const openCustomizeDialog = (team: Team) => {
     customizingTeam.value = team;
     const style = getTeamStyle(team._id);
     tempColor.value = style.backgroundColor || "";
@@ -91,26 +87,43 @@ export function useTeamView() {
       life: 3000,
     });
     showCustomizeDialog.value = false;
+    // Refresh list to reflect changes (no API call, just UI update)
     teams.value = [...teams.value];
   };
 
-  const handleCreateTeam = async (payload: {
-    name: string;
-    description: string;
-  }) => {
+  // Load teams for this project
+  const loadTeams = async () => {
+    if (!projectId) return;
+    isLoading.value = true;
     try {
-      const created = await teamsStore.createTeam(
-        payload.name,
-        payload.description,
-      );
+      const { data } = await teamApi.getTeams(projectId);
+      teams.value = data;
+    } catch (error) {
+      console.error("Failed to load teams:", error);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "Could not load teams.",
+        life: 3000,
+      });
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // Create a new team
+  const handleCreateTeam = async (payload: CreateTeamDto) => {
+    if (!projectId) return;
+    try {
+      const { data } = await teamApi.createTeam(projectId, payload);
+      teams.value.push(data);
       toast.add({
         severity: "success",
         summary: "Team Created",
-        detail: `${created.name} has been created.`,
+        detail: `${data.name} created.`,
         life: 3000,
       });
-      await loadTeams();
-      await selectTeam(created._id);
+      showCreateDialog.value = false;
     } catch (error: any) {
       const message = error.response?.data?.error || "Failed to create team";
       toast.add({
@@ -119,30 +132,25 @@ export function useTeamView() {
         detail: message,
         life: 4000,
       });
-      throw error;
     }
   };
 
-  const selectTeam = async (teamId: string) => {
-    localStorage.setItem("taskSpace_lastTeamId", teamId);
-    await sprintsStore.fetchSprints(teamId);
-    const sprints = sprintsStore.sprints;
-    if (sprints.length > 0) {
-      const firstSprint = sprints[0]!;
-      router.push(`/taskspace/team/${teamId}/sprint/${firstSprint._id}/tasks`);
-    } else {
-      toast.add({
-        severity: "warn",
-        summary: "No Sprints",
-        detail: "This team has no sprints. Create a sprint first.",
-        life: 4000,
-      });
-    }
+  // Select a team – navigate to its members page
+  const selectTeam = (teamId: string) => {
+    router.push(`/taskspace/team/${teamId}/members`);
   };
 
+  // Load teams on mount and when projectId changes
   onMounted(() => {
     loadTeams();
   });
+
+  watch(
+    () => projectId,
+    (newId) => {
+      if (newId) loadTeams();
+    },
+  );
 
   return {
     teams,
@@ -158,5 +166,6 @@ export function useTeamView() {
     saveTeamAppearance,
     handleCreateTeam,
     selectTeam,
+    isLoading,
   };
 }
