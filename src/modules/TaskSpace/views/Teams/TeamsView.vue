@@ -10,7 +10,12 @@
       />
     </div>
 
+    <div v-if="isLoading" class="flex justify-center py-8">
+      <ProgressSpinner />
+    </div>
+
     <div
+      v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
     >
       <Card
@@ -65,11 +70,16 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute } from "vue-router";
 import { useTeamView } from "./teamview.composable";
 import Card from "primevue/card";
 import Button from "primevue/button";
+import ProgressSpinner from "primevue/progressspinner";
 import CreateTeamDialog from "./CreateTeamDialog.vue";
 import CustomizeAppearanceDialog from "./CustomizeAppearanceDialog.vue";
+
+const route = useRoute();
+const projectId = route.params.projectId as string;
 
 const {
   teams,
@@ -85,5 +95,6 @@ const {
   saveTeamAppearance,
   handleCreateTeam,
   selectTeam,
-} = useTeamView();
+  isLoading,
+} = useTeamView(projectId);
 </script>
