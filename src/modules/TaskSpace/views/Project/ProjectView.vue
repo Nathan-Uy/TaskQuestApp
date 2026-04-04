@@ -40,8 +40,11 @@
         <template #content>
           <div class="p-3">
             <h2 class="text-base font-semibold truncate">{{ project.name }}</h2>
-            <p class="text-xs text-gray-500">
-              {{ project.members.length }} members
+            <p
+              v-if="project.description"
+              class="text-xs text-gray-500 mt-1 truncate"
+            >
+              {{ project.description }}
             </p>
           </div>
         </template>
