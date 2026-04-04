@@ -9,6 +9,7 @@ import goalRoutes from "./routes/goals.routes";
 import aiRoutes from "./routes/ai.routes";
 import projectRoutes from "./routes/project.routes";
 import teamRoutes from "./routes/team.routes";
+import sprintRoutes from "./routes/sprint.routes";
 
 import workspaceTeamRoutes from "./routes/workspace.team.routes";
 import workspaceSprintRoutes from "./routes/workspace.sprint.routes";
@@ -28,6 +29,7 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/teams", teamRoutes);
+app.use("/api/sprints", sprintRoutes);
 
 app.use("/api/workspace/teams", workspaceTeamRoutes);
 app.use("/api/workspace/sprints", workspaceSprintRoutes);
