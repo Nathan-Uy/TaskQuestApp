@@ -1,13 +1,32 @@
-import { Types, Document } from "mongoose";
+import { Document } from "mongoose";
 
 export interface ITask extends Document {
-  userId: Types.ObjectId;
+  sprintId: string;
+  teamId: string;
   title: string;
-  notes?: string;
+  description?: string;
+  status: "todo" | "in-progress" | "done";
   priority: "low" | "medium" | "high";
-  status: "active" | "completed";
-  xpReward: number;
-  duration: number;
-  dueDate?: Date;
-  completedAt?: Date;
+  assignedTo?: string;
+  createdBy: string;
+  duration?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateTaskBody {
+  title: string;
+  description?: string;
+  priority?: "low" | "medium" | "high";
+  assignedTo?: string;
+  duration?: number;
+}
+
+export interface UpdateTaskBody {
+  title?: string;
+  description?: string;
+  status?: "todo" | "in-progress" | "done";
+  priority?: "low" | "medium" | "high";
+  assignedTo?: string;
+  duration?: number;
 }
