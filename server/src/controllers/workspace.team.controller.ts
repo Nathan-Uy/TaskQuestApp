@@ -152,7 +152,7 @@ export const deleteTeam = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Invite member to team
+// Invite member to team (supports resending pending invitations)
 export const inviteMember = async (req: AuthRequest, res: Response) => {
   try {
     const { teamId } = req.params;
@@ -160,14 +160,12 @@ export const inviteMember = async (req: AuthRequest, res: Response) => {
     const userId = req.userId;
 
     const team = await WorkspaceTeam.findById(teamId);
-
     if (!team) {
       return res.status(404).json({ error: "Team not found" });
     }
 
     // Only owner/admin can invite members
-    const memberRole: any = team.members.find((m) => m.userId === userId)?.role;
-
+    const memberRole = team.members.find((m) => m.userId === userId)?.role;
     if (team.owner !== userId && memberRole !== "admin") {
       return res
         .status(403)
@@ -179,24 +177,42 @@ export const inviteMember = async (req: AuthRequest, res: Response) => {
     }
 
     const trimmedEmail = email.trim().toLowerCase();
+    const existingMember = team.members.find((m) => m.email === trimmedEmail);
 
-    // Check if member already exists
-    if (team.members.some((m) => m.email === trimmedEmail)) {
-      return res
-        .status(400)
-        .json({ error: "Member already invited or in team" });
+    // If member already exists and is pending → resend invitation
+    if (existingMember && existingMember.inviteStatus === "pending") {
+      const invitedUser = await User.findOne({ email: trimmedEmail });
+      if (!invitedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      const inviterUser = await User.findById(userId);
+      const teamLink = `${process.env.FRONTEND_URL}/workspace/teams/${teamId}`;
+      await sendMail({
+        to: trimmedEmail,
+        subject: `You're invited to join ${team.name} workspace team`,
+        html: `
+          <p>Hi ${invitedUser.displayName},</p>
+          <p>${inviterUser?.displayName || "A user"} has invited you to join the <strong>${team.name}</strong> team in TaskQuest Workspace.</p>
+          <p><a href="${teamLink}">Click here to view the team</a></p>
+          <p>Best regards,<br>TaskQuest Team</p>
+        `,
+      });
+      return res.json(team); // Return existing team, no duplicate member
     }
 
-    // Get user details from User model
-    const invitedUser = await User.findOne({ email: trimmedEmail });
+    // If already accepted or exists as non-pending → error
+    if (existingMember) {
+      return res.status(400).json({ error: "Member already in team" });
+    }
 
+    // New invitation
+    const invitedUser = await User.findOne({ email: trimmedEmail });
     if (!invitedUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Add member with pending status
     team.members.push({
-      userId: invitedUser._id?.toString() || "",
+      userId: invitedUser._id.toString(),
       email: trimmedEmail,
       name: invitedUser.displayName || "Unknown",
       role: "member",
@@ -205,10 +221,8 @@ export const inviteMember = async (req: AuthRequest, res: Response) => {
 
     await team.save();
 
-    // Send invitation email
     const inviterUser = await User.findById(userId);
     const teamLink = `${process.env.FRONTEND_URL}/workspace/teams/${teamId}`;
-
     await sendMail({
       to: trimmedEmail,
       subject: `You're invited to join ${team.name} workspace team`,

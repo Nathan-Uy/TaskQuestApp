@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full gap-6 pl-8 pr-8 py-8">
+  <div class="flex flex-col h-full gap-3 pl-8 pr-8">
     <div class="flex items-center justify-between">
       <div>
         <h1
@@ -16,14 +16,11 @@
         label="New Task"
         icon="pi pi-plus"
         class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
-        @click="showCreateTaskModal = true"
+        @click="openCreateModal"
       />
     </div>
 
-    <div
-      v-if="tasksStore.loading"
-      class="flex items-center justify-center py-20"
-    >
+    <div v-if="isLoading" class="flex items-center justify-center py-20">
       <i
         class="pi pi-spinner pi-spin text-2xl"
         style="color: var(--ink-muted)"
@@ -38,7 +35,7 @@
       {{ tasksStore.error }}
     </div>
 
-    <div v-else class="flex gap-5 flex-1 overflow-x-auto pb-4">
+    <div v-else class="flex gap-5 flex-1 overflow-hidden overflow-x-auto pb-4">
       <div
         v-for="col in columns"
         :key="col.key"
@@ -59,18 +56,20 @@
             <span
               class="text-xs font-semibold uppercase tracking-widest"
               :style="{ color: col.color }"
-              >{{ col.label }}</span
             >
+              {{ col.label }}
+            </span>
           </div>
           <span
             class="text-[0.7rem] font-semibold rounded-full px-2 py-0.5"
             :style="{ background: col.color + '22', color: col.color }"
-            >{{ tasksStore.tasksByStatus[col.key].length }}</span
           >
+            {{ tasksStore.tasksByStatus[col.key].length }}
+          </span>
         </div>
 
         <div
-          class="flex flex-col gap-2 flex-1 rounded-2xl border min-h-48 p-3 transition-all duration-150"
+          class="flex flex-col gap-2 flex-1 rounded-2xl border min-h-48 p-3 overflow-y-auto max-h-[calc(100vh-200px)] transition-all duration-150"
           :style="{
             background: 'var(--card-bg)',
             borderColor:
@@ -89,7 +88,7 @@
             :key="task._id"
             :task="task"
             :accent-color="col.color"
-            @update="handleUpdateTask"
+            @edit="openEditModal"
             @delete="handleDeleteTask"
             @dragstart="handleDragStart($event, task)"
             @dragend="handleDragEnd"
@@ -98,17 +97,20 @@
       </div>
     </div>
 
+    <!-- Task Form Modal -->
     <Dialog
-      v-model:visible="showCreateTaskModal"
-      header="New Task"
+      v-model:visible="showTaskFormModal"
+      :header="editingTask ? 'Edit Task' : 'New Task'"
       :modal="true"
       :draggable="false"
       class="w-full max-w-md rounded-2xl!"
     >
-      <CreateTaskModal
-        :sprint-id="route.params.sprintId as string"
-        @close="showCreateTaskModal = false"
-        @created="handleTaskCreated"
+      <TaskForm
+        :sprint-id="sprintId"
+        :task="editingTask"
+        :team-members="teamMembers"
+        @close="closeTaskForm"
+        @saved="handleTaskSaved"
       />
     </Dialog>
   </div>
@@ -120,16 +122,24 @@ import { useRoute } from "vue-router";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import { useWorkspaceTasksStore } from "../workspace-tasks.store";
+import { useWorkspaceTeamsStore } from "../workspace-team.store";
+import { useWorkspaceSprintsStore } from "../workspace-sprints.store";
 import TaskCard from "../components/TaskCard.vue";
-import CreateTaskModal from "../components/CreateTaskModal.vue";
+import TaskForm from "../components/TaskForm.vue";
 import type { WorkspaceTask } from "../workspace.types";
 
 const route = useRoute();
 const tasksStore = useWorkspaceTasksStore();
+const teamsStore = useWorkspaceTeamsStore();
+const sprintsStore = useWorkspaceSprintsStore();
 
-const showCreateTaskModal = ref(false);
+const sprintId = route.params.sprintId as string;
+const showTaskFormModal = ref(false);
+const editingTask = ref<WorkspaceTask | null>(null);
 const draggedOverColumn = ref<string | null>(null);
 const draggedTask = ref<WorkspaceTask | null>(null);
+const teamMembers = ref<{ userId: string; name: string }[]>([]);
+const isLoading = ref(true);
 
 const columns = [
   {
@@ -155,10 +165,61 @@ const columns = [
   },
 ] as const;
 
-onMounted(() => {
-  const sprintId = route.params.sprintId as string;
-  if (sprintId) tasksStore.fetchTasks(sprintId);
+const loadTeamMembers = async () => {
+  try {
+    // 1. Fetch the sprint to get teamId
+    const sprint = await sprintsStore.fetchSprintById(sprintId);
+    const teamId = sprint.teamId;
+    if (!teamId) {
+      console.warn("Sprint has no teamId");
+      return;
+    }
+    // 2. Fetch the team to get members
+    const team = await teamsStore.fetchTeamById(teamId);
+    if (team?.members) {
+      teamMembers.value = team.members.map((member: any) => ({
+        userId: member.userId,
+        name: member.name,
+      }));
+      console.log("Loaded team members:", teamMembers.value);
+    } else {
+      console.warn("Team not found or no members", teamId);
+    }
+  } catch (error) {
+    console.error("Failed to load team members:", error);
+  }
+};
+
+onMounted(async () => {
+  try {
+    isLoading.value = true;
+    if (sprintId) {
+      await Promise.all([tasksStore.fetchTasks(sprintId), loadTeamMembers()]);
+    }
+  } finally {
+    isLoading.value = false;
+  }
 });
+
+const openCreateModal = () => {
+  editingTask.value = null;
+  showTaskFormModal.value = true;
+};
+
+const openEditModal = (task: WorkspaceTask) => {
+  editingTask.value = task;
+  showTaskFormModal.value = true;
+};
+
+const closeTaskForm = () => {
+  showTaskFormModal.value = false;
+  editingTask.value = null;
+};
+
+const handleTaskSaved = () => {
+  closeTaskForm();
+  if (sprintId) tasksStore.fetchTasks(sprintId);
+};
 
 const handleDragStart = (event: DragEvent, task: WorkspaceTask) => {
   draggedTask.value = task;
@@ -191,17 +252,6 @@ const handleDrop = async (newStatus: string) => {
   }
 };
 
-const handleUpdateTask = async (
-  taskId: string,
-  updates: Partial<WorkspaceTask>,
-) => {
-  try {
-    await tasksStore.updateTask(taskId, updates);
-  } catch {
-    console.error("Failed to update task");
-  }
-};
-
 const handleDeleteTask = async (taskId: string) => {
   if (!confirm("Delete this task?")) return;
   try {
@@ -209,9 +259,5 @@ const handleDeleteTask = async (taskId: string) => {
   } catch {
     console.error("Failed to delete task");
   }
-};
-
-const handleTaskCreated = () => {
-  showCreateTaskModal.value = false;
 };
 </script>

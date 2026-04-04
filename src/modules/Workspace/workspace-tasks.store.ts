@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { tasksApi } from "./workspace.api";
-import type { WorkspaceTask } from "./workspace.types";
+import type { WorkspaceTask, TaskPriority } from "./workspace.types";
 
 export const useWorkspaceTasksStore = defineStore("workspaceTasks", () => {
   const tasks = ref<WorkspaceTask[]>([]);
@@ -28,24 +28,27 @@ export const useWorkspaceTasksStore = defineStore("workspaceTasks", () => {
     }
   };
 
-  const createTask = async (
-    sprintId: string,
-    title: string,
-    description: string,
-    priority: string,
-    dueDate: string | null,
-  ) => {
+  const createTask = async (taskData: {
+    sprintId: string;
+    title: string;
+    description?: string;
+    priority?: TaskPriority;
+    duration?: number | null;
+    assignedTo?: string | null;
+    ownerName?: string | null;
+  }) => {
     loading.value = true;
     error.value = null;
     try {
       const { data } = await tasksApi.createTask({
-        sprintId,
-        title,
-        description,
-        priority,
-        dueDate,
+        sprintId: taskData.sprintId,
+        title: taskData.title,
+        description: taskData.description || "",
+        priority: taskData.priority || "medium",
+        duration: taskData.duration ?? null,
+        assignedTo: taskData.assignedTo || null,
+        ownerName: taskData.ownerName || null,
       });
-
       tasks.value.push(data);
       return data;
     } catch (err) {

@@ -34,6 +34,25 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
     }
   };
 
+  const fetchTeamById = async (teamId: string) => {
+    loading.value = true;
+    try {
+      // Check cache first
+      let team = teams.value.find((t) => t._id === teamId);
+      if (!team) {
+        const { data } = await teamsApi.getTeam(teamId);
+        teams.value.push(data);
+        team = data;
+      }
+      return team;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to fetch team";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const createTeam = async (teamName: string, description: string) => {
     loading.value = true;
     error.value = null;
@@ -75,8 +94,6 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
       if (idx !== -1) teams.value[idx] = data;
       return data;
     } catch (err) {
-      error.value =
-        err instanceof Error ? err.message : "Failed to invite member";
       throw err;
     }
   };
@@ -88,8 +105,6 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
       if (idx !== -1) teams.value[idx] = data;
       return data;
     } catch (err) {
-      error.value =
-        err instanceof Error ? err.message : "Failed to remove member";
       throw err;
     }
   };
@@ -102,6 +117,7 @@ export const useWorkspaceTeamsStore = defineStore("workspaceTeams", () => {
     loading,
     error,
     fetchTeams,
+    fetchTeamById, // exported
     createTeam,
     updateTeam,
     setCurrentTeam,

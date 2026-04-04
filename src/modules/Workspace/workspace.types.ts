@@ -29,19 +29,26 @@ export interface Sprint {
   updatedAt: Date;
 }
 
+export type TaskStatus = "todo" | "in-progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
+export type MemberRole = "owner" | "admin" | "member";
+
+
 export interface WorkspaceTask {
   _id: string;
   sprintId: string;
   teamId: string;
   title: string;
   description?: string;
-  status: "todo" | "in-progress" | "done";
-  priority: "low" | "medium" | "high";
+  status: TaskStatus;
+  priority: TaskPriority;
   assignedTo?: string | null;
   createdBy: string;
-  dueDate?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  ownerId?: string; 
+  ownerName?: string; 
+  duration?: number | null; 
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ChatMessage {
@@ -54,5 +61,5 @@ export interface ChatMessage {
   userEmail?: string; // Add this
   message: string;
   createdAt: string | null;
-  displayName?:string;
+  displayName?: string;
 }
