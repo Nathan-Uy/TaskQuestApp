@@ -19,7 +19,7 @@ export interface AuthUser {
 }
 
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref(sessionStorage.getItem("token") || "");
+  const token = ref(localStorage.getItem("token") || "");
   const user = ref<AuthUser | null>(null);
   const queryClient = useQueryClient();
 
@@ -55,7 +55,8 @@ export const useAuthStore = defineStore("auth", () => {
     const { data } = await api.post("/auth/login", { email, password });
     token.value = data.token;
     user.value = data.user;
-    sessionStorage.setItem("token", data.token);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
     await syncGamification(data.user);
     await syncStores();
     import("@/router/router").then(({ setInitialized }) =>
@@ -75,7 +76,8 @@ export const useAuthStore = defineStore("auth", () => {
     });
     token.value = data.token;
     user.value = data.user;
-    sessionStorage.setItem("token", data.token);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
     await syncGamification(data.user);
     await syncStores();
     import("@/router/router").then(({ setInitialized }) =>
@@ -96,7 +98,8 @@ export const useAuthStore = defineStore("auth", () => {
   const logout = () => {
     token.value = "";
     user.value = null;
-    sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     import("@/router/router").then(({ setInitialized }) =>
       setInitialized(false),
     );

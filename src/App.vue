@@ -21,17 +21,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, watch, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
 import { useNotifications } from "@/components/notification";
 import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
 import AppSideBar from "@/components/AppSideBar.vue";
 import ConfirmDialog from "primevue/confirmdialog";
-import Toast from "primevue/toast"; 
+import Toast from "primevue/toast";
 
 const auth = useAuthStore();
 const route = useRoute();
+const router = useRouter();
 const { data: tasks } = useTasksQuery();
 const { init } = useNotifications();
 
@@ -46,4 +47,20 @@ watch(
   },
   { immediate: true, once: true },
 );
+
+// ✅ Cross‑tab logout
+const handleStorage = (event: StorageEvent) => {
+  if (event.key === "token" && !event.newValue) {
+    auth.logout();
+    router.push("/login");
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("storage", handleStorage);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("storage", handleStorage);
+});
 </script>
