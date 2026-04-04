@@ -32,7 +32,7 @@ export function useProjectView() {
   const tempColor = ref("");
   const tempCover = ref("");
 
-  // Color palette (same as before)
+  // Color palette
   const colorPalette = [
     "#ef4444",
     "#f97316",
@@ -102,13 +102,14 @@ export function useProjectView() {
       life: 3000,
     });
     showCustomizeDialog.value = false;
-    // Force UI update
     await refetch();
   };
 
+  // ✅ Fixed: use the created project's ID from the response
   const handleCreateProject = async (payload: CreateProjectDto) => {
     try {
       const result = await createProjectMutation.mutateAsync(payload);
+      const newProjectId = result.data._id; // extract ID
       toast.add({
         severity: "success",
         summary: "Project Created",
@@ -117,8 +118,8 @@ export function useProjectView() {
       });
       showCreateDialog.value = false;
       await refetch();
-      // Navigate to members page of the new project
-      router.push(`/taskspace/project/${result.data._id}/members`);
+      // Navigate to teams page of the new project
+      router.push(`/taskspace/project/${newProjectId}/teams`);
     } catch (error: any) {
       const message = error.response?.data?.error || "Failed to create project";
       toast.add({
@@ -131,8 +132,7 @@ export function useProjectView() {
   };
 
   const selectProject = (projectId: string) => {
-    localStorage.setItem("taskSpace_lastProjectId", projectId);
-    router.push(`/taskspace/project/${projectId}/members`);
+    router.push(`/taskspace/project/${projectId}/teams`);
   };
 
   return {
