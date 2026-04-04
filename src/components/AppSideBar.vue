@@ -3,6 +3,7 @@
     class="w-56 h-screen flex flex-col overflow-y-auto px-5 py-7 border-r transition-colors duration-200"
     style="background: var(--sidebar-bg); border-color: var(--sidebar-border)"
   >
+    <!-- Logo -->
     <div class="pb-5 mb-5 border-b" style="border-color: var(--sidebar-border)">
       <p
         class="font-serif text-xl leading-none"
@@ -15,6 +16,7 @@
       </p>
     </div>
 
+    <!-- User Profile -->
     <div class="mb-6">
       <div class="flex items-center gap-3 mb-3.5">
         <div
@@ -71,6 +73,7 @@
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="flex-1 flex flex-col gap-0.5">
       <div
         v-for="section in navSections"
@@ -109,8 +112,9 @@
               : 'max-h-75 opacity-100'
           "
         >
+          <!-- Regular items (use router-link) -->
           <router-link
-            v-for="item in section.items"
+            v-for="item in section.items.filter((i) => i.name !== 'taskspace')"
             :key="item.name"
             :to="item.path"
             class="flex items-center gap-2.5 rounded-lg text-sm font-medium no-underline transition-all duration-150 px-3 py-2"
@@ -127,10 +131,30 @@
             <span class="w-4 text-center text-[0.95rem]">{{ item.icon }}</span>
             <span class="flex-1">{{ item.label }}</span>
           </router-link>
+
+          <!-- TaskSpace item – opens in new tab, no external icon -->
+          <button
+            v-if="section.items.some((i) => i.name === 'taskspace')"
+            class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2"
+            :style="{ color: 'var(--ink-secondary)' }"
+            @mouseenter="
+              ($event.currentTarget as HTMLElement).style.background =
+                'var(--nav-hover)'
+            "
+            @mouseleave="
+              ($event.currentTarget as HTMLElement).style.background =
+                'transparent'
+            "
+            @click="openTaskSpace"
+          >
+            <span class="w-4 text-center text-[0.95rem]">🗂</span>
+            <span class="flex-1">TaskSpace</span>
+          </button>
         </div>
       </div>
     </nav>
 
+    <!-- Streak Coach -->
     <div class="mb-3">
       <div
         v-if="streakCoach"
@@ -184,6 +208,7 @@
       </button>
     </div>
 
+    <!-- Settings & Logout -->
     <div class="pt-4 mt-2 border-t" style="border-color: var(--sidebar-border)">
       <div class="flex flex-col gap-1">
         <button
@@ -229,6 +254,7 @@ const { profile, progressPct } = storeToRefs(useGamificationStore());
 const router = useRouter();
 const auth = useAuthStore();
 
+// Only one TaskSpace entry under WORK
 const navSections: NavSection[] = [
   {
     title: "Work",
@@ -236,7 +262,7 @@ const navSections: NavSection[] = [
       { name: "tasks", label: "Tasks", icon: "✓", path: "/tasks" },
       { name: "pomodoro", label: "Pomodoro", icon: "⏱", path: "/pomodoro" },
       { name: "calendar", label: "Calendar", icon: "📅", path: "/calendar" },
-      { name: "workspace", label: "Workspace", icon: "🗂", path: "/workspace" },
+      { name: "taskspace", label: "TaskSpace", icon: "🗂", path: "/taskspace" },
     ],
   },
   {
@@ -272,6 +298,11 @@ const fetchStreakCoach = async () => {
   } finally {
     streakLoading.value = false;
   }
+};
+
+// Opens TaskSpace in a new tab
+const openTaskSpace = () => {
+  window.open("/taskspace", "_blank");
 };
 
 onMounted(() => setTimeout(() => (mounted.value = true), 100));
