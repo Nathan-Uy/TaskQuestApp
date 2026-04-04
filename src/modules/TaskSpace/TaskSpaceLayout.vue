@@ -35,35 +35,49 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 
-const selectedProjectId = ref<string | null>(
-  localStorage.getItem("taskSpace_lastProjectId"),
-);
+const selectedTeamId = ref<string | null>(null);
 
+// Build dynamic menu – Members & Chat visible only when a team is selected
 const menuItems = computed(() => [
   { label: "Projects", command: () => router.push("/taskspace/projects") },
   {
     label: "Members",
-    visible: !!selectedProjectId.value,
+    visible: !!selectedTeamId.value,
     command: () =>
-      router.push(`/taskspace/project/${selectedProjectId.value}/members`),
+      router.push(`/taskspace/team/${selectedTeamId.value}/members`),
   },
   {
     label: "Chat",
-    visible: !!selectedProjectId.value,
-    command: () =>
-      router.push(`/taskspace/project/${selectedProjectId.value}/chat`),
+    visible: !!selectedTeamId.value,
+    command: () => router.push(`/taskspace/team/${selectedTeamId.value}/chat`),
   },
 ]);
 
+// Watch for teamId in route params
 watch(
-  () => route.params.projectId,
+  () => route.params.teamId,
   (newId) => {
     if (newId && typeof newId === "string") {
-      selectedProjectId.value = newId;
-      localStorage.setItem("taskSpace_lastProjectId", newId);
+      selectedTeamId.value = newId;
+      localStorage.setItem("taskSpace_lastTeamId", newId);
+    } else {
+      // No teamId in route – clear selection
+      selectedTeamId.value = null;
+      localStorage.removeItem("taskSpace_lastTeamId");
     }
   },
   { immediate: true },
+);
+
+// Also watch the full path to clear when navigating to non-team routes
+watch(
+  () => route.path,
+  (newPath) => {
+    if (!newPath.includes("/team/")) {
+      selectedTeamId.value = null;
+      localStorage.removeItem("taskSpace_lastTeamId");
+    }
+  },
 );
 
 const handleLogout = () => {
