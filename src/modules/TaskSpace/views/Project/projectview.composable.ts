@@ -1,23 +1,38 @@
-// src/modules/TaskSpace/Project/projectview.composable.ts
-import { ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
-import { useWorkspaceTeamsStore } from "@/modules/Workspace/workspace-team.store";
-import { useWorkspaceSprintsStore } from "@/modules/Workspace/workspace-sprints.store";
+import {
+  useProjects,
+  useCreateProject,
+  useProject,
+  useUpdateProject,
+  useAddMember,
+  useRemoveMember,
+} from "./project.tanstack";
+import type { Project, CreateProjectDto } from "./project.types";
 
 export function useProjectView() {
-  const teamsStore = useWorkspaceTeamsStore();
-  const sprintsStore = useWorkspaceSprintsStore();
   const router = useRouter();
   const toast = useToast();
 
-  const projects = ref<any[]>([]);
+  // Queries
+  const { data: projects, isLoading, error, refetch } = useProjects();
+  const projectsList = computed(() => projects.value || []);
+
+  // Mutations
+  const createProjectMutation = useCreateProject();
+  const updateProjectMutation = useUpdateProject();
+  const addMemberMutation = useAddMember();
+  const removeMemberMutation = useRemoveMember();
+
+  // UI state
   const showCreateDialog = ref(false);
   const showCustomizeDialog = ref(false);
-  const customizingProject = ref<any>(null);
+  const customizingProject = ref<Project | null>(null);
   const tempColor = ref("");
   const tempCover = ref("");
 
+  // Color palette (same as before)
   const colorPalette = [
     "#ef4444",
     "#f97316",
@@ -41,11 +56,7 @@ export function useProjectView() {
     "#1e293b",
   ];
 
-  const loadProjects = async () => {
-    if (teamsStore.teams.length === 0) await teamsStore.fetchTeams();
-    projects.value = teamsStore.teams;
-  };
-
+  // Local storage helpers for appearance
   const getProjectStyle = (projectId: string) => {
     const saved = localStorage.getItem(`project_style_${projectId}`);
     return saved ? JSON.parse(saved) : {};
@@ -63,7 +74,7 @@ export function useProjectView() {
     return style.coverImage || null;
   };
 
-  const openCustomizeDialog = (project: any) => {
+  const openCustomizeDialog = (project: Project) => {
     customizingProject.value = project;
     const style = getProjectStyle(project._id);
     tempColor.value = style.backgroundColor || "";
@@ -91,26 +102,23 @@ export function useProjectView() {
       life: 3000,
     });
     showCustomizeDialog.value = false;
-    projects.value = [...projects.value];
+    // Force UI update
+    await refetch();
   };
 
-  const handleCreateProject = async (payload: {
-    name: string;
-    description: string;
-  }) => {
+  const handleCreateProject = async (payload: CreateProjectDto) => {
     try {
-      const created = await teamsStore.createTeam(
-        payload.name,
-        payload.description,
-      );
+      const result = await createProjectMutation.mutateAsync(payload);
       toast.add({
         severity: "success",
         summary: "Project Created",
-        detail: `${created.name} has been created.`,
+        detail: `${result.data.name} has been created.`,
         life: 3000,
       });
-      await loadProjects();
-      await selectProject(created._id);
+      showCreateDialog.value = false;
+      await refetch();
+      // Navigate to members page of the new project
+      router.push(`/taskspace/project/${result.data._id}/members`);
     } catch (error: any) {
       const message = error.response?.data?.error || "Failed to create project";
       toast.add({
@@ -119,35 +127,18 @@ export function useProjectView() {
         detail: message,
         life: 4000,
       });
-      throw error;
     }
   };
 
-  const selectProject = async (projectId: string) => {
+  const selectProject = (projectId: string) => {
     localStorage.setItem("taskSpace_lastProjectId", projectId);
-    await sprintsStore.fetchSprints(projectId);
-    const sprints = sprintsStore.sprints;
-    if (sprints.length > 0) {
-      const firstSprint = sprints[0]!;
-      router.push(
-        `/taskspace/project/${projectId}/sprint/${firstSprint._id}/tasks`,
-      );
-    } else {
-      toast.add({
-        severity: "warn",
-        summary: "No Sprints",
-        detail: "This project has no sprints. Create a sprint first.",
-        life: 4000,
-      });
-    }
+    router.push(`/taskspace/project/${projectId}/members`);
   };
-
-  onMounted(() => {
-    loadProjects();
-  });
 
   return {
-    projects,
+    projects: projectsList,
+    isLoading,
+    error,
     showCreateDialog,
     showCustomizeDialog,
     customizingProject,
@@ -160,5 +151,6 @@ export function useProjectView() {
     saveProjectAppearance,
     handleCreateProject,
     selectProject,
+    refetch,
   };
 }
