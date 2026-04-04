@@ -1,23 +1,30 @@
 import { Schema, model } from "mongoose";
-import type{ ITask } from "../types/tasks.types";
+import { ITask } from "../types/tasks.types";
 
 const TaskSchema = new Schema<ITask>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    title: { type: String, required: true },
-    notes: { type: String },
+    sprintId: { type: String, required: true, ref: "Sprint", index: true },
+    teamId: { type: String, required: true, ref: "Team", index: true },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["todo", "in-progress", "done"],
+      default: "todo",
+    },
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
       default: "medium",
     },
-    status: { type: String, enum: ["active", "completed"], default: "active" },
-    xpReward: { type: Number, default: 25 },
-    duration: { type: Number, default: 1500 },
-    dueDate: { type: Date },
-    completedAt: { type: Date },
+    assignedTo: { type: String, default: null },
+    createdBy: { type: String, required: true },
+    duration: { type: Number, default: null },
   },
   { timestamps: true },
 );
 
-export const Task = model<ITask>("Task", TaskSchema);
+TaskSchema.index({ sprintId: 1 });
+TaskSchema.index({ teamId: 1 });
+
+export default model<ITask>("Task", TaskSchema);
