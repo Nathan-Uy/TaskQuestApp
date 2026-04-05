@@ -192,9 +192,9 @@ import { useRoute } from "vue-router";
 import Button from "primevue/button";
 import { useSprint } from "./sprint.tanstack";
 import { useTeam } from "@/modules/TaskSpace/views/Teams/team.tanstack";
-import { useTaskManager } from "./task.composable";
+import { useTaskManager } from "../Tasks/task.composable";
 import SprintTasksRow from "./SprintTasksRow.vue";
-import type { Task } from "./tasks.types";
+import type { Task } from "../Tasks/tasks.types";
 
 const route = useRoute();
 const teamId = route.params.teamId as string;

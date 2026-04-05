@@ -213,7 +213,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import Button from "primevue/button";
-import type { Task } from "./tasks.types";
+import type { Task } from "../Tasks/tasks.types";
 
 interface RowTask extends Partial<Task> {
   tempId?: string;
