@@ -15,7 +15,7 @@ const router = createRouter({
       meta: { guest: true },
     },
     {
-      path: "/tasks",
+      path: "/personal-tasks",
       component: () => import("@/modules/Tasks/TasksView.vue"),
       meta: { requiresAuth: true },
     },
@@ -73,6 +73,20 @@ const router = createRouter({
           name: "TaskSpaceTeamChat",
           component: () =>
             import("@/modules/TaskSpace/views/Teams/TeamChatView.vue"),
+        },
+        {
+          path: "team/:teamId/sprints",
+          name: "TaskSpaceTeamSprints",
+          component: () =>
+            import("@/modules/TaskSpace/views/Sprint/TeamSprintsView.vue"),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: "team/:teamId/sprint/:sprintId/tasks",
+          name: "TaskSpaceSprintTasks",
+          component: () =>
+            import("@/modules/TaskSpace/views/Sprint/SprintTasksView.vue"),
+          meta: { requiresAuth: true },
         },
         { path: "", redirect: "/taskspace/projects" },
       ],
