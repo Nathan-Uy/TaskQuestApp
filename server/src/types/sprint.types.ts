@@ -3,7 +3,7 @@ import { Document } from "mongoose";
 export interface ISprint extends Document {
   teamId: string;
   name: string;
-  description?: string;
+  description: string;
   startDate: Date;
   endDate: Date;
   status: "planning" | "active" | "completed";

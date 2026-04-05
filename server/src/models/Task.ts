@@ -7,6 +7,7 @@ const TaskSchema = new Schema<ITask>(
     teamId: { type: String, required: true, ref: "Team" },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
+    taskType: { type: String, default: "" },
     status: {
       type: String,
       enum: ["todo", "in-progress", "done"],
@@ -20,11 +21,11 @@ const TaskSchema = new Schema<ITask>(
     assignedTo: { type: String, default: null },
     createdBy: { type: String, required: true },
     duration: { type: Number, default: null },
+    dueDate: { type: Date, default: null },
   },
   { timestamps: true },
 );
 
-// Indexes – defined only once
 TaskSchema.index({ sprintId: 1 });
 TaskSchema.index({ teamId: 1 });
 

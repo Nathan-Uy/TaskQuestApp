@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Team from "../models/Team";
 import Project from "../models/Project";
 import { User } from "../models/User";
-import {
+import type {
   CreateTeamBody,
   UpdateTeamBody,
   AddMemberBody,
@@ -12,17 +12,51 @@ interface AuthRequest extends Request {
   userId?: string;
 }
 
-// Get all teams for a project (user must be project owner)
+type AuthError = {
+  error: string;
+  status: number;
+};
+
+type ProjectOwnershipResult = { project: typeof Project.prototype } | AuthError;
+
+const isAuthError = (value: ProjectOwnershipResult): value is AuthError => {
+  return "error" in value;
+};
+
+const getProjectOwnership = async (
+  projectId: string,
+  userId: string,
+): Promise<ProjectOwnershipResult> => {
+  const project = await Project.findById(projectId);
+
+  if (!project) {
+    return { error: "Project not found", status: 404 };
+  }
+
+  if (project.owner !== userId) {
+    return { error: "Not authorized", status: 403 };
+  }
+
+  return { project };
+};
+
+// Get all teams for a project
 export const getTeams = async (req: AuthRequest, res: Response) => {
   try {
-    const { projectId } = req.params;
+    const rawProjectId = req.params.projectId;
+    const projectId =
+      typeof rawProjectId === "string" ? rawProjectId : undefined;
     const userId = req.userId;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    const project = await Project.findById(projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
-      return res.status(403).json({ error: "Not authorized" });
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!projectId) {
+      return res.status(400).json({ error: "Project ID is required" });
+    }
+
+    const auth = await getProjectOwnership(projectId, userId);
+    if (isAuthError(auth)) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
 
     const teams = await Team.find({ projectId }).sort({ createdAt: -1 });
     res.json(teams);
@@ -35,17 +69,20 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
 // Get single team
 export const getTeam = async (req: AuthRequest, res: Response) => {
   try {
-    const { teamId } = req.params;
+    const rawTeamId = req.params.teamId;
+    const teamId = typeof rawTeamId === "string" ? rawTeamId : undefined;
     const userId = req.userId;
+
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!teamId) return res.status(400).json({ error: "Team ID is required" });
 
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const project = await Project.findById(team.projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
-      return res.status(403).json({ error: "Not authorized" });
+    const auth = await getProjectOwnership(team.projectId.toString(), userId);
+    if (isAuthError(auth)) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
 
     res.json(team);
   } catch (error) {
@@ -57,22 +94,28 @@ export const getTeam = async (req: AuthRequest, res: Response) => {
 // Create team
 export const createTeam = async (req: AuthRequest, res: Response) => {
   try {
-    const { projectId } = req.params;
+    const rawProjectId = req.params.projectId;
+    const projectId =
+      typeof rawProjectId === "string" ? rawProjectId : undefined;
     const { name, description } = req.body as CreateTeamBody;
     const userId = req.userId;
+
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!projectId) {
+      return res.status(400).json({ error: "Project ID is required" });
+    }
 
-    const project = await Project.findById(projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
+    const auth = await getProjectOwnership(projectId, userId);
+    if (isAuthError(auth)) {
       return res
-        .status(403)
+        .status(auth.status)
         .json({ error: "Only project owner can create teams" });
+    }
 
-    if (!name?.trim())
+    if (!name?.trim()) {
       return res.status(400).json({ error: "Team name required" });
+    }
 
-    // Get the current user to add as owner member
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -104,21 +147,25 @@ export const createTeam = async (req: AuthRequest, res: Response) => {
 // Update team
 export const updateTeam = async (req: AuthRequest, res: Response) => {
   try {
-    const { teamId } = req.params;
+    const rawTeamId = req.params.teamId;
+    const teamId = typeof rawTeamId === "string" ? rawTeamId : undefined;
     const { name, description } = req.body as UpdateTeamBody;
     const userId = req.userId;
+
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!teamId) return res.status(400).json({ error: "Team ID is required" });
 
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const project = await Project.findById(team.projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
-      return res.status(403).json({ error: "Not authorized" });
+    const auth = await getProjectOwnership(team.projectId.toString(), userId);
+    if (isAuthError(auth)) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
 
     if (name?.trim()) team.name = name.trim();
-    if (description !== undefined) team.description = description?.trim() || "";
+    if (description !== undefined) team.description = description.trim();
+
     await team.save();
     res.json(team);
   } catch (error) {
@@ -130,17 +177,20 @@ export const updateTeam = async (req: AuthRequest, res: Response) => {
 // Delete team
 export const deleteTeam = async (req: AuthRequest, res: Response) => {
   try {
-    const { teamId } = req.params;
+    const rawTeamId = req.params.teamId;
+    const teamId = typeof rawTeamId === "string" ? rawTeamId : undefined;
     const userId = req.userId;
+
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!teamId) return res.status(400).json({ error: "Team ID is required" });
 
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const project = await Project.findById(team.projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
-      return res.status(403).json({ error: "Not authorized" });
+    const auth = await getProjectOwnership(team.projectId.toString(), userId);
+    if (isAuthError(auth)) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
 
     await Team.findByIdAndDelete(teamId);
     res.json({ message: "Team deleted" });
@@ -153,24 +203,30 @@ export const deleteTeam = async (req: AuthRequest, res: Response) => {
 // Add member to team
 export const addTeamMember = async (req: AuthRequest, res: Response) => {
   try {
-    const { teamId } = req.params;
+    const rawTeamId = req.params.teamId;
+    const teamId = typeof rawTeamId === "string" ? rawTeamId : undefined;
     const { email, role = "member" } = req.body as AddMemberBody;
     const userId = req.userId;
+
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!teamId) return res.status(400).json({ error: "Team ID is required" });
 
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const project = await Project.findById(team.projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== userId)
+    const auth = await getProjectOwnership(team.projectId.toString(), userId);
+    if (isAuthError(auth)) {
       return res
-        .status(403)
+        .status(auth.status)
         .json({ error: "Only project owner can add members" });
+    }
 
-    if (!email?.trim())
+    if (!email?.trim()) {
       return res.status(400).json({ error: "Email required" });
+    }
+
     const trimmedEmail = email.trim().toLowerCase();
+
     if (team.members.some((m) => m.email === trimmedEmail)) {
       return res.status(400).json({ error: "Member already in team" });
     }
@@ -186,6 +242,7 @@ export const addTeamMember = async (req: AuthRequest, res: Response) => {
       joinedAt: new Date(),
       inviteStatus: "pending",
     });
+
     await team.save();
     res.json(team);
   } catch (error) {
@@ -197,25 +254,38 @@ export const addTeamMember = async (req: AuthRequest, res: Response) => {
 // Remove member from team
 export const removeTeamMember = async (req: AuthRequest, res: Response) => {
   try {
-    const { teamId, userId: memberId } = req.params;
+    const rawTeamId = req.params.teamId;
+    const rawMemberId = req.params.userId;
+    const teamId = typeof rawTeamId === "string" ? rawTeamId : undefined;
+    const memberId = typeof rawMemberId === "string" ? rawMemberId : undefined;
     const currentUserId = req.userId;
+
     if (!currentUserId) return res.status(401).json({ error: "Unauthorized" });
+    if (!teamId) return res.status(400).json({ error: "Team ID is required" });
+    if (!memberId)
+      return res.status(400).json({ error: "Member ID is required" });
 
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const project = await Project.findById(team.projectId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
-    if (project.owner !== currentUserId)
+    const auth = await getProjectOwnership(
+      team.projectId.toString(),
+      currentUserId,
+    );
+    if (isAuthError(auth)) {
       return res
-        .status(403)
+        .status(auth.status)
         .json({ error: "Only project owner can remove members" });
+    }
 
     const memberIndex = team.members.findIndex((m) => m.userId === memberId);
-    if (memberIndex === -1)
+    if (memberIndex === -1) {
       return res.status(404).json({ error: "Member not found" });
-    if (team.members[memberIndex].role === "owner")
+    }
+
+    if (team.members[memberIndex].role === "owner") {
       return res.status(400).json({ error: "Cannot remove owner" });
+    }
 
     team.members.splice(memberIndex, 1);
     await team.save();
