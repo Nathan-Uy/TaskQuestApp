@@ -3,8 +3,8 @@ import { ITask } from "../types/tasks.types";
 
 const TaskSchema = new Schema<ITask>(
   {
-    sprintId: { type: String, required: true, ref: "Sprint", index: true },
-    teamId: { type: String, required: true, ref: "Team", index: true },
+    sprintId: { type: String, required: true, ref: "Sprint" },
+    teamId: { type: String, required: true, ref: "Team" },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     status: {
@@ -24,6 +24,7 @@ const TaskSchema = new Schema<ITask>(
   { timestamps: true },
 );
 
+// Indexes – defined only once
 TaskSchema.index({ sprintId: 1 });
 TaskSchema.index({ teamId: 1 });
 
