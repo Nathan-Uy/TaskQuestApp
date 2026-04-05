@@ -10,8 +10,10 @@ import {
 import type {
   Task,
   CreateTaskDto,
+  UpdateTaskDto,
   TaskPriority,
   TaskStatus,
+  TaskType,
 } from "./tasks.types";
 
 export function useTaskManager(sprintId: string) {
@@ -19,36 +21,49 @@ export function useTaskManager(sprintId: string) {
   const confirm = useConfirm();
 
   const { data: tasksData, isLoading, error, refetch } = useTasks(sprintId);
-  const tasks = computed(() => tasksData.value || []);
+  const tasks = computed(() => tasksData.value ?? []);
 
-  const createTask = useCreateTask();
-  const updateTask = useUpdateTask();
-  const deleteTask = useDeleteTask();
+  const createMutation = useCreateTask();
+  const updateMutation = useUpdateTask();
+  const deleteMutation = useDeleteTask();
 
   const showDialog = ref(false);
   const dialogHeader = ref("");
   const editingTask = ref<Task | null>(null);
-  const defaultStatus = ref<TaskStatus>("todo"); // ✅ fixed type
+  const defaultStatus = ref<TaskStatus>("todo");
   const saving = ref(false);
-  const form = ref({
+
+  const form = ref<{
+    title: string;
+    description: string;
+    taskType: TaskType | string;
+    priority: TaskPriority;
+    duration: number | null;
+    assignedTo: string | null;
+    dueDate: string | null;
+    status: TaskStatus;
+  }>({
     title: "",
     description: "",
-    priority: "medium" as TaskPriority,
-    duration: null as number | null,
-    assignedTo: null as string | null,
-    status: "todo" as TaskStatus,
+    taskType: "",
+    priority: "medium",
+    duration: null,
+    assignedTo: null,
+    dueDate: null,
+    status: "todo",
   });
 
-  const openCreateDialog = (status: TaskStatus) => {
-    // ✅ fixed parameter type
+  const openCreateDialog = (status: TaskStatus = "todo") => {
     defaultStatus.value = status;
     editingTask.value = null;
     form.value = {
       title: "",
       description: "",
+      taskType: "",
       priority: "medium",
       duration: null,
       assignedTo: null,
+      dueDate: null,
       status: "todo",
     };
     dialogHeader.value = "Create Task";
@@ -59,10 +74,15 @@ export function useTaskManager(sprintId: string) {
     editingTask.value = task;
     form.value = {
       title: task.title,
-      description: task.description || "",
+      description: task.description ?? "",
+      taskType: task.taskType ?? "",
       priority: task.priority,
       duration: task.duration ?? null,
-      assignedTo: task.assignedTo || null,
+      assignedTo: task.assignedTo ?? null,
+      dueDate:
+        task.dueDate != null
+          ? (new Date(task.dueDate).toISOString().split("T")[0] ?? null)
+          : null,
       status: task.status,
     };
     dialogHeader.value = "Edit Task";
@@ -70,35 +90,81 @@ export function useTaskManager(sprintId: string) {
   };
 
   const saveTask = async () => {
-    if (!form.value.title) return;
+    if (!form.value.title.trim()) return;
     saving.value = true;
     try {
-      const data: CreateTaskDto = {
-        title: form.value.title,
-        description: form.value.description,
+      const dto: CreateTaskDto = {
+        title: form.value.title.trim(),
+        description: form.value.description || undefined,
+        taskType: form.value.taskType || undefined,
         priority: form.value.priority,
         duration: form.value.duration ?? undefined,
         assignedTo: form.value.assignedTo ?? undefined,
+        dueDate: form.value.dueDate ?? null,
         status: editingTask.value ? undefined : defaultStatus.value,
       };
+
       if (editingTask.value) {
-        await updateTask.mutateAsync({ taskId: editingTask.value._id, data });
+        await updateMutation.mutateAsync({
+          taskId: editingTask.value._id,
+          data: dto as UpdateTaskDto,
+        });
         toast.add({ severity: "success", summary: "Task updated", life: 3000 });
       } else {
-        await createTask.mutateAsync({ sprintId, data });
+        await createMutation.mutateAsync({ sprintId, data: dto });
         toast.add({ severity: "success", summary: "Task created", life: 3000 });
       }
       showDialog.value = false;
-      await refetch();
-    } catch (error: any) {
+    } catch (e: any) {
       toast.add({
         severity: "error",
         summary: "Error",
-        detail: error.response?.data?.error || "Failed to save task",
+        detail: e.response?.data?.error || "Failed to save task",
         life: 4000,
       });
     } finally {
       saving.value = false;
+    }
+  };
+
+  const saveInlineTask = async (
+    taskId: string | undefined,
+    patch: Partial<Task>,
+  ) => {
+    try {
+      if (taskId) {
+        const dto: UpdateTaskDto = {
+          title: patch.title,
+          description: patch.description,
+          taskType: patch.taskType,
+          priority: patch.priority,
+          status: patch.status,
+          assignedTo: patch.assignedTo,
+          duration: patch.duration,
+          dueDate: patch.dueDate ?? null,
+        };
+        await updateMutation.mutateAsync({ taskId, data: dto });
+      } else {
+        const dto: CreateTaskDto = {
+          title: patch.title ?? "",
+          description: patch.description,
+          taskType: patch.taskType || undefined,
+          priority: patch.priority || "medium",
+          status: patch.status || "todo",
+          assignedTo: patch.assignedTo || undefined,
+          duration: patch.duration || undefined,
+          dueDate: patch.dueDate ?? null,
+        };
+        await createMutation.mutateAsync({ sprintId, data: dto });
+      }
+    } catch (e: any) {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: e.response?.data?.error || "Failed to save task",
+        life: 4000,
+      });
+      throw e;
     }
   };
 
@@ -109,18 +175,17 @@ export function useTaskManager(sprintId: string) {
       icon: "pi pi-exclamation-triangle",
       accept: async () => {
         try {
-          await deleteTask.mutateAsync(task._id);
+          await deleteMutation.mutateAsync({ taskId: task._id, sprintId });
           toast.add({
             severity: "success",
             summary: "Task deleted",
             life: 3000,
           });
-          await refetch();
-        } catch (error: any) {
+        } catch (e: any) {
           toast.add({
             severity: "error",
             summary: "Error",
-            detail: error.response?.data?.error || "Failed to delete task",
+            detail: e.response?.data?.error || "Failed to delete task",
             life: 4000,
           });
         }
@@ -128,18 +193,35 @@ export function useTaskManager(sprintId: string) {
     });
   };
 
+  const deleteInlineTask = async (taskId: string) => {
+    try {
+      await deleteMutation.mutateAsync({ taskId, sprintId });
+    } catch (e: any) {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: e.response?.data?.error || "Failed to delete task",
+        life: 4000,
+      });
+      throw e;
+    }
+  };
+
   return {
     tasks,
     isLoading,
     error,
+    refetch,
     showDialog,
     dialogHeader,
     form,
     saving,
+    editingTask,
     openCreateDialog,
     openEditDialog,
     saveTask,
     confirmDelete,
-    refetch,
+    saveInlineTask,
+    deleteInlineTask,
   };
 }
