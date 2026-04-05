@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/vue-query";
 import { taskApi } from "./task.services";
-import type { CreateTaskDto, UpdateTaskDto } from "./tasks.types";
+import type { CreateTaskDto, UpdateTaskDto, Task } from "./tasks.types";
 
 export const taskKeys = {
   all: ["tasks"] as const,
@@ -49,9 +49,14 @@ export const useUpdateTask = () => {
 export const useDeleteTask = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (taskId: string) => taskApi.deleteTask(taskId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+    mutationFn: ({ taskId }: { taskId: string; sprintId: string }) =>
+      taskApi.deleteTask(taskId).then((r) => r.data),
+    onSuccess: (_, { taskId, sprintId }) => {
+      queryClient.setQueryData<Task[]>(
+        taskKeys.list(sprintId),
+        (old) => old?.filter((t) => t._id !== taskId) ?? [],
+      );
+      queryClient.removeQueries({ queryKey: taskKeys.detail(taskId) });
     },
   });
 };
