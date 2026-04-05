@@ -41,6 +41,12 @@ const selectedTeamId = ref<string | null>(null);
 const menuItems = computed(() => [
   { label: "Projects", command: () => router.push("/taskspace/projects") },
   {
+    label: "Sprints",
+    visible: !!selectedTeamId.value,
+    command: () =>
+      router.push(`/taskspace/team/${selectedTeamId.value}/sprints`),
+  },
+  {
     label: "Members",
     visible: !!selectedTeamId.value,
     command: () =>
