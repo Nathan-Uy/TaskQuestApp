@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import Task from "../models/Task";
 import Sprint from "../models/Sprint";
 import Team from "../models/Team";
-import { CreateTaskBody, UpdateTaskBody } from "../types/tasks.types";
+import Project from "../models/Project";
 
 interface AuthRequest extends Request {
   userId?: string;
 }
 
+// Get tasks for a sprint
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
     const { sprintId } = req.params;
@@ -18,10 +19,8 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
     if (!sprint) return res.status(404).json({ error: "Sprint not found" });
     const team = await Team.findById(sprint.teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
-    const project = await require("../models/Project").default.findById(
-      team.projectId,
-    );
-    if (project?.owner !== userId)
+    const project = await Project.findById(team.projectId);
+    if (!project || project.owner !== userId)
       return res.status(403).json({ error: "Not authorized" });
 
     const tasks = await Task.find({ sprintId }).sort({ createdAt: -1 });
@@ -32,11 +31,12 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Create a task in a sprint
 export const createTask = async (req: AuthRequest, res: Response) => {
   try {
     const { sprintId } = req.params;
-    const { title, description, priority, assignedTo, duration } =
-      req.body as CreateTaskBody;
+    const { title, description, priority, assignedTo, duration, status } =
+      req.body;
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
@@ -44,10 +44,8 @@ export const createTask = async (req: AuthRequest, res: Response) => {
     if (!sprint) return res.status(404).json({ error: "Sprint not found" });
     const team = await Team.findById(sprint.teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
-    const project = await require("../models/Project").default.findById(
-      team.projectId,
-    );
-    if (project?.owner !== userId)
+    const project = await Project.findById(team.projectId);
+    if (!project || project.owner !== userId)
       return res.status(403).json({ error: "Not authorized" });
 
     if (!title?.trim())
@@ -62,6 +60,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
       assignedTo: assignedTo || null,
       createdBy: userId,
       duration: duration ?? null,
+      status: status || "todo",
     });
     await task.save();
     res.status(201).json(task);
@@ -71,10 +70,11 @@ export const createTask = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Update a task
 export const updateTask = async (req: AuthRequest, res: Response) => {
   try {
     const { taskId } = req.params;
-    const updates = req.body as UpdateTaskBody;
+    const updates = req.body;
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
@@ -84,10 +84,8 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
     if (!sprint) return res.status(404).json({ error: "Sprint not found" });
     const team = await Team.findById(sprint.teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
-    const project = await require("../models/Project").default.findById(
-      team.projectId,
-    );
-    if (project?.owner !== userId)
+    const project = await Project.findById(team.projectId);
+    if (!project || project.owner !== userId)
       return res.status(403).json({ error: "Not authorized" });
 
     Object.assign(task, updates);
@@ -99,6 +97,7 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Delete a task
 export const deleteTask = async (req: AuthRequest, res: Response) => {
   try {
     const { taskId } = req.params;
@@ -111,10 +110,8 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
     if (!sprint) return res.status(404).json({ error: "Sprint not found" });
     const team = await Team.findById(sprint.teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
-    const project = await require("../models/Project").default.findById(
-      team.projectId,
-    );
-    if (project?.owner !== userId)
+    const project = await Project.findById(team.projectId);
+    if (!project || project.owner !== userId)
       return res.status(403).json({ error: "Not authorized" });
 
     await Task.findByIdAndDelete(taskId);
