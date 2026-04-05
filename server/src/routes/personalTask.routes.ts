@@ -1,0 +1,20 @@
+import { Router } from "express";
+import { protect } from "../middleware/auth";
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  completeTask,
+} from "../controllers/personalTask.controller";
+
+const router = Router();
+router.use(protect);
+
+router.get("/", getTasks);
+router.post("/", createTask);
+router.patch("/:id/complete", completeTask);
+router.put("/:id", updateTask);
+router.delete("/:id", deleteTask);
+
+export default router;
