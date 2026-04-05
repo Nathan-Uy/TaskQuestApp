@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import path from "path";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
+import personalTaskRoutes from "./routes/personalTask.routes";
 import goalRoutes from "./routes/goals.routes";
 import aiRoutes from "./routes/ai.routes";
 import projectRoutes from "./routes/project.routes";
@@ -30,6 +31,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/sprints", sprintRoutes);
+app.use("/api/personal-tasks", personalTaskRoutes);
 
 app.use("/api/workspace/teams", workspaceTeamRoutes);
 app.use("/api/workspace/sprints", workspaceSprintRoutes);
