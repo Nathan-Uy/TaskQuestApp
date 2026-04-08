@@ -1,92 +1,138 @@
 <template>
   <Dialog
     v-model:visible="visible"
-    header="Customize Project Appearance"
+    header="Customize Appearance"
     :modal="true"
+    :draggable="false"
     class="w-full max-w-md"
-    @hide="onHide"
+    @hide="resetToInitial"
   >
-    <div class="space-y-4">
+    <div class="flex flex-col gap-5">
       <div>
-        <label class="block text-sm font-medium mb-2">Background Color</label>
-        <div class="grid grid-cols-5 gap-2 mb-3">
-          <div
+        <p class="text-xs font-medium mb-3" style="color: var(--ink-secondary)">
+          Background color
+        </p>
+        <div class="grid grid-cols-10 gap-1.5 mb-3">
+          <button
             v-for="color in colorPalette"
             :key="color"
-            :style="{ backgroundColor: color }"
-            class="w-10 h-10 rounded-lg cursor-pointer border-2 hover:scale-105 transition-transform"
-            :class="
-              selectedColor === color
-                ? 'border-blue-500 shadow-lg'
-                : 'border-transparent'
-            "
+            type="button"
+            class="w-7 h-7 rounded-lg transition-all duration-150 hover:scale-110 border-2"
+            :style="{
+              backgroundColor: color,
+              borderColor:
+                selectedColor === color ? 'var(--ink-primary)' : 'transparent',
+            }"
             @click="selectedColor = color"
           />
         </div>
-        <div class="flex items-center gap-2">
-          <div class="flex-1">
-            <label class="block text-xs text-gray-500 mb-1">Custom color</label>
-            <ColorPicker v-model="selectedColor" inline class="w-full" />
-          </div>
-        </div>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-2"
-          >Cover Image (optional)</label
+        <button
+          type="button"
+          class="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all"
+          style="
+            border-color: var(--card-border);
+            color: var(--ink-secondary);
+            background: var(--card-bg);
+          "
+          @click="selectedColor = ''"
         >
+          <i class="pi pi-times text-xs" /> Clear color
+        </button>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium mb-3" style="color: var(--ink-secondary)">
+          Cover image
+          <span class="font-normal" style="color: var(--ink-muted)"
+            >(optional)</span
+          >
+        </p>
+        <div
+          v-if="coverPreview"
+          class="relative w-full h-28 rounded-xl overflow-hidden mb-2 border"
+          style="border-color: var(--card-border)"
+        >
+          <img :src="coverPreview" class="w-full h-full object-cover" />
+          <button
+            type="button"
+            class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
+            @click="removeCover"
+          >
+            <i class="pi pi-times text-xs text-stone-600" />
+          </button>
+        </div>
         <FileUpload
           mode="basic"
           name="cover"
           accept="image/*"
-          :maxFileSize="1000000"
+          :max-file-size="1000000"
+          choose-label="Upload cover image"
+          class="w-full"
           @uploader="onCoverUpload"
-          chooseLabel="Upload Image"
-          class="mb-2"
         />
+        <p class="text-xs mt-1.5" style="color: var(--ink-muted)">
+          Max 1MB · JPG, PNG, GIF
+        </p>
+      </div>
+
+      <div
+        v-if="selectedColor || coverPreview"
+        class="rounded-xl border p-3 flex items-center gap-3"
+        style="
+          border-color: var(--card-border);
+          background: var(--surface-muted);
+        "
+      >
         <div
-          v-if="coverPreview"
-          class="mt-2 relative w-full h-32 rounded overflow-hidden"
-        >
-          <img :src="coverPreview" class="w-full h-full object-cover" />
-          <Button
-            icon="pi pi-times"
-            rounded
-            text
-            size="small"
-            class="absolute top-1 right-1 bg-white"
-            @click="removeCover"
-          />
-        </div>
-        <p class="text-xs text-gray-500 mt-1">
-          Max size 1MB. Supported: JPG, PNG, GIF
+          class="w-10 h-10 rounded-lg shrink-0 border"
+          :style="{
+            backgroundColor: selectedColor || 'var(--card-bg)',
+            borderColor: 'var(--card-border)',
+          }"
+        />
+        <p class="text-xs" style="color: var(--ink-secondary)">
+          Preview of your project tile color
         </p>
       </div>
     </div>
-    <div class="flex justify-end gap-2 mt-4">
-      <Button label="Cancel" severity="secondary" @click="visible = false" />
-      <Button label="Save" @click="save" />
-    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <Button
+          label="Cancel"
+          severity="secondary"
+          text
+          class="rounded-xl! text-sm!"
+          @click="visible = false"
+        />
+        <Button
+          label="Save"
+          class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold!"
+          @click="save"
+        />
+      </div>
+    </template>
   </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import Dialog from "primevue/dialog";
-import ColorPicker from "primevue/colorpicker";
 import FileUpload from "primevue/fileupload";
 import Button from "primevue/button";
+import type { Project } from "./project.types";
 
 const props = defineProps<{
   modelValue: boolean;
-  project: any | null;
+  project: Project | null;
   initialColor: string;
   initialCover: string;
   colorPalette: string[];
 }>();
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "save", payload: { color: string; cover: string }): void;
+  "update:modelValue": [value: boolean];
+  save: [payload: { color: string; cover: string }];
 }>();
 
 const visible = ref(props.modelValue);
@@ -96,28 +142,28 @@ const coverData = ref(props.initialCover);
 
 watch(
   () => props.modelValue,
-  (val) => {
-    visible.value = val;
-    if (val) {
-      selectedColor.value = props.initialColor;
-      coverPreview.value = props.initialCover;
-      coverData.value = props.initialCover;
-    }
+  (v) => {
+    visible.value = v;
+    if (v) resetToInitial();
   },
 );
+watch(visible, (v) => emit("update:modelValue", v));
 
-watch(visible, (val) => emit("update:modelValue", val));
+const resetToInitial = () => {
+  selectedColor.value = props.initialColor;
+  coverPreview.value = props.initialCover;
+  coverData.value = props.initialCover;
+};
 
 const onCoverUpload = (event: any) => {
-  const file = event.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      coverPreview.value = e.target?.result as string;
-      coverData.value = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  }
+  const file = event.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    coverPreview.value = e.target?.result as string;
+    coverData.value = e.target?.result as string;
+  };
+  reader.readAsDataURL(file);
 };
 
 const removeCover = () => {
@@ -128,11 +174,5 @@ const removeCover = () => {
 const save = () => {
   emit("save", { color: selectedColor.value, cover: coverData.value });
   visible.value = false;
-};
-
-const onHide = () => {
-  selectedColor.value = props.initialColor;
-  coverPreview.value = props.initialCover;
-  coverData.value = props.initialCover;
 };
 </script>
