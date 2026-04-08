@@ -15,27 +15,29 @@ export const projectKeys = {
   detail: (id: string) => [...projectKeys.details(), id] as const,
 };
 
-export const useProjects = () => {
-  return useQuery({
+export const useProjects = () =>
+  useQuery({
     queryKey: projectKeys.list(),
-    queryFn: () => projectApi.getProjects(),
-    select: (data) => data.data,
+    queryFn: () => projectApi.getProjects().then((r) => r.data),
+    staleTime: 1000 * 30,
   });
-};
 
-export const useProject = (projectId: string) => {
-  return useQuery({
+export const useProject = (projectId: string) =>
+  useQuery({
     queryKey: projectKeys.detail(projectId),
-    queryFn: () => projectApi.getProject(projectId),
-    select: (data) => data.data,
+    queryFn: () => projectApi.getProject(projectId).then((r) => r.data),
+    staleTime: 1000 * 30,
     enabled: !!projectId,
+    retry: false,
   });
-};
 
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateProjectDto) => projectApi.createProject(data),
+    mutationFn: async (data: CreateProjectDto) => {
+      const response = await projectApi.createProject(data);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.list() });
     },
@@ -51,12 +53,17 @@ export const useUpdateProject = () => {
     }: {
       projectId: string;
       data: UpdateProjectDto;
-    }) => projectApi.updateProject(projectId, data),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.list() });
-      queryClient.invalidateQueries({
-        queryKey: projectKeys.detail(projectId),
-      });
+    }) =>
+      projectApi.updateProject(projectId, data).then((r) => r.data as Project),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Project[]>(
+        projectKeys.list(),
+        (old) => old?.map((p) => (p._id === updated._id ? updated : p)) ?? [],
+      );
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(updated._id),
+        updated,
+      );
     },
   });
 };
@@ -65,8 +72,12 @@ export const useDeleteProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (projectId: string) => projectApi.deleteProject(projectId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.list() });
+    onSuccess: (_, projectId) => {
+      queryClient.setQueryData<Project[]>(
+        projectKeys.list(),
+        (old) => old?.filter((p) => p._id !== projectId) ?? [],
+      );
+      queryClient.removeQueries({ queryKey: projectKeys.detail(projectId) });
     },
   });
 };
@@ -80,12 +91,16 @@ export const useAddMember = () => {
     }: {
       projectId: string;
       data: AddMemberDto;
-    }) => projectApi.addMember(projectId, data),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({
-        queryKey: projectKeys.detail(projectId),
-      });
-      queryClient.invalidateQueries({ queryKey: projectKeys.list() });
+    }) => projectApi.addMember(projectId, data).then((r) => r.data as Project),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Project[]>(
+        projectKeys.list(),
+        (old) => old?.map((p) => (p._id === updated._id ? updated : p)) ?? [],
+      );
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(updated._id),
+        updated,
+      );
     },
   });
 };
@@ -99,12 +114,17 @@ export const useRemoveMember = () => {
     }: {
       projectId: string;
       userId: string;
-    }) => projectApi.removeMember(projectId, userId),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({
-        queryKey: projectKeys.detail(projectId),
-      });
-      queryClient.invalidateQueries({ queryKey: projectKeys.list() });
+    }) =>
+      projectApi.removeMember(projectId, userId).then((r) => r.data as Project),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Project[]>(
+        projectKeys.list(),
+        (old) => old?.map((p) => (p._id === updated._id ? updated : p)) ?? [],
+      );
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(updated._id),
+        updated,
+      );
     },
   });
 };
