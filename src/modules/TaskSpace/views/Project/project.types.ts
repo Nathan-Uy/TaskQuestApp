@@ -4,12 +4,13 @@ export interface ProjectMember {
   name: string;
   role: "owner" | "admin" | "member";
   joinedAt: Date;
+  inviteStatus: "pending" | "accepted";
 }
 
 export interface Project {
   _id: string;
   name: string;
-  description?: string;
+  description: string;
   owner: string;
   members: ProjectMember[];
   createdAt: Date;
