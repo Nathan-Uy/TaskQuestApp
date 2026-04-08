@@ -9,6 +9,7 @@ export const useTasksQuery = () =>
   useQuery({
     queryKey: TASKS_KEY,
     queryFn: tasksService.getAll,
+    staleTime: 1000 * 30, // 30 seconds — won't refetch unless data is stale
   });
 
 export const useCreateTaskMutation = () => {
@@ -16,9 +17,11 @@ export const useCreateTaskMutation = () => {
   return useMutation({
     mutationFn: (payload: CreateTaskPayload) => tasksService.create(payload),
     onSuccess: (newTask) => {
-      queryClient.setQueryData<Task[]>(TASKS_KEY, (old) =>
-        old ? [newTask, ...old] : [newTask],
-      );
+      // Optimistically add to cache instead of invalidating
+      queryClient.setQueryData<Task[]>(TASKS_KEY, (old) => [
+        newTask,
+        ...(old ?? []),
+      ]);
     },
   });
 };

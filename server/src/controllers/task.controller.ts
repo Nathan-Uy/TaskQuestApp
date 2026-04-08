@@ -1,102 +1,96 @@
-import { Response } from "express";
-import { AuthRequest } from "../middleware/auth";
-import { Task } from "../models/Task";
-import { User } from "../models/User";
+import { Request, Response } from "express";
+import Task from "../models/Task";
+import { getSprintWithAuth, sendAuthError } from "../middleware/workspace.auth";
+import { param } from "../middleware/params";
+import type { CreateTaskBody, UpdateTaskBody } from "../types/tasks.types";
+
+interface AuthRequest extends Request {
+  userId?: string;
+}
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
-    const tasks = await Task.find({ userId: req.userId }).sort({
-      createdAt: -1,
-    });
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const sprintId = param(req, "sprintId");
+    const result = await getSprintWithAuth(sprintId, userId);
+    if (!result.ok) return sendAuthError(res, result);
+    const tasks = await Task.find({ sprintId }).sort({ createdAt: 1 });
     res.json(tasks);
   } catch {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to fetch tasks" });
   }
 };
 
 export const createTask = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, notes, priority, duration, dueDate } = req.body;
-    if (!title) return res.status(400).json({ message: "Title is required" });
-
-    const xpReward = Math.max(10, Math.floor((duration || 1500) / 60));
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const sprintId = param(req, "sprintId");
+    const result = await getSprintWithAuth(sprintId, userId);
+    if (!result.ok) return sendAuthError(res, result);
+    const body = req.body as CreateTaskBody;
+    if (!body.title?.trim())
+      return res.status(400).json({ error: "Task title required" });
     const task = await Task.create({
-      userId: req.userId,
-      title,
-      notes,
-      priority: priority || "medium",
-      duration: duration || 1500,
-      xpReward,
-      dueDate,
+      sprintId,
+      teamId: result.data.sprint.teamId,
+      title: body.title.trim(),
+      description: body.description?.trim() ?? "",
+      taskType: body.taskType ?? "",
+      priority: body.priority ?? "medium",
+      status: body.status ?? "todo",
+      assignedTo: body.assignedTo ?? null,
+      createdBy: userId,
+      duration: body.duration ?? null,
+      dueDate: body.dueDate ? new Date(body.dueDate as string) : null,
     });
     res.status(201).json(task);
   } catch {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to create task" });
   }
 };
 
 export const updateTask = async (req: AuthRequest, res: Response) => {
   try {
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
-      req.body,
-      { returnDocument: "after" },
-    );
-    if (!task) return res.status(404).json({ message: "Task not found" });
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const taskId = param(req, "taskId");
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+    const result = await getSprintWithAuth(task.sprintId, userId);
+    if (!result.ok) return sendAuthError(res, result);
+    const body = req.body as UpdateTaskBody;
+    if (body.title !== undefined) task.title = body.title.trim() || task.title;
+    if (body.description !== undefined)
+      task.description = body.description.trim();
+    if (body.taskType !== undefined) task.taskType = body.taskType;
+    if (body.status !== undefined) task.status = body.status;
+    if (body.priority !== undefined) task.priority = body.priority;
+    if (body.assignedTo !== undefined)
+      task.assignedTo = body.assignedTo ?? null;
+    if (body.duration !== undefined) task.duration = body.duration ?? null;
+    if (body.dueDate !== undefined)
+      task.dueDate = body.dueDate ? new Date(body.dueDate as string) : null;
+    await task.save();
     res.json(task);
   } catch {
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const completeTask = async (req: AuthRequest, res: Response) => {
-  try {
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
-      { status: "completed", completedAt: new Date() },
-      { returnDocument: "after" },
-    );
-    if (!task) return res.status(404).json({ message: "Task not found" });
-
-    // Award XP and increment tasksCompleted
-    const user = await User.findById(req.userId);
-    if (user) {
-      user.currentXP += task.xpReward;
-      user.totalXP += task.xpReward;
-      user.tasksCompleted += 1;
-
-      // Level up logic
-      while (user.currentXP >= user.xpToNextLevel) {
-        user.currentXP -= user.xpToNextLevel;
-        user.level += 1;
-        user.xpToNextLevel = Math.floor(user.xpToNextLevel * 1.5);
-      }
-
-      await user.save();
-    }
-
-    res.json({
-      task,
-      user: user
-        ? {
-            level: user.level,
-            currentXP: user.currentXP,
-            xpToNextLevel: user.xpToNextLevel,
-            totalXP: user.totalXP,
-            tasksCompleted: user.tasksCompleted,
-          }
-        : null,
-    });
-  } catch {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to update task" });
   }
 };
 
 export const deleteTask = async (req: AuthRequest, res: Response) => {
   try {
-    await Task.findOneAndDelete({ _id: req.params.id, userId: req.userId });
-    res.json({ message: "Deleted" });
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const taskId = param(req, "taskId");
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+    const result = await getSprintWithAuth(task.sprintId, userId);
+    if (!result.ok) return sendAuthError(res, result);
+    await Task.findByIdAndDelete(taskId);
+    res.json({ message: "Task deleted" });
   } catch {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to delete task" });
   }
 };

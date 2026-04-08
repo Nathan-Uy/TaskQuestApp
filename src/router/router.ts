@@ -15,7 +15,7 @@ const router = createRouter({
       meta: { guest: true },
     },
     {
-      path: "/tasks",
+      path: "/personal-tasks",
       component: () => import("@/modules/Tasks/TasksView.vue"),
       meta: { requiresAuth: true },
     },
@@ -44,33 +44,51 @@ const router = createRouter({
       component: () => import("@/modules/Settings/SettingsView.vue"),
       meta: { requiresAuth: true },
     },
+
     {
-      path: "/workspace",
-      component: () => import("@/modules/Workspace/WorkspaceView.vue"),
+      path: "/taskspace",
+      component: () => import("@/modules/TaskSpace/TaskSpaceLayout.vue"),
       meta: { requiresAuth: true },
       children: [
         {
-          path: "",
-          component: () => import("@/modules/Workspace/views/TeamsView.vue"),
-        },
-        {
-          path: "teams/:teamId/sprints",
-          component: () => import("@/modules/Workspace/views/SprintsView.vue"),
-        },
-        {
-          path: "sprints/:sprintId/tasks",
+          path: "projects",
+          name: "TaskSpaceProjects",
           component: () =>
-            import("@/modules/Workspace/views/WorkSpaceTasksView.vue"),
+            import("@/modules/TaskSpace/views/Project/ProjectView.vue"),
         },
         {
-          path: "teams/:teamId/chat",
-          component: () => import("@/modules/Workspace/views/ChatView.vue"),
-        },
-        {
-          path: "teams/:teamId/members",
+          path: "project/:projectId/teams",
+          name: "TaskSpaceTeams",
           component: () =>
-            import("@/modules/Workspace/components/MemberView.vue"),
+            import("@/modules/TaskSpace/views/Teams/TeamsView.vue"),
         },
+        {
+          path: "team/:teamId/members",
+          name: "TaskSpaceTeamMembers",
+          component: () =>
+            import("@/modules/TaskSpace/views/Teams/TeamMembersView.vue"),
+        },
+        {
+          path: "team/:teamId/chat",
+          name: "TaskSpaceTeamChat",
+          component: () =>
+            import("@/modules/TaskSpace/views/Teams/TeamChatView.vue"),
+        },
+        {
+          path: "team/:teamId/sprints",
+          name: "TaskSpaceTeamSprints",
+          component: () =>
+            import("@/modules/TaskSpace/views/Sprint/TeamSprintsView.vue"),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: "team/:teamId/sprint/:sprintId/tasks",
+          name: "TaskSpaceSprintTasks",
+          component: () =>
+            import("@/modules/TaskSpace/views/Sprint/SprintTasksView.vue"),
+          meta: { requiresAuth: true },
+        },
+        { path: "", redirect: "/taskspace/projects" },
       ],
     },
     {
