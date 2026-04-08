@@ -1,3 +1,4 @@
+import { computed, isRef, ref, type Ref } from "vue";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/vue-query";
 import { teamApi } from "./team.services";
 import type {
@@ -15,12 +16,15 @@ export const teamKeys = {
   detail: (teamId: string) => [...teamKeys.details(), teamId] as const,
 };
 
-export const useTeams = (projectId: string) => {
+// ✅ Accept string | Ref<string> | ComputedRef<string>
+export const useTeams = (projectId: string | Ref<string>) => {
+  const id = isRef(projectId) ? projectId : ref(projectId);
+
   return useQuery({
-    queryKey: teamKeys.list(projectId),
-    queryFn: () => teamApi.getTeams(projectId),
+    queryKey: computed(() => teamKeys.list(id.value)), // ✅ reactive key
+    queryFn: () => teamApi.getTeams(id.value),
     select: (data) => data.data,
-    enabled: !!projectId,
+    enabled: computed(() => !!id.value), // ✅ reactive enabled
   });
 };
 
@@ -42,8 +46,9 @@ export const useCreateTeam = () => {
     }: {
       projectId: string;
       data: CreateTeamDto;
-    }) => teamApi.createTeam(projectId, data),
+    }) => teamApi.createTeam(projectId, data).then((r) => r.data as Team),
     onSuccess: (_, { projectId }) => {
+      // ✅ Invalidate so the list refetches and TanStack cache stays fresh
       queryClient.invalidateQueries({ queryKey: teamKeys.list(projectId) });
     },
   });
@@ -53,10 +58,11 @@ export const useUpdateTeam = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ teamId, data }: { teamId: string; data: UpdateTeamDto }) =>
-      teamApi.updateTeam(teamId, data),
-    onSuccess: (_, { teamId }) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
-      // Also invalidate all lists? We don't know projectId, but we can refetch later.
+      teamApi.updateTeam(teamId, data).then((r) => r.data as Team),
+    onSuccess: (updated: Team) => {
+      queryClient.setQueryData<Team>(teamKeys.detail(updated._id), updated);
+      // Invalidate all team lists since we don't know which projectId this belongs to
+      queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
     },
   });
 };
@@ -75,9 +81,9 @@ export const useAddTeamMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ teamId, data }: { teamId: string; data: AddMemberDto }) =>
-      teamApi.addMember(teamId, data),
-    onSuccess: (_, { teamId }) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
+      teamApi.addMember(teamId, data).then((r) => r.data as Team),
+    onSuccess: (updated: Team) => {
+      queryClient.setQueryData<Team>(teamKeys.detail(updated._id), updated);
     },
   });
 };
@@ -86,9 +92,9 @@ export const useRemoveTeamMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
-      teamApi.removeMember(teamId, userId),
-    onSuccess: (_, { teamId }) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
+      teamApi.removeMember(teamId, userId).then((r) => r.data as Team),
+    onSuccess: (updated: Team) => {
+      queryClient.setQueryData<Team>(teamKeys.detail(updated._id), updated);
     },
   });
 };
