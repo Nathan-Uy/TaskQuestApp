@@ -3,11 +3,13 @@ import Project from "../models/Project";
 import Team from "../models/Team";
 import Sprint from "../models/Sprint";
 import Task from "../models/Task";
+import { User } from "../models/User";
 import { getProject, sendAuthError } from "../middleware/workspace.auth";
 import { param } from "../middleware/params";
 import type {
   CreateProjectBody,
   UpdateProjectBody,
+  AddMemberBody,
 } from "../types/project.types";
 
 interface AuthRequest extends Request {
@@ -18,9 +20,15 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
-    const projects = await Project.find({ owner: userId }).sort({
-      createdAt: -1,
-    });
+
+    // Return projects the user owns OR is a member of
+    const projects = await Project.find({
+      $or: [
+        { owner: userId },
+        { "members.userId": userId, "members.inviteStatus": "accepted" },
+      ],
+    }).sort({ createdAt: -1 });
+
     res.json(projects);
   } catch {
     res.status(500).json({ error: "Failed to fetch projects" });
@@ -43,14 +51,30 @@ export const createProject = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
     const body = req.body as CreateProjectBody;
     if (!body.name?.trim())
       return res.status(400).json({ error: "Project name required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
     const project = await Project.create({
       name: body.name.trim(),
       description: body.description?.trim() ?? "",
       owner: userId,
+      members: [
+        {
+          userId: userId,
+          email: user.email,
+          name: user.displayName ?? "Unknown",
+          role: "owner",
+          joinedAt: new Date(),
+          inviteStatus: "accepted",
+        },
+      ],
     });
+
     res.status(201).json(project);
   } catch {
     res.status(500).json({ error: "Failed to create project" });
@@ -92,5 +116,67 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
     res.json({ message: "Project deleted successfully" });
   } catch {
     res.status(500).json({ error: "Failed to delete project" });
+  }
+};
+
+export const addMember = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+
+    const body = req.body as AddMemberBody;
+    if (!body.email?.trim())
+      return res.status(400).json({ error: "Email required" });
+
+    const email = body.email.trim().toLowerCase();
+    const project = result.data;
+
+    if (project.members.some((m) => m.email === email))
+      return res.status(400).json({ error: "Member already in project" });
+
+    const invitedUser = await User.findOne({ email });
+    if (!invitedUser) return res.status(404).json({ error: "User not found" });
+
+    project.members.push({
+      userId: invitedUser._id.toString(),
+      email,
+      name: invitedUser.displayName ?? "Unknown",
+      role: body.role === "admin" ? "admin" : "member",
+      joinedAt: new Date(),
+      inviteStatus: "pending",
+    });
+
+    await project.save();
+    res.json(project);
+  } catch {
+    res.status(500).json({ error: "Failed to add member" });
+  }
+};
+
+export const removeMember = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+
+    const memberId = param(req, "userId");
+    const project = result.data;
+    const memberIndex = project.members.findIndex((m) => m.userId === memberId);
+
+    if (memberIndex === -1)
+      return res.status(404).json({ error: "Member not found" });
+    if (project.members[memberIndex]?.role === "owner")
+      return res.status(400).json({ error: "Cannot remove owner" });
+
+    project.members.splice(memberIndex, 1);
+    await project.save();
+    res.json(project);
+  } catch {
+    res.status(500).json({ error: "Failed to remove member" });
   }
 };
