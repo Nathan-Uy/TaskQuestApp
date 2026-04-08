@@ -19,10 +19,11 @@
             autofocus
           />
         </div>
+
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Description (optional)</label
-          >
+          <label class="block text-sm font-medium mb-1">
+            Description (optional)
+          </label>
           <Textarea
             v-model="localDescription"
             rows="3"
@@ -31,8 +32,14 @@
           />
         </div>
       </div>
+
       <div class="flex justify-end gap-2 mt-4">
-        <Button label="Cancel" severity="secondary" @click="visible = false" />
+        <Button
+          label="Cancel"
+          severity="secondary"
+          type="button"
+          @click="visible = false"
+        />
         <Button
           type="submit"
           label="Create"
@@ -45,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
@@ -60,25 +67,32 @@ const emit = defineEmits<{
   (e: "create", payload: { name: string; description: string }): void;
 }>();
 
-const visible = ref(props.modelValue);
 const localName = ref("");
 const localDescription = ref("");
 const loading = ref(false);
 
-watch(
-  () => props.modelValue,
-  (val) => {
-    visible.value = val;
-    if (!val) resetForm();
-  },
-);
-
-watch(visible, (val) => emit("update:modelValue", val));
+/**
+ * Proper Vue 3 v-model bridge
+ */
+const visible = computed({
+  get: () => props.modelValue,
+  set: (value: boolean) => emit("update:modelValue", value),
+});
 
 const resetForm = () => {
   localName.value = "";
   localDescription.value = "";
 };
+
+/**
+ * Reset form whenever dialog closes
+ */
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!val) resetForm();
+  },
+);
 
 const onHide = () => {
   resetForm();
@@ -86,10 +100,18 @@ const onHide = () => {
 
 const handleSubmit = async () => {
   if (!localName.value.trim()) return;
-  emit("create", {
-    name: localName.value.trim(),
-    description: localDescription.value.trim(),
-  });
-  visible.value = false;
+
+  loading.value = true;
+
+  try {
+    emit("create", {
+      name: localName.value.trim(),
+      description: localDescription.value.trim(),
+    });
+
+    visible.value = false;
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
