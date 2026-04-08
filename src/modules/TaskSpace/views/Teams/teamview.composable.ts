@@ -1,171 +1,112 @@
-import { ref, onMounted, watch } from "vue";
+import { computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
-import { teamApi } from "./team.services";
-import type { Team, CreateTeamDto } from "./team.types";
+import { useTeamStore } from "./team.store";
+import { useTeams, useCreateTeam } from "./team.tanstack";
+import type { CreateTeamDto } from "./team.types";
 
-export function useTeamView(projectId: string) {
+export function useTeamView() {
+  const route = useRoute();
   const router = useRouter();
   const toast = useToast();
+  const store = useTeamStore();
 
-  // Data
-  const teams = ref<Team[]>([]);
-  const showCreateDialog = ref(false);
-  const showCustomizeDialog = ref(false);
-  const customizingTeam = ref<Team | null>(null);
-  const tempColor = ref("");
-  const tempCover = ref("");
-  const isLoading = ref(false);
+  // ✅ Reactive — updates automatically on direct navigation or param change
+  const projectId = computed(() => route.params.projectId as string);
 
-  // Color palette (same as before)
-  const colorPalette = [
-    "#ef4444",
-    "#f97316",
-    "#f59e0b",
-    "#eab308",
-    "#84cc16",
-    "#22c55e",
-    "#10b981",
-    "#14b8a6",
-    "#06b6d4",
-    "#0ea5e9",
-    "#3b82f6",
-    "#6366f1",
-    "#8b5cf6",
-    "#a855f7",
-    "#d946ef",
-    "#ec4899",
-    "#f43f5e",
-    "#64748b",
-    "#475569",
-    "#1e293b",
-  ];
+  // ✅ TanStack handles fetching, caching, and refetching
+  //    enabled is reactive — query runs as soon as projectId is truthy
+  const { data: teamsData, isLoading } = useTeams(projectId.value);
+  const createMutation = useCreateTeam();
 
-  // Local storage helpers for appearance
-  const getTeamStyle = (teamId: string) => {
-    const saved = localStorage.getItem(`team_style_${teamId}`);
-    return saved ? JSON.parse(saved) : {};
-  };
+  // ✅ Sync TanStack cache -> Pinia store (for components still reading from store)
+  watch(
+    teamsData,
+    (newTeams) => {
+      store.setTeams(newTeams ?? []);
+    },
+    { immediate: true },
+  );
 
-  const getTileStyle = (teamId: string) => {
-    const style = getTeamStyle(teamId);
-    return style.backgroundColor
-      ? { backgroundColor: style.backgroundColor }
-      : {};
-  };
+  const showCreateDialog = computed({
+    get: () => store.showCreateDialog,
+    set: (value: boolean) => {
+      store.showCreateDialog = value;
+    },
+  });
 
-  const getCoverImage = (teamId: string) => {
-    const style = getTeamStyle(teamId);
-    return style.coverImage || null;
-  };
+  const showCustomizeDialog = computed({
+    get: () => store.showCustomizeDialog,
+    set: (value: boolean) => {
+      store.showCustomizeDialog = value;
+    },
+  });
 
-  const openCustomizeDialog = (team: Team) => {
-    customizingTeam.value = team;
-    const style = getTeamStyle(team._id);
-    tempColor.value = style.backgroundColor || "";
-    tempCover.value = style.coverImage || "";
-    showCustomizeDialog.value = true;
-  };
-
-  const saveTeamAppearance = async (payload: {
-    color: string;
-    cover: string;
-  }) => {
-    if (!customizingTeam.value) return;
-    const style = {
-      backgroundColor: payload.color,
-      coverImage: payload.cover,
-    };
-    localStorage.setItem(
-      `team_style_${customizingTeam.value._id}`,
-      JSON.stringify(style),
-    );
-    toast.add({
-      severity: "success",
-      summary: "Appearance Updated",
-      detail: `Customized appearance for ${customizingTeam.value.name}`,
-      life: 3000,
-    });
-    showCustomizeDialog.value = false;
-    // Refresh list to reflect changes (no API call, just UI update)
-    teams.value = [...teams.value];
-  };
-
-  // Load teams for this project
-  const loadTeams = async () => {
-    if (!projectId) return;
-    isLoading.value = true;
-    try {
-      const { data } = await teamApi.getTeams(projectId);
-      teams.value = data;
-    } catch (error) {
-      console.error("Failed to load teams:", error);
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "Could not load teams.",
-        life: 3000,
-      });
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  // Create a new team
   const handleCreateTeam = async (payload: CreateTeamDto) => {
-    if (!projectId) return;
+    if (!projectId.value) return;
+
     try {
-      const { data } = await teamApi.createTeam(projectId, payload);
-      teams.value.push(data);
+      await createMutation.mutateAsync({
+        projectId: projectId.value,
+        data: payload,
+      });
+
       toast.add({
         severity: "success",
         summary: "Team Created",
-        detail: `${data.name} created.`,
+        detail: payload.name,
         life: 3000,
       });
-      showCreateDialog.value = false;
+
+      store.closeCreate();
     } catch (error: any) {
-      const message = error.response?.data?.error || "Failed to create team";
       toast.add({
         severity: "error",
         summary: "Creation Failed",
-        detail: message,
+        detail: error.response?.data?.error ?? "Failed to create team",
         life: 4000,
       });
     }
   };
 
-  // Select a team – navigate to its members page
-  const selectTeam = (teamId: string) => {
-    router.push(`/taskspace/team/${teamId}/members`);
+  const saveTeamAppearance = (payload: { color: string; cover: string }) => {
+    const currentTeam = store.customizingTeam;
+    if (!currentTeam) return;
+
+    store.saveTeamStyle(currentTeam._id, payload.color, payload.cover);
+
+    toast.add({
+      severity: "success",
+      summary: "Appearance Updated",
+      detail: `Customized appearance for ${currentTeam.name}`,
+      life: 3000,
+    });
+
+    store.closeCustomize();
   };
 
-  // Load teams on mount and when projectId changes
-  onMounted(() => {
-    loadTeams();
-  });
-
-  watch(
-    () => projectId,
-    (newId) => {
-      if (newId) loadTeams();
-    },
-  );
+  const selectTeam = (teamId: string) => {
+    store.setSelectedTeam(teamId);
+    router.push(`/taskspace/team/${teamId}/sprints`);
+  };
 
   return {
-    teams,
+    teams: teamsData, // ✅ reactive ref from TanStack, not store array
+    projectId,
+    isLoading,
     showCreateDialog,
     showCustomizeDialog,
-    customizingTeam,
-    tempColor,
-    tempCover,
-    colorPalette,
-    getTileStyle,
-    getCoverImage,
-    openCustomizeDialog,
+    customizingTeam: computed(() => store.customizingTeam),
+    tempColor: computed(() => store.tempColor),
+    tempCover: computed(() => store.tempCover),
+    colorPalette: store.colorPalette,
+    selectedTeamId: computed(() => store.selectedTeamId),
+    getTileStyle: store.getTileStyle,
+    getCoverImage: store.getCoverImage,
+    openCustomizeDialog: store.openCustomize,
+    openCreateDialog: store.openCreate,
     saveTeamAppearance,
     handleCreateTeam,
     selectTeam,
-    isLoading,
   };
 }
