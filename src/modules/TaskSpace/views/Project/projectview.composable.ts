@@ -1,156 +1,142 @@
-import { computed, ref } from "vue";
+import { computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
+import { useProjectStore } from "./project.store";
 import {
   useProjects,
   useCreateProject,
-  useProject,
-  useUpdateProject,
   useAddMember,
   useRemoveMember,
 } from "./project.tanstack";
-import type { Project, CreateProjectDto } from "./project.types";
+import { useAuthStore } from "@/stores/auth.store";
+import type { CreateProjectDto, AddMemberDto, Project } from "./project.types";
 
-export function useProjectView() {
+type ProjectWithMeta = Project & {
+  memberCount: number;
+};
+
+export const useProjectComposable = () => {
   const router = useRouter();
   const toast = useToast();
+  const store = useProjectStore();
+  const auth = useAuthStore();
 
-  // Queries
-  const { data: projects, isLoading, error, refetch } = useProjects();
-  const projectsList = computed(() => projects.value || []);
+  const { data: projectsData, isLoading, error } = useProjects();
+  const createMutation = useCreateProject();
+  const addMutation = useAddMember();
+  const removeMutation = useRemoveMember();
 
-  // Mutations
-  const createProjectMutation = useCreateProject();
-  const updateProjectMutation = useUpdateProject();
-  const addMemberMutation = useAddMember();
-  const removeMemberMutation = useRemoveMember();
+  const normalizedProjects = computed<ProjectWithMeta[]>(() => {
+    return (projectsData.value ?? []).map((project) => ({
+      ...project,
+      members: Array.isArray(project.members) ? project.members : [],
+      memberCount: Array.isArray(project.members) ? project.members.length : 0,
+    }));
+  });
 
-  // UI state
-  const showCreateDialog = ref(false);
-  const showCustomizeDialog = ref(false);
-  const customizingProject = ref<Project | null>(null);
-  const tempColor = ref("");
-  const tempCover = ref("");
-
-  // Color palette
-  const colorPalette = [
-    "#ef4444",
-    "#f97316",
-    "#f59e0b",
-    "#eab308",
-    "#84cc16",
-    "#22c55e",
-    "#10b981",
-    "#14b8a6",
-    "#06b6d4",
-    "#0ea5e9",
-    "#3b82f6",
-    "#6366f1",
-    "#8b5cf6",
-    "#a855f7",
-    "#d946ef",
-    "#ec4899",
-    "#f43f5e",
-    "#64748b",
-    "#475569",
-    "#1e293b",
-  ];
-
-  // Local storage helpers for appearance
-  const getProjectStyle = (projectId: string) => {
-    const saved = localStorage.getItem(`project_style_${projectId}`);
-    return saved ? JSON.parse(saved) : {};
-  };
-
-  const getTileStyle = (projectId: string) => {
-    const style = getProjectStyle(projectId);
-    return style.backgroundColor
-      ? { backgroundColor: style.backgroundColor }
-      : {};
-  };
-
-  const getCoverImage = (projectId: string) => {
-    const style = getProjectStyle(projectId);
-    return style.coverImage || null;
-  };
-
-  const openCustomizeDialog = (project: Project) => {
-    customizingProject.value = project;
-    const style = getProjectStyle(project._id);
-    tempColor.value = style.backgroundColor || "";
-    tempCover.value = style.coverImage || "";
-    showCustomizeDialog.value = true;
-  };
-
-  const saveProjectAppearance = async (payload: {
-    color: string;
-    cover: string;
-  }) => {
-    if (!customizingProject.value) return;
-    const style = {
-      backgroundColor: payload.color,
-      coverImage: payload.cover,
-    };
-    localStorage.setItem(
-      `project_style_${customizingProject.value._id}`,
-      JSON.stringify(style),
-    );
-    toast.add({
-      severity: "success",
-      summary: "Appearance Updated",
-      detail: `Customized appearance for ${customizingProject.value.name}`,
-      life: 3000,
-    });
-    showCustomizeDialog.value = false;
-    await refetch();
-  };
-
-  // ✅ Fixed: use the created project's ID from the response
+  watch(
+    normalizedProjects,
+    (newProjects) => {
+      store.setProjects(newProjects);
+    },
+    { immediate: true },
+  );
+  
   const handleCreateProject = async (payload: CreateProjectDto) => {
     try {
-      const result = await createProjectMutation.mutateAsync(payload);
-      const newProjectId = result.data._id; // extract ID
+      const result = await createMutation.mutateAsync(payload);
       toast.add({
         severity: "success",
         summary: "Project Created",
-        detail: `${result.data.name} has been created.`,
+        detail: result.name,
         life: 3000,
       });
-      showCreateDialog.value = false;
-      await refetch();
-      // Navigate to teams page of the new project
-      router.push(`/taskspace/project/${newProjectId}/teams`);
-    } catch (error: any) {
-      const message = error.response?.data?.error || "Failed to create project";
+      store.closeCreate();
+      store.setSelectedProject(result._id);
+      router.push(`/taskspace/project/${result._id}/teams`);
+    } catch (e: any) {
       toast.add({
         severity: "error",
-        summary: "Creation Failed",
-        detail: message,
+        summary: "Error",
+        detail: e.response?.data?.error ?? "Failed to create project",
         life: 4000,
       });
     }
   };
 
+  const handleSaveAppearance = (payload: { color: string; cover: string }) => {
+    if (!store.customizingProject) return;
+    store.saveProjectStyle(
+      store.customizingProject._id,
+      payload.color,
+      payload.cover,
+    );
+    toast.add({ severity: "success", summary: "Appearance Saved", life: 2000 });
+    store.closeCustomize();
+  };
+
+  const handleAddMember = async (projectId: string, data: AddMemberDto) => {
+    try {
+      await addMutation.mutateAsync({ projectId, data });
+      toast.add({
+        severity: "success",
+        summary: "Member Invited",
+        detail: data.email,
+        life: 3000,
+      });
+      // ✅ No refetch needed — onSuccess in tanstack already updates the cache,
+      //    which triggers projectsData to update, which re-runs normalizedProjects
+    } catch (e: any) {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: e.response?.data?.error ?? "Failed to invite member",
+        life: 4000,
+      });
+      throw e;
+    }
+  };
+
+  const handleRemoveMember = async (
+    projectId: string,
+    userId: string,
+    name: string,
+  ) => {
+    try {
+      await removeMutation.mutateAsync({ projectId, userId });
+      toast.add({
+        severity: "success",
+        summary: "Member Removed",
+        detail: name,
+        life: 3000,
+      });
+      // ✅ Same — cache is updated by onSuccess
+    } catch (e: any) {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: e.response?.data?.error ?? "Failed to remove member",
+        life: 4000,
+      });
+      throw e;
+    }
+  };
+
   const selectProject = (projectId: string) => {
+    store.setSelectedProject(projectId);
     router.push(`/taskspace/project/${projectId}/teams`);
   };
 
   return {
-    projects: projectsList,
+    projects: normalizedProjects,
     isLoading,
     error,
-    showCreateDialog,
-    showCustomizeDialog,
-    customizingProject,
-    tempColor,
-    tempCover,
-    colorPalette,
-    getTileStyle,
-    getCoverImage,
-    openCustomizeDialog,
-    saveProjectAppearance,
+    currentUserId: auth.user?._id ?? "",
+    store,
     handleCreateProject,
+    handleSaveAppearance,
+    handleAddMember,
+    handleRemoveMember,
     selectProject,
-    refetch,
   };
-}
+};
