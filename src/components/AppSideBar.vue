@@ -259,7 +259,7 @@ const navSections: NavSection[] = [
   {
     title: "Work",
     items: [
-      { name: "tasks", label: "Tasks", icon: "✓", path: "/tasks" },
+      { name: "tasks", label: "Tasks", icon: "✓", path: "/personal-tasks" },
       { name: "pomodoro", label: "Pomodoro", icon: "⏱", path: "/pomodoro" },
       { name: "calendar", label: "Calendar", icon: "📅", path: "/calendar" },
       { name: "taskspace", label: "TaskSpace", icon: "🗂", path: "/taskspace" },

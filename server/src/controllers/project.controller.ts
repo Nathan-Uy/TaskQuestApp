@@ -11,6 +11,8 @@ import type {
   UpdateProjectBody,
   AddMemberBody,
 } from "../types/project.types";
+import Invitation from "../models/Invitation";
+import { sendInviteEmail } from "../lib/mailer";
 
 interface AuthRequest extends Request {
   userId?: string;
@@ -140,19 +142,41 @@ export const addMember = async (req: AuthRequest, res: Response) => {
     const invitedUser = await User.findOne({ email });
     if (!invitedUser) return res.status(404).json({ error: "User not found" });
 
-    project.members.push({
-      userId: invitedUser._id.toString(),
-      email,
-      name: invitedUser.displayName ?? "Unknown",
-      role: body.role === "admin" ? "admin" : "member",
-      joinedAt: new Date(),
-      inviteStatus: "pending",
+    const inviter = await User.findById(userId);
+
+    // Check no pending invitation already exists
+    const existingInvite = await Invitation.findOne({
+      projectId: project._id.toString(),
+      inviteeId: invitedUser._id.toString(),
+      status: "pending",
+    });
+    if (existingInvite)
+      return res.status(400).json({ error: "Invitation already sent" });
+
+    // Create invitation record
+    await Invitation.create({
+      projectId: project._id.toString(),
+      projectName: project.name,
+      inviterId: userId,
+      inviterName: inviter?.displayName ?? "Someone",
+      inviteeId: invitedUser._id.toString(),
+      inviteeEmail: email,
+      status: "pending",
     });
 
-    await project.save();
-    res.json(project);
+    // Send email — fire and forget
+    sendInviteEmail({
+      to: email,
+      inviteeName: invitedUser.displayName ?? "there",
+      teamName: project.name,
+      projectName: project.name,
+      inviterName: inviter?.displayName ?? "A teammate",
+      acceptUrl: `${process.env.CLIENT_URL}/taskspace/projects`,
+    }).catch((err) => console.error("Invite email failed:", err));
+
+    res.json({ message: "Invitation sent" });
   } catch {
-    res.status(500).json({ error: "Failed to add member" });
+    res.status(500).json({ error: "Failed to send invitation" });
   }
 };
 

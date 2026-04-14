@@ -121,7 +121,7 @@ router.beforeEach(async (to, _, next) => {
   }
 
   if (to.meta.guest && auth.isAuthenticated) {
-    return next("/tasks");
+    return next("/personal-tasks");
   }
 
   next();

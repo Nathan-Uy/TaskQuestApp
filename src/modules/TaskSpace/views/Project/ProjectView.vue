@@ -12,7 +12,6 @@
           Select a project to manage your teams and sprints
         </p>
       </div>
-
       <Button
         label="New Project"
         icon="pi pi-plus"
@@ -21,7 +20,57 @@
       />
     </div>
 
-    <!-- Loading -->
+    <!-- Pending Invitations -->
+    <div v-if="pendingInvitations.length > 0" class="flex flex-col gap-2">
+      <p
+        class="text-xs font-semibold uppercase tracking-widest"
+        style="color: var(--ink-muted)"
+      >
+        Pending Invitations
+      </p>
+      <div
+        v-for="inv in pendingInvitations"
+        :key="inv._id"
+        class="flex items-center justify-between rounded-2xl border px-5 py-4 transition-all duration-150"
+        style="background: var(--card-bg); border-color: var(--card-border)"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0"
+            style="background: var(--accent)"
+          >
+            {{ inv.inviterName.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <p class="text-sm font-medium" style="color: var(--ink-primary)">
+              <span class="font-semibold">{{ inv.inviterName }}</span> has
+              invited you to
+              <span class="font-semibold">{{ inv.projectName }}</span>
+            </p>
+            <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
+              {{ formatInviteDate(inv.createdAt) }}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <Button
+            label="Decline"
+            severity="secondary"
+            text
+            class="rounded-xl! text-sm! h-8!"
+            :loading="rejectingId === inv._id"
+            @click="handleReject(inv._id)"
+          />
+          <Button
+            label="Accept"
+            class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold! h-8!"
+            :loading="acceptingId === inv._id"
+            @click="handleAccept(inv._id)"
+          />
+        </div>
+      </div>
+    </div>
+
     <div v-if="isLoading" class="flex items-center justify-center py-20">
       <i
         class="pi pi-spinner pi-spin text-2xl"
@@ -29,7 +78,6 @@
       />
     </div>
 
-    <!-- Empty State -->
     <div
       v-else-if="!projects?.length"
       class="rounded-2xl border border-dashed flex flex-col items-center justify-center py-20 gap-3"
@@ -50,7 +98,6 @@
       />
     </div>
 
-    <!-- Project Grid -->
     <div
       v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -66,15 +113,12 @@
         :style="getProjectCardStyle(project._id)"
         @click="selectProject(project._id)"
       >
-        <!-- Cover -->
         <div v-if="getProjectCover(project._id)" class="h-24 overflow-hidden">
           <img
             :src="getProjectCover(project._id)!"
             class="w-full h-full object-cover"
           />
         </div>
-
-        <!-- Content -->
         <div class="p-4">
           <p
             class="font-semibold text-sm leading-snug mb-1 truncate"
@@ -82,7 +126,6 @@
           >
             {{ project.name }}
           </p>
-
           <p
             v-if="project.description"
             class="text-xs truncate"
@@ -90,18 +133,15 @@
           >
             {{ project.description }}
           </p>
-
           <div class="flex items-center gap-1 mt-3">
             <i class="pi pi-users text-xs" style="color: var(--ink-muted)" />
             <span class="text-xs" style="color: var(--ink-muted)">
-              {{ project.memberCount }} member{{
-                project.memberCount !== 1 ? "s" : ""
+              {{ project.members?.length ?? 0 }} member{{
+                (project.members?.length ?? 0) !== 1 ? "s" : ""
               }}
             </span>
           </div>
         </div>
-
-        <!-- Customize Button -->
         <div
           class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
         >
@@ -116,13 +156,10 @@
       </div>
     </div>
 
-    <!-- Create Dialog -->
     <CreateProjectDialog
       v-model="store.showCreateDialog"
       @create="handleCreateProject"
     />
-
-    <!-- Customize Dialog -->
     <CustomizeProjectDialog
       v-model="store.showCustomizeDialog"
       :project="store.customizingProject"
@@ -135,24 +172,80 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from "vue";
+import { useToast } from "primevue/usetoast";
 import Button from "primevue/button";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import CustomizeProjectDialog from "./CustomizeProjectAppearanceDialog.vue";
 import { useProjectComposable } from "./projectview.composable";
+import {
+  useInvitations,
+  useAcceptInvitation,
+  useRejectInvitation,
+} from "../Invitation/invitation.tanstack";
 
 const {
   projects,
   isLoading,
-  error,
   store,
   handleCreateProject,
   handleSaveAppearance,
   selectProject,
 } = useProjectComposable();
 
+const toast = useToast();
+const { data: invitationsData } = useInvitations();
+const acceptMutation = useAcceptInvitation();
+const rejectMutation = useRejectInvitation();
+
+const pendingInvitations = computed(() => invitationsData.value ?? []);
+const acceptingId = ref<string | null>(null);
+const rejectingId = ref<string | null>(null);
+
+const handleAccept = async (invitationId: string) => {
+  acceptingId.value = invitationId;
+  try {
+    await acceptMutation.mutateAsync(invitationId);
+    toast.add({ severity: "success", summary: "Joined project!", life: 3000 });
+  } catch {
+    toast.add({
+      severity: "error",
+      summary: "Failed to accept invitation",
+      life: 3000,
+    });
+  } finally {
+    acceptingId.value = null;
+  }
+};
+
+const handleReject = async (invitationId: string) => {
+  rejectingId.value = invitationId;
+  try {
+    await rejectMutation.mutateAsync(invitationId);
+    toast.add({ severity: "info", summary: "Invitation declined", life: 3000 });
+  } catch {
+    toast.add({
+      severity: "error",
+      summary: "Failed to decline invitation",
+      life: 3000,
+    });
+  } finally {
+    rejectingId.value = null;
+  }
+};
+
+const formatInviteDate = (date: string | Date) => {
+  const d = new Date(date);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
 const getProjectCardStyle = (projectId: string) => {
   const tileStyle = store.getTileStyle(projectId);
-
   return {
     ...tileStyle,
     borderColor: "var(--card-border)",
@@ -160,7 +253,6 @@ const getProjectCardStyle = (projectId: string) => {
   };
 };
 
-const getProjectCover = (projectId: string) => {
-  return store.getCoverImage(projectId);
-};
+const getProjectCover = (projectId: string) => store.getCoverImage(projectId);
+console.log("Invitations:", invitationsData.value);
 </script>

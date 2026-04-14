@@ -497,7 +497,7 @@ const handleRegister = async () => {
   error.value = "";
   try {
     await auth.register(displayName, email, password);
-    router.push("/tasks");
+    router.push("/personal-tasks");
   } catch (e: unknown) {
     const err = e as { response?: { data?: { message?: string } } };
     error.value = err.response?.data?.message || "Registration failed";

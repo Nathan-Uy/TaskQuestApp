@@ -108,21 +108,33 @@ export const deleteTeam = async (req: AuthRequest, res: Response) => {
   }
 };
 
+import { sendInviteEmail } from "../lib/mailer";
+import Project from "../models/Project";
+
 export const addTeamMember = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
     const result = await getTeamWithAuth(param(req, "teamId"), userId);
     if (!result.ok) return sendAuthError(res, result);
+
     const body = req.body as AddMemberBody;
     if (!body.email?.trim())
       return res.status(400).json({ error: "Email required" });
+
     const email = body.email.trim().toLowerCase();
     const team = result.data.team;
+
     if (team.members.some((m) => m.email === email))
       return res.status(400).json({ error: "Member already in team" });
+
     const invitedUser = await User.findOne({ email });
     if (!invitedUser) return res.status(404).json({ error: "User not found" });
+
+    const inviter = await User.findById(userId);
+    const project = await Project.findById(team.projectId);
+
     team.members.push({
       userId: invitedUser._id.toString(),
       email,
@@ -131,7 +143,20 @@ export const addTeamMember = async (req: AuthRequest, res: Response) => {
       joinedAt: new Date(),
       inviteStatus: "pending",
     });
+
     await team.save();
+
+    // Send invite email — fire and forget, don't fail the request if email fails
+    const acceptUrl = `${process.env.CLIENT_URL}/taskspace`;
+    sendInviteEmail({
+      to: email,
+      inviteeName: invitedUser.displayName ?? "there",
+      teamName: team.name,
+      projectName: project?.name ?? "TaskQuest",
+      inviterName: inviter?.displayName ?? "A teammate",
+      acceptUrl,
+    }).catch((err) => console.error("Invite email failed:", err));
+
     res.json(team);
   } catch {
     res.status(500).json({ error: "Failed to add member" });
