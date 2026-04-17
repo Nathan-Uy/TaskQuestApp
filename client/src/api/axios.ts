@@ -1,10 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: "/api",
 });
 
-// ✅ Read token from localStorage (shared across tabs)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -20,7 +19,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !isAuthEndpoint && hasToken) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      globalThis.location.href = "/login";
     }
 
     return Promise.reject(err);
