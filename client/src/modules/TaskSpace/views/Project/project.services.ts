@@ -14,9 +14,12 @@ export const projectApi = {
   updateProject: (projectId: string, data: UpdateProjectDto) =>
     api.put<Project>(`/projects/${projectId}`, data),
   deleteProject: (projectId: string) => api.delete(`/projects/${projectId}`),
-
   addMember: (projectId: string, data: AddMemberDto) =>
     api.post<Project>(`/projects/${projectId}/members`, data),
   removeMember: (projectId: string, userId: string) =>
     api.delete(`/projects/${projectId}/members/${userId}`),
+  updateCoverPhoto: (projectId: string, coverPhoto: string | null) =>
+    api.patch(`/projects/${projectId}/cover`, { coverPhoto }),
+  updateColor: (projectId: string, color: string | null) =>
+    api.patch(`/projects/${projectId}/color`, { color }),
 };

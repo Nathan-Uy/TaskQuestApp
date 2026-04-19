@@ -7,32 +7,33 @@ import {
   useCreateProject,
   useAddMember,
   useRemoveMember,
+  projectKeys, // ✅ make sure this is exported from project.tanstack
 } from "./project.tanstack";
+import { useQueryClient } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/auth.store";
 import type { CreateProjectDto, AddMemberDto, Project } from "./project.types";
 
-type ProjectWithMeta = Project & {
-  memberCount: number;
-};
+type ProjectWithMeta = Project & { memberCount: number };
 
 export const useProjectComposable = () => {
   const router = useRouter();
   const toast = useToast();
   const store = useProjectStore();
   const auth = useAuthStore();
+  const queryClient = useQueryClient(); // ✅ add this
 
   const { data: projectsData, isLoading, error } = useProjects();
   const createMutation = useCreateProject();
   const addMutation = useAddMember();
   const removeMutation = useRemoveMember();
 
-  const normalizedProjects = computed<ProjectWithMeta[]>(() => {
-    return (projectsData.value ?? []).map((project) => ({
+  const normalizedProjects = computed<ProjectWithMeta[]>(() =>
+    (projectsData.value ?? []).map((project) => ({
       ...project,
       members: Array.isArray(project.members) ? project.members : [],
       memberCount: Array.isArray(project.members) ? project.members.length : 0,
-    }));
-  });
+    })),
+  );
 
   watch(
     normalizedProjects,
@@ -41,7 +42,7 @@ export const useProjectComposable = () => {
     },
     { immediate: true },
   );
-  
+
   const handleCreateProject = async (payload: CreateProjectDto) => {
     try {
       const result = await createMutation.mutateAsync(payload);
@@ -64,15 +65,36 @@ export const useProjectComposable = () => {
     }
   };
 
-  const handleSaveAppearance = (payload: { color: string; cover: string }) => {
+  // ✅ Now async with query invalidation
+  const handleSaveAppearance = async (payload: {
+    color: string;
+    cover: string;
+  }) => {
     if (!store.customizingProject) return;
-    store.saveProjectStyle(
-      store.customizingProject._id,
-      payload.color,
-      payload.cover,
-    );
-    toast.add({ severity: "success", summary: "Appearance Saved", life: 2000 });
-    store.closeCustomize();
+    try {
+      await store.saveProjectStyle(
+        store.customizingProject._id,
+        payload.color,
+        payload.cover,
+      );
+
+      // ✅ Refetch projects so UI reflects new cover/color
+      await queryClient.invalidateQueries({ queryKey: projectKeys.all });
+
+      toast.add({
+        severity: "success",
+        summary: "Appearance Saved",
+        life: 2000,
+      });
+    } catch {
+      toast.add({
+        severity: "error",
+        summary: "Failed to save appearance",
+        life: 3000,
+      });
+    } finally {
+      store.closeCustomize();
+    }
   };
 
   const handleAddMember = async (projectId: string, data: AddMemberDto) => {
@@ -84,8 +106,6 @@ export const useProjectComposable = () => {
         detail: data.email,
         life: 3000,
       });
-      // ✅ No refetch needed — onSuccess in tanstack already updates the cache,
-      //    which triggers projectsData to update, which re-runs normalizedProjects
     } catch (e: any) {
       toast.add({
         severity: "error",
@@ -110,7 +130,6 @@ export const useProjectComposable = () => {
         detail: name,
         life: 3000,
       });
-      // ✅ Same — cache is updated by onSuccess
     } catch (e: any) {
       toast.add({
         severity: "error",

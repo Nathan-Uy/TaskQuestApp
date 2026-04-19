@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { Project } from "./project.types";
+import { projectApi } from "./project.services";
 
 type ProjectStyle = {
   backgroundColor?: string;
@@ -12,28 +13,14 @@ type ProjectWithMeta = Project & {
 };
 
 export const useProjectStore = defineStore("project", () => {
-  // -----------------------------
-  // Dialog / UI State
-  // -----------------------------
   const showCreateDialog = ref(false);
   const showCustomizeDialog = ref(false);
-
-  // -----------------------------
-  // Project Selection / Local Cache
-  // -----------------------------
   const selectedProjectId = ref<string | null>(null);
   const projects = ref<ProjectWithMeta[]>([]);
-
-  // Current project being customized
   const customizingProject = ref<Project | null>(null);
-
-  // Temporary appearance values for dialog
   const tempColor = ref("");
   const tempCover = ref("");
 
-  // -----------------------------
-  // Color Presets
-  // -----------------------------
   const colorPalette = [
     "#ef4444",
     "#f97316",
@@ -57,35 +44,22 @@ export const useProjectStore = defineStore("project", () => {
     "#1e293b",
   ];
 
-  // -----------------------------
-  // Computed
-  // -----------------------------
-  const selectedProject = computed(() => {
-    return (
-      projects.value.find(
-        (project) => project._id === selectedProjectId.value,
-      ) ?? null
-    );
-  });
+  const selectedProject = computed(
+    () => projects.value.find((p) => p._id === selectedProjectId.value) ?? null,
+  );
 
-  // -----------------------------
-  // Dialog Actions
-  // -----------------------------
   const openCreate = () => {
     showCreateDialog.value = true;
   };
-
   const closeCreate = () => {
     showCreateDialog.value = false;
   };
 
   const openCustomize = (project: Project) => {
     customizingProject.value = project;
-
     const style = getProjectStyle(project._id);
     tempColor.value = style.backgroundColor ?? "";
     tempCover.value = style.coverImage ?? "";
-
     showCustomizeDialog.value = true;
   };
 
@@ -96,31 +70,31 @@ export const useProjectStore = defineStore("project", () => {
     tempCover.value = "";
   };
 
-  // -----------------------------
-  // Project Selection / Sync
-  // -----------------------------
   const setSelectedProject = (projectId: string) => {
     selectedProjectId.value = projectId;
   };
-
   const clearSelectedProject = () => {
     selectedProjectId.value = null;
   };
-
   const setProjects = (data: ProjectWithMeta[]) => {
     projects.value = data;
   };
-
   const clearProjects = () => {
     projects.value = [];
   };
 
-  // -----------------------------
-  // Local Storage Style Helpers
-  // -----------------------------
   const getStorageKey = (projectId: string) => `project_style_${projectId}`;
 
   const getProjectStyle = (projectId: string): ProjectStyle => {
+    // ✅ Check project data first (from MongoDB)
+    const project = projects.value.find((p) => p._id === projectId);
+    if (project) {
+      return {
+        backgroundColor: project.color ?? undefined,
+        coverImage: project.coverPhoto ?? undefined,
+      };
+    }
+    // fallback to localStorage
     try {
       const saved = localStorage.getItem(getStorageKey(projectId));
       return saved ? JSON.parse(saved) : {};
@@ -129,7 +103,8 @@ export const useProjectStore = defineStore("project", () => {
     }
   };
 
-  const saveProjectStyle = (
+  // ✅ Now async — saves to API and localStorage
+  const saveProjectStyle = async (
     projectId: string,
     color: string,
     cover: string,
@@ -138,20 +113,28 @@ export const useProjectStore = defineStore("project", () => {
       backgroundColor: color || undefined,
       coverImage: cover || undefined,
     };
-
     localStorage.setItem(getStorageKey(projectId), JSON.stringify(style));
+
+    // ✅ Persist to MongoDB
+    await Promise.all([
+      projectApi.updateCoverPhoto(projectId, cover || null),
+      projectApi.updateColor(projectId, color || null),
+    ]);
+
+    // ✅ Update local projects array immediately
+    const existing = projects.value.find((p) => p._id === projectId);
+    if (existing) {
+      existing.coverPhoto = cover || null;
+      existing.color = color || null;
+    }
   };
 
   const clearProjectStyle = (projectId: string) => {
     localStorage.removeItem(getStorageKey(projectId));
   };
 
-  // -----------------------------
-  // UI Style Helpers
-  // -----------------------------
   const getTileStyle = (projectId: string) => {
     const style = getProjectStyle(projectId);
-
     return style.backgroundColor
       ? { backgroundColor: style.backgroundColor }
       : {};
@@ -161,11 +144,7 @@ export const useProjectStore = defineStore("project", () => {
     return getProjectStyle(projectId).coverImage ?? null;
   };
 
-  // -----------------------------
-  // Expose Store
-  // -----------------------------
   return {
-    // state
     showCreateDialog,
     showCustomizeDialog,
     selectedProjectId,
@@ -174,23 +153,15 @@ export const useProjectStore = defineStore("project", () => {
     tempColor,
     tempCover,
     colorPalette,
-
-    // computed
     selectedProject,
-
-    // dialog actions
     openCreate,
     closeCreate,
     openCustomize,
     closeCustomize,
-
-    // selection / sync
     setSelectedProject,
     clearSelectedProject,
     setProjects,
     clearProjects,
-
-    // style helpers
     getProjectStyle,
     saveProjectStyle,
     clearProjectStyle,

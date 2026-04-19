@@ -248,3 +248,41 @@ export const removeMember = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: "Failed to remove member" });
   }
 };
+
+export const updateCoverPhoto = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the owner can update cover photo" });
+    const { coverPhoto } = req.body;
+    if (coverPhoto && coverPhoto.length > 200 * 1024)
+      return res.status(400).json({ error: "Image too large" });
+    result.data.coverPhoto = coverPhoto ?? null;
+    await result.data.save();
+    res.json(result.data);
+  } catch {
+    res.status(500).json({ error: "Failed to update cover photo" });
+  }
+};
+
+export const updateProjectColor = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+    if (!requireOwner(result.data, userId))
+      return res.status(403).json({ error: "Only the owner can update color" });
+    const { color } = req.body;
+    result.data.color = color ?? null;
+    await result.data.save();
+    res.json(result.data);
+  } catch {
+    res.status(500).json({ error: "Failed to update color" });
+  }
+};

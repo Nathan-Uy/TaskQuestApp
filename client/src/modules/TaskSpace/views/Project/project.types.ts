@@ -13,6 +13,8 @@ export interface Project {
   description: string;
   owner: string;
   members: ProjectMember[];
+  color?: string | null;
+  coverPhoto?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

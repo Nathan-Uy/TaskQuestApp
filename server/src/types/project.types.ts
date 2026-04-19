@@ -16,6 +16,8 @@ export interface IProject extends Document {
   members: IProjectMember[];
   createdAt: Date;
   updatedAt: Date;
+  color?: string | null;
+  coverPhoto?: string | null;
 }
 
 export interface CreateProjectBody {

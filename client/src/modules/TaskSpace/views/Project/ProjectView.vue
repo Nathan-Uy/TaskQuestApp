@@ -114,7 +114,7 @@
         @click="selectProject(project._id)"
       >
         <div v-if="getProjectCover(project._id)" class="h-24 overflow-hidden">
-          <image
+          <img
             :src="getProjectCover(project._id)!"
             :alt="`${project.name} cover image`"
             class="w-full h-full object-cover"
@@ -255,5 +255,4 @@ const getProjectCardStyle = (projectId: string) => {
 };
 
 const getProjectCover = (projectId: string) => store.getCoverImage(projectId);
-console.log("Invitations:", invitationsData.value);
 </script>
