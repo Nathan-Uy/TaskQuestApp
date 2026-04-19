@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model } from "mongoose";
 import type { ITeamMember, ITeam } from "../types/team.types";
 
 const TeamMemberSchema = new Schema<ITeamMember>({

@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import personalTaskRoutes from "./routes/personalTask.routes";
