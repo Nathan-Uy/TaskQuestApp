@@ -17,6 +17,8 @@ export interface ITeam extends Document {
   members: ITeamMember[];
   createdAt: Date;
   updatedAt: Date;
+  color?: string;
+  coverPhoto?: string;
 }
 
 // DTOs for API requests

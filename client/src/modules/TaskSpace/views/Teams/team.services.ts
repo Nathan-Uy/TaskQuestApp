@@ -19,4 +19,8 @@ export const teamApi = {
     api.post<Team>(`/teams/${teamId}/members`, data),
   removeMember: (teamId: string, userId: string) =>
     api.delete(`/teams/${teamId}/members/${userId}`),
+  updateCoverPhoto: (teamId: string, coverPhoto: string | null) =>
+    api.patch(`/teams/${teamId}/cover`, { coverPhoto }),
+  updateColor: (teamId: string, color: string | null) =>
+    api.patch(`/teams/${teamId}/color`, { color }),
 };

@@ -21,6 +21,8 @@ const TeamSchema = new Schema<ITeam>(
     description: { type: String, default: "" },
     owner: { type: String, required: true },
     members: [TeamMemberSchema],
+    color: { type: String, default: null },
+    coverPhoto: { type: String, default: null },
   },
   { timestamps: true },
 );

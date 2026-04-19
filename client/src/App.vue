@@ -66,10 +66,10 @@ const handleStorage = (event: StorageEvent) => {
 };
 
 onMounted(() => {
-  window.addEventListener("storage", handleStorage);
+  globalThis.addEventListener("storage", handleStorage);
 });
 
 onUnmounted(() => {
-  window.removeEventListener("storage", handleStorage);
+  globalThis.removeEventListener("storage", handleStorage);
 });
 </script>

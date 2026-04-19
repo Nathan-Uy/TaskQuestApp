@@ -15,6 +15,8 @@ export interface Team {
   members: TeamMember[];
   createdAt: Date | string;
   updatedAt: Date | string;
+  color?: string | null;
+  coverPhoto?: string | null;
 }
 
 export interface CreateTeamDto {

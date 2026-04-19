@@ -183,3 +183,37 @@ export const removeTeamMember = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: "Failed to remove member" });
   }
 };
+
+export const updateTeamCoverPhoto = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getTeamWithAuth(param(req, "teamId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+
+    const { coverPhoto } = req.body;
+    if (coverPhoto && coverPhoto.length > 200 * 1024)
+      return res.status(400).json({ error: "Image too large" });
+
+    result.data.team.coverPhoto = coverPhoto ?? null;
+    await result.data.team.save();
+    res.json(result.data.team);
+  } catch {
+    res.status(500).json({ error: "Failed to update cover photo" });
+  }
+};
+
+export const updateTeamColor = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getTeamWithAuth(param(req, "teamId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+
+    result.data.team.color = req.body.color ?? null;
+    await result.data.team.save();
+    res.json(result.data.team);
+  } catch {
+    res.status(500).json({ error: "Failed to update color" });
+  }
+};

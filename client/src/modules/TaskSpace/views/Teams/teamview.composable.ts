@@ -2,7 +2,8 @@ import { computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { useTeamStore } from "./team.store";
-import { useTeams, useCreateTeam } from "./team.tanstack";
+import { useTeams, useCreateTeam, teamKeys } from "./team.tanstack";
+import { useQueryClient } from "@tanstack/vue-query";
 import type { CreateTeamDto } from "./team.types";
 
 export function useTeamView() {
@@ -10,16 +11,13 @@ export function useTeamView() {
   const router = useRouter();
   const toast = useToast();
   const store = useTeamStore();
+  const queryClient = useQueryClient(); // ✅ add this
 
-  // ✅ Reactive — updates automatically on direct navigation or param change
   const projectId = computed(() => route.params.projectId as string);
 
-  // ✅ TanStack handles fetching, caching, and refetching
-  //    enabled is reactive — query runs as soon as projectId is truthy
   const { data: teamsData, isLoading } = useTeams(projectId.value);
   const createMutation = useCreateTeam();
 
-  // ✅ Sync TanStack cache -> Pinia store (for components still reading from store)
   watch(
     teamsData,
     (newTeams) => {
@@ -44,20 +42,17 @@ export function useTeamView() {
 
   const handleCreateTeam = async (payload: CreateTeamDto) => {
     if (!projectId.value) return;
-
     try {
       await createMutation.mutateAsync({
         projectId: projectId.value,
         data: payload,
       });
-
       toast.add({
         severity: "success",
         summary: "Team Created",
         detail: payload.name,
         life: 3000,
       });
-
       store.closeCreate();
     } catch (error: any) {
       toast.add({
@@ -69,20 +64,38 @@ export function useTeamView() {
     }
   };
 
-  const saveTeamAppearance = (payload: { color: string; cover: string }) => {
+  // ✅ Now async — awaits save then invalidates TanStack cache
+  const saveTeamAppearance = async (payload: {
+    color: string;
+    cover: string;
+  }) => {
     const currentTeam = store.customizingTeam;
     if (!currentTeam) return;
 
-    store.saveTeamStyle(currentTeam._id, payload.color, payload.cover);
+    try {
+      await store.saveTeamStyle(currentTeam._id, payload.color, payload.cover);
 
-    toast.add({
-      severity: "success",
-      summary: "Appearance Updated",
-      detail: `Customized appearance for ${currentTeam.name}`,
-      life: 3000,
-    });
+      // ✅ Invalidate so TanStack refetches fresh team data from backend
+      await queryClient.invalidateQueries({
+        queryKey: teamKeys.list(projectId.value),
+      });
 
-    store.closeCustomize();
+      toast.add({
+        severity: "success",
+        summary: "Appearance Updated",
+        detail: `Customized appearance for ${currentTeam.name}`,
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: "error",
+        summary: "Update Failed",
+        detail: "Failed to save appearance",
+        life: 4000,
+      });
+    } finally {
+      store.closeCustomize();
+    }
   };
 
   const selectTeam = (teamId: string) => {
@@ -91,7 +104,7 @@ export function useTeamView() {
   };
 
   return {
-    teams: teamsData, // ✅ reactive ref from TanStack, not store array
+    teams: teamsData,
     projectId,
     isLoading,
     showCreateDialog,
