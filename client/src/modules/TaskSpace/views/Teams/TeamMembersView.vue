@@ -59,7 +59,6 @@
             severity="danger"
             size="small"
             @click="confirmRemoveMember(data)"
-            title="Remove member"
           />
           <span
             v-else-if="data.inviteStatus === 'pending'"
@@ -70,7 +69,6 @@
       </Column>
     </DataTable>
 
-    <!-- Invite Modal (unchanged) -->
     <Dialog
       v-model:visible="showInviteModal"
       header="Invite Member"
@@ -80,7 +78,7 @@
       <form @submit.prevent="handleInvite">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-1"
+            <label for="inviteEmail" class="block text-sm font-medium mb-1"
               >Email Address *</label
             >
             <InputText
@@ -91,7 +89,9 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Role</label>
+            <label for="inviteRole" class="block text-sm font-medium mb-1"
+              >Role</label
+            >
             <Select
               v-model="inviteRole"
               :options="roleOptions"
@@ -100,6 +100,9 @@
               class="w-full"
             />
           </div>
+          <p v-if="inviteError" class="text-xs text-red-500">
+            {{ inviteError }}
+          </p>
         </div>
         <div class="flex justify-end gap-2 mt-4">
           <Button
@@ -107,7 +110,12 @@
             severity="secondary"
             @click="showInviteModal = false"
           />
-          <Button type="submit" label="Send Invitation" :loading="inviting" />
+          <Button
+            type="submit"
+            label="Send Invitation"
+            :loading="inviting"
+            @click="handleInvite"
+          />
         </div>
       </form>
     </Dialog>
@@ -119,12 +127,8 @@ import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { useConfirm } from "primevue/useconfirm";
-import {
-  useTeam,
-  useAddTeamMember,
-  useRemoveTeamMember,
-} from "./team.tanstack";
-import type { MemberRole } from "./team.types";
+import { useTeam, useRemoveTeamMember } from "./team.tanstack";
+import { useAddMember } from "../Project/project.tanstack";
 import Button from "primevue/button";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
@@ -139,6 +143,7 @@ const toast = useToast();
 const confirm = useConfirm();
 
 const teamId = route.params.teamId as string;
+
 const {
   data: teamData,
   isLoading: teamLoading,
@@ -147,13 +152,18 @@ const {
 } = useTeam(teamId);
 const team = computed(() => teamData.value);
 
-const addMember = useAddTeamMember();
+// ✅ Pull projectId from team data, not from route params
+const projectId = computed(() => teamData.value?.projectId ?? "");
+
+const addMemberMutation = useAddMember();
 const removeMember = useRemoveTeamMember();
 
 const showInviteModal = ref(false);
 const inviteEmail = ref("");
-const inviteRole = ref<MemberRole>({ role: "member" });
+const inviteRole = ref<"member" | "admin">("member");
+const inviteError = ref("");
 const inviting = ref(false);
+
 const roleOptions = [
   { label: "Member", value: "member" as const },
   { label: "Admin", value: "admin" as const },
@@ -161,26 +171,40 @@ const roleOptions = [
 
 const handleInvite = async () => {
   if (!inviteEmail.value.trim()) return;
+
+  // ✅ Guard against missing projectId
+  if (!projectId.value) {
+    toast.add({
+      severity: "error",
+      summary: "Project not found",
+      detail: "Could not resolve project ID.",
+      life: 3000,
+    });
+    return;
+  }
+
   inviting.value = true;
+  inviteError.value = "";
   try {
-    await addMember.mutateAsync({
-      teamId,
-      data: { email: inviteEmail.value, role: inviteRole.value },
+    await addMemberMutation.mutateAsync({
+      projectId: projectId.value, // ✅ use .value from computed
+      data: { email: inviteEmail.value.trim(), role: inviteRole.value },
     });
     toast.add({
       severity: "success",
-      summary: "Invited",
+      summary: "Invitation Sent",
       detail: `Invited ${inviteEmail.value}`,
       life: 3000,
     });
     showInviteModal.value = false;
     inviteEmail.value = "";
-    await refetch();
+    inviteRole.value = "member";
   } catch (error: any) {
+    inviteError.value = error.response?.data?.error ?? "Invite failed";
     toast.add({
       severity: "error",
       summary: "Error",
-      detail: error.response?.data?.error || "Invite failed",
+      detail: inviteError.value,
       life: 4000,
     });
   } finally {
@@ -206,7 +230,7 @@ const confirmRemoveMember = (member: any) => {
         toast.add({
           severity: "error",
           summary: "Error",
-          detail: error.response?.data?.error || "Remove failed",
+          detail: error.response?.data?.error ?? "Remove failed",
           life: 4000,
         });
       }
@@ -217,6 +241,6 @@ const confirmRemoveMember = (member: any) => {
 const capitalizeRole = (role: string) =>
   role.charAt(0).toUpperCase() + role.slice(1);
 const getRoleSeverity = (role: string) =>
-  ({ owner: "danger", admin: "warning", member: "info" })[role] || "info";
+  ({ owner: "danger", admin: "warning", member: "info" })[role] ?? "info";
 const formatDate = (date: Date | string) => new Date(date).toLocaleDateString();
 </script>

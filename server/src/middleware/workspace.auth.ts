@@ -16,11 +16,14 @@ export const getProject = async (
 ): Promise<AuthResult<IProject>> => {
   const project = await Project.findById(projectId);
   if (!project) return { ok: false, status: 404, error: "Project not found" };
-  if (project.owner !== userId)
+  const isMember = project.members.some(
+    (m) => m.userId === String(userId) && m.inviteStatus === "accepted",
+  );
+  if (project.owner !== String(userId) && !isMember)
     return { ok: false, status: 403, error: "Not authorized" };
+
   return { ok: true, data: project };
 };
-
 export const getTeamWithAuth = async (
   teamId: string,
   userId: string,

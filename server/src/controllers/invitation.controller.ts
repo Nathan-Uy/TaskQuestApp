@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import Invitation from "../models/Invitation";
 import Project from "../models/Project";
 import { User } from "../models/User";
 import { AuthRequest } from "../middleware/auth";
 import { param } from "../middleware/params";
+import Team from "../models/Team";
 
 export const getMyInvitations = async (req: AuthRequest, res: Response) => {
   try {
@@ -11,12 +12,13 @@ export const getMyInvitations = async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const invitations = await Invitation.find({
-      inviteeId: userId,
+      inviteeId: String(userId),
       status: "pending",
     }).sort({ createdAt: -1 });
 
     res.json(invitations);
-  } catch {
+  } catch (err) {
+    console.error("getMyInvitations error:", err);
     res.status(500).json({ error: "Failed to fetch invitations" });
   }
 };
@@ -31,7 +33,7 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
 
     if (!invitation)
       return res.status(404).json({ error: "Invitation not found" });
-    if (invitation.inviteeId !== userId)
+    if (invitation.inviteeId !== String(userId))
       return res.status(403).json({ error: "Not authorized" });
     if (invitation.status !== "pending")
       return res.status(400).json({ error: "Invitation already used" });
@@ -42,11 +44,13 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Check not already a member
-    const alreadyMember = project.members.some((m) => m.userId === userId);
-    if (!alreadyMember) {
+    // ✅ Add to Project
+    const alreadyProjectMember = project.members.some(
+      (m) => m.userId === String(userId),
+    );
+    if (!alreadyProjectMember) {
       project.members.push({
-        userId: userId,
+        userId: String(userId),
         email: user.email,
         name: user.displayName ?? "Unknown",
         role: "member",
@@ -56,11 +60,31 @@ export const acceptInvitation = async (req: AuthRequest, res: Response) => {
       await project.save();
     }
 
+    // ✅ Add to ALL teams in the project
+    const teams = await Team.find({ projectId: invitation.projectId });
+    for (const team of teams) {
+      const alreadyTeamMember = team.members.some(
+        (m) => m.userId === String(userId),
+      );
+      if (!alreadyTeamMember) {
+        team.members.push({
+          userId: String(userId),
+          email: user.email,
+          name: user.displayName ?? "Unknown",
+          role: "member",
+          joinedAt: new Date(),
+          inviteStatus: "accepted",
+        });
+        await team.save();
+      }
+    }
+
     invitation.status = "accepted";
     await invitation.save();
 
     res.json({ message: "Invitation accepted", project });
-  } catch {
+  } catch (err) {
+    console.error("acceptInvitation error:", err);
     res.status(500).json({ error: "Failed to accept invitation" });
   }
 };
@@ -75,7 +99,7 @@ export const rejectInvitation = async (req: AuthRequest, res: Response) => {
 
     if (!invitation)
       return res.status(404).json({ error: "Invitation not found" });
-    if (invitation.inviteeId !== userId)
+    if (invitation.inviteeId !== String(userId))
       return res.status(403).json({ error: "Not authorized" });
     if (invitation.status !== "pending")
       return res.status(400).json({ error: "Invitation already used" });
@@ -84,7 +108,8 @@ export const rejectInvitation = async (req: AuthRequest, res: Response) => {
     await invitation.save();
 
     res.json({ message: "Invitation rejected" });
-  } catch {
+  } catch (err) {
+    console.error("rejectInvitation error:", err);
     res.status(500).json({ error: "Failed to reject invitation" });
   }
 };

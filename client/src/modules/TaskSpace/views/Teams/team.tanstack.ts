@@ -46,7 +46,7 @@ export const useCreateTeam = () => {
     }: {
       projectId: string;
       data: CreateTeamDto;
-    }) => teamApi.createTeam(projectId, data).then((r) => r.data as Team),
+    }) => teamApi.createTeam(projectId, data).then((r) => r.data),
     onSuccess: (_, { projectId }) => {
       // ✅ Invalidate so the list refetches and TanStack cache stays fresh
       queryClient.invalidateQueries({ queryKey: teamKeys.list(projectId) });
@@ -58,7 +58,7 @@ export const useUpdateTeam = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ teamId, data }: { teamId: string; data: UpdateTeamDto }) =>
-      teamApi.updateTeam(teamId, data).then((r) => r.data as Team),
+      teamApi.updateTeam(teamId, data).then((r) => r.data),
     onSuccess: (updated: Team) => {
       queryClient.setQueryData<Team>(teamKeys.detail(updated._id), updated);
       // Invalidate all team lists since we don't know which projectId this belongs to
@@ -81,7 +81,7 @@ export const useAddTeamMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ teamId, data }: { teamId: string; data: AddMemberDto }) =>
-      teamApi.addMember(teamId, data).then((r) => r.data as Team),
+      teamApi.addMember(teamId, data).then((r) => r.data),
     onSuccess: (updated: Team) => {
       queryClient.setQueryData<Team>(teamKeys.detail(updated._id), updated);
     },

@@ -29,6 +29,7 @@ const InvitationSchema = new Schema<IInvitation>(
   { timestamps: true },
 );
 
+// Simple indexes — no unique constraint that could silently block inserts
 InvitationSchema.index({ inviteeId: 1, status: 1 });
 InvitationSchema.index({ projectId: 1 });
 
