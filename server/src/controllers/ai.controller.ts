@@ -1,11 +1,11 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
-import { Task } from "../models/Task";
+import PersonalTask from "../models/PersonalTask";
 import { Goal } from "../models/Goal";
 import { User } from "../models/User";
 import { llama } from "../lib/ai";
 import PDFDocument from "pdfkit";
-import type { ITask } from "../types/tasks.types";
+import type { IPersonalTask } from "../types/personalTask.types";
 import type {
   ReportData,
   ReportPeriod,
@@ -49,7 +49,7 @@ const gatherReportData = async (
 ): Promise<ReportData> => {
   const [user, tasks, goals] = await Promise.all([
     User.findById(userId).select("-password"),
-    Task.find({
+    PersonalTask.find({
       userId,
       completedAt: { $gte: start, $lte: end },
       status: "completed",
@@ -73,7 +73,7 @@ const gatherReportData = async (
 
   const xpEarned =
     tasks.reduce((s, t) => s + t.xpReward, 0) +
-    goals.reduce((s, g) => s + g.xpReward, 0);
+    goals.reduce((s: number, g: any) => s + g.xpReward, 0);
   const mostProductiveDay =
     Object.entries(byDay).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
   const priorityBreakdown = {
@@ -157,8 +157,8 @@ export const downloadReport = async (req: AuthRequest, res: Response) => {
     const data = await gatherReportData(req.userId!, period.start, period.end);
     const { user, tasks } = data;
 
-    const tasksByDate: Record<string, ITask[]> = {};
-    tasks.forEach((t: ITask) => {
+    const tasksByDate: Record<string, IPersonalTask[]> = {};
+    tasks.forEach((t: IPersonalTask) => {
       if (!t.completedAt) return;
       const dateKey = new Date(t.completedAt).toLocaleDateString("en-US", {
         month: "long",
@@ -337,7 +337,7 @@ Duration must be in seconds. Use realistic estimates: quick tasks = 900 (15min),
 export const triageOverdueTasks = async (req: AuthRequest, res: Response) => {
   try {
     const now = new Date();
-    const tasks = await Task.find({
+    const tasks = await PersonalTask.find({
       userId: req.userId,
       status: "active",
       dueDate: { $lt: now },
@@ -416,7 +416,7 @@ export const getStreakCoach = async (req: AuthRequest, res: Response) => {
     const lastWeekStart = new Date();
     lastWeekStart.setDate(lastWeekStart.getDate() - 7);
 
-    const lastWeekTasks = await Task.find({
+    const lastWeekTasks = await PersonalTask.find({
       userId: req.userId,
       status: "completed",
       completedAt: { $gte: lastWeekStart },
