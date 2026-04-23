@@ -27,4 +27,6 @@ export interface IUser extends Document {
   settings: IUserSettings;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  googleId?: string;
+  avatar?: string;
 }

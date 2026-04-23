@@ -9,6 +9,7 @@ import router from "./router/router";
 import App from "./App.vue";
 import "primeicons/primeicons.css";
 import "./assets/styles/main.css";
+import vue3GoogleLogin from "vue3-google-login";
 
 const app = createApp(App);
 
@@ -25,4 +26,7 @@ app.use(PrimeVue, {
 });
 app.use(ConfirmationService);
 app.use(ToastService);
+app.use(vue3GoogleLogin, {
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+});
 app.mount("#app");

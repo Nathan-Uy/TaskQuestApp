@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import {OAuth2Client} from "google-auth-library";
 
 export interface AuthRequest extends Request {
   userId?: string;
 }
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 export const protect = (
   req: AuthRequest,

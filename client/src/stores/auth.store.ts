@@ -8,6 +8,7 @@ export interface AuthUser {
   _id: string;
   displayName: string;
   email: string;
+  avatar?: string;
   level: number;
   currentXP: number;
   xpToNextLevel: number;
@@ -19,7 +20,7 @@ export interface AuthUser {
 }
 
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref(localStorage.getItem("token") || "");
+  const token = ref(sessionStorage.getItem("token") || "");
   const user = ref<AuthUser | null>(null);
   const queryClient = useQueryClient();
 
@@ -45,39 +46,15 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   const syncStores = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["tasks"] }),
-      queryClient.invalidateQueries({ queryKey: ["goals"] }),
-    ]);
+    queryClient.removeQueries({ queryKey: ["tasks"] });
+    queryClient.removeQueries({ queryKey: ["goals"] });
   };
 
-  const login = async (email: string, password: string) => {
-    const { data } = await api.post("/auth/login", { email, password });
+  const googleLogin = async (credential: string) => {
+    const { data } = await api.post("/auth/google", { credential });
     token.value = data.token;
     user.value = data.user;
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    await syncGamification(data.user);
-    await syncStores();
-    import("@/router/router").then(({ setInitialized }) =>
-      setInitialized(true),
-    );
-  };
-
-  const register = async (
-    displayName: string,
-    email: string,
-    password: string,
-  ) => {
-    const { data } = await api.post("/auth/register", {
-      displayName,
-      email,
-      password,
-    });
-    token.value = data.token;
-    user.value = data.user;
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("token", data.token);
     await syncGamification(data.user);
     await syncStores();
     import("@/router/router").then(({ setInitialized }) =>
@@ -98,8 +75,7 @@ export const useAuthStore = defineStore("auth", () => {
   const logout = () => {
     token.value = "";
     user.value = null;
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
     import("@/router/router").then(({ setInitialized }) =>
       setInitialized(false),
     );
@@ -109,8 +85,7 @@ export const useAuthStore = defineStore("auth", () => {
     token,
     user,
     isAuthenticated,
-    login,
-    register,
+    googleLogin,
     fetchMe,
     logout,
     syncStores,

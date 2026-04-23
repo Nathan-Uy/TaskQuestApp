@@ -1,403 +1,187 @@
 <template>
-  <div class="h-full overflow-hidden bg-(--surface-bg)">
-    <div class="fixed inset-0 pointer-events-none landing-bg" />
+  <div
+    class="relative min-h-screen overflow-hidden bg-[#f5f0e8] font-['DM_Sans',sans-serif]"
+  >
+    <!-- Noise texture via pseudo-element workaround: use a dedicated component or move to global CSS -->
+    <!-- Background orbs -->
+    <div
+      class="pointer-events-none absolute -right-20 -top-28 z-0 h-120 w-120 rounded-full"
+      style="
+        background: radial-gradient(
+          circle,
+          rgba(210, 140, 80, 0.18) 0%,
+          transparent 70%
+        );
+      "
+    />
+    <div
+      class="pointer-events-none absolute -bottom-16 -left-24 z-0 h-90 w-90 rounded-full"
+      style="
+        background: radial-gradient(
+          circle,
+          rgba(180, 100, 60, 0.12) 0%,
+          transparent 70%
+        );
+      "
+    />
 
+    <!-- Nav -->
     <nav class="relative z-10 flex items-center justify-between px-12 py-6">
-      <p class="font-serif text-2xl text-stone-800">TaskQuest</p>
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          :class="[
-            'text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150',
-            activeForm === 'login'
-              ? 'text-white bg-(--accent)'
-              : 'text-stone-500 hover:text-stone-800',
-          ]"
-          @click="activeForm = 'login'"
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          :class="[
-            'text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150',
-            activeForm === 'register'
-              ? 'text-white bg-(--accent)'
-              : 'text-stone-500 hover:text-stone-800',
-          ]"
-          @click="activeForm = 'register'"
-        >
-          Get started
-        </button>
-      </div>
+      <p
+        class="m-0 font-['Fraunces',serif] text-[22px] font-bold tracking-tight text-[#2c1f0e]"
+      >
+        Task<span class="text-[#c2622a]">Quest</span>
+      </p>
     </nav>
 
+    <!-- Hero -->
     <div
-      class="relative z-10 grid grid-cols-2 gap-16 items-center px-12 py-8 max-w-6xl mx-auto min-h-[calc(100vh-80px)]"
+      class="relative z-10 mx-auto grid min-h-[calc(100vh-80px)] max-w-275 grid-cols-2 items-center gap-12 px-12 pb-12 pt-8 max-[768px]:grid-cols-1 max-[768px]:px-6"
     >
-      <div>
+      <!-- Left -->
+      <div class="flex flex-col">
+        <!-- Badge -->
         <div
-          class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 mb-6 text-xs font-semibold bg-(--accent-soft) text-(--accent)"
+          class="mb-6 inline-flex w-fit animate-[fadeUp_0.5s_0.05s_ease_both] items-center gap-1.5 rounded-full border border-[rgba(194,98,42,0.25)] bg-[rgba(194,98,42,0.1)] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-widest text-[#a04a18]"
         >
-          <i class="pi pi-star-fill text-[0.6rem]" />
+          <span
+            class="h-1.5 w-1.5 animate-[pulse_2s_ease-in-out_infinite] rounded-full bg-[#c2622a]"
+          />
           Gamified productivity
         </div>
-        <h1 class="font-serif text-stone-800 leading-[1.05] mb-5 text-[3.5rem]">
-          Turn your tasks<br />into
-          <span class="text-(--accent)">achievements</span>
+
+        <h1
+          class="m-0 mb-5 animate-[fadeUp_0.5s_0.12s_ease_both] font-['Fraunces',serif] text-[56px] font-light leading-tight tracking-[-1.5px] text-[#1c1008] max-[768px]:text-[40px]"
+        >
+          Turn your tasks<br />
+          into <em class="italic text-[#c2622a]">achievements</em>
         </h1>
-        <p class="text-stone-500 leading-relaxed mb-8 text-base max-w-105">
+
+        <p
+          class="mb-8 max-w-105 animate-[fadeUp_0.5s_0.18s_ease_both] text-[15px] leading-[1.7] text-[#6b5540]"
+        >
           TaskQuest transforms your daily work into an adventure. Complete
           tasks, earn XP, level up, and build streaks that keep you motivated
-          every day.
+          every single day.
         </p>
-        <div class="flex flex-wrap gap-2 mb-10">
+
+        <!-- Feature pills -->
+        <div
+          class="mb-10 flex animate-[fadeUp_0.5s_0.25s_ease_both] flex-wrap gap-2"
+        >
           <span
             v-for="f in features"
             :key="f"
-            class="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200 rounded-full px-3 py-1.5"
+            class="inline-flex items-center gap-1.5 rounded-full border border-[rgba(180,140,90,0.25)] bg-white/70 px-3.5 py-1.5 text-xs font-medium text-[#5a3e22]"
           >
-            <span class="text-(--accent)">✓</span> {{ f }}
+            <span class="text-[11px] text-[#c2622a]">✓</span> {{ f }}
           </span>
         </div>
-        <div class="flex items-center gap-8">
-          <div v-for="stat in stats" :key="stat.label">
-            <p class="font-serif text-2xl text-stone-800 leading-none mb-1">
-              {{ stat.value }}
-            </p>
-            <p class="text-xs text-stone-400 font-medium">{{ stat.label }}</p>
-          </div>
-        </div>
-      </div>
 
-      <div
-        class="bg-white rounded-3xl border border-stone-200 p-8 shadow-[0_20px_60px_rgba(26,23,20,0.10)]"
-      >
-        <div class="flex gap-1 bg-stone-100 rounded-xl p-1 mb-7">
-          <button
-            v-for="tab in ['login', 'register']"
-            :key="tab"
-            type="button"
-            :class="[
-              'flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-150 capitalize',
-              activeForm === tab
-                ? 'bg-white text-stone-800 shadow-sm'
-                : 'text-stone-400 hover:text-stone-600',
-            ]"
-            @click="activeForm = tab as 'login' | 'register'"
-          >
-            {{ tab === "login" ? "Sign in" : "Create account" }}
-          </button>
-        </div>
-
-        <Transition
-          enter-active-class="transition-all duration-200"
-          enter-from-class="opacity-0 -translate-y-1"
-          leave-to-class="opacity-0"
-        >
+        <!-- Stats -->
+        <div class="flex animate-[fadeUp_0.5s_0.32s_ease_both] items-center">
           <div
-            v-if="error"
-            class="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-5"
-          >
-            <i class="pi pi-exclamation-circle text-red-500 text-sm" />
-            <p class="text-xs text-red-600 font-medium">{{ error }}</p>
-          </div>
-        </Transition>
-
-        <form
-          v-if="activeForm === 'login'"
-          class="flex flex-col gap-4"
-          @submit.prevent="handleLogin"
-          novalidate
-        >
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
-              >Email</label
-            >
-            <InputText
-              v-model="loginForm.email"
-              placeholder="you@example.com"
-              type="email"
-              class="w-full"
-              :disabled="emailLocked"
-              :class="emailLocked ? 'opacity-60 cursor-not-allowed' : ''"
-            />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between">
-              <label
-                class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
-                >Password</label
-              >
-              <Transition
-                enter-active-class="transition-all duration-300"
-                enter-from-class="opacity-0 translate-x-2"
-                leave-to-class="opacity-0"
-              >
-                <button
-                  v-if="showForgotLink"
-                  type="button"
-                  class="text-xs font-semibold text-(--accent) hover:underline transition-colors duration-150"
-                  @click="openForgotModal"
-                >
-                  Forgot password?
-                </button>
-              </Transition>
-            </div>
-            <div class="relative">
-              <input
-                v-model="loginForm.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="••••••••"
-                class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 transition-all duration-150 pr-10"
-              />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                @click="showPassword = !showPassword"
-              >
-                <i
-                  :class="[
-                    'pi text-sm',
-                    showPassword ? 'pi-eye-slash' : 'pi-eye',
-                  ]"
-                />
-              </button>
-            </div>
-          </div>
-
-          <Transition
-            enter-active-class="transition-all duration-200"
-            enter-from-class="opacity-0 -translate-y-1"
-            leave-to-class="opacity-0"
+            v-for="(stat, i) in stats"
+            :key="stat.label"
+            class="flex items-center"
           >
             <div
-              v-if="failedAttempts > 0 && failedAttempts < 3"
-              class="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2"
-            >
-              <i class="pi pi-exclamation-triangle text-xs" />
-              {{ 3 - failedAttempts }} attempt{{
-                3 - failedAttempts !== 1 ? "s" : ""
-              }}
-              remaining before account recovery
-            </div>
-          </Transition>
-
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full py-3 rounded-xl text-sm font-bold text-white mt-2 transition-all duration-150 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed bg-(--accent)"
-          >
-            <span v-if="loading" class="flex items-center justify-center gap-2">
-              <i class="pi pi-spinner pi-spin text-sm" /> Signing in...
-            </span>
-            <span v-else>Sign in →</span>
-          </button>
-          <p class="text-center text-xs text-stone-400 mt-1">
-            No account?
-            <button
-              type="button"
-              class="font-semibold hover:underline text-(--accent)"
-              @click="activeForm = 'register'"
-            >
-              Create one free
-            </button>
-          </p>
-        </form>
-
-        <form
-          v-else
-          class="flex flex-col gap-4"
-          @submit.prevent="handleRegister"
-          novalidate
-        >
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
-              >Display name</label
-            >
-            <InputText
-              v-model="registerForm.displayName"
-              placeholder="Your name"
-              class="w-full"
+              v-if="i > 0"
+              class="mr-6 h-9 w-px shrink-0 bg-[rgba(180,140,90,0.25)]"
             />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
-              >Email</label
-            >
-            <InputText
-              v-model="registerForm.email"
-              placeholder="you@example.com"
-              type="email"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-stone-500 uppercase tracking-wide"
-              >Password</label
-            >
-            <div class="relative">
-              <input
-                v-model="registerForm.password"
-                :type="showRegisterPassword ? 'text' : 'password'"
-                placeholder="••••••••"
-                class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 transition-all duration-150 pr-10"
-              />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                @click="showRegisterPassword = !showRegisterPassword"
+            <div class="pr-6">
+              <p
+                class="m-0 mb-1 font-['Fraunces',serif] text-[28px] font-bold leading-none text-[#1c1008]"
               >
-                <i
-                  :class="[
-                    'pi text-sm',
-                    showRegisterPassword ? 'pi-eye-slash' : 'pi-eye',
-                  ]"
-                />
-              </button>
+                {{ stat.value }}
+              </p>
+              <p
+                class="m-0 text-[11px] font-medium uppercase tracking-widest text-[#9e7a52]"
+              >
+                {{ stat.label }}
+              </p>
             </div>
           </div>
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full py-3 rounded-xl text-sm font-bold text-white mt-2 transition-all duration-150 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed bg-(--accent)"
-          >
-            <span v-if="loading" class="flex items-center justify-center gap-2">
-              <i class="pi pi-spinner pi-spin text-sm" /> Creating account...
-            </span>
-            <span v-else>Start your quest →</span>
-          </button>
-          <p class="text-center text-xs text-stone-400 mt-1">
-            Already have an account?
-            <button
-              type="button"
-              class="font-semibold hover:underline text-(--accent)"
-              @click="activeForm = 'login'"
-            >
-              Sign in
-            </button>
-          </p>
-        </form>
+        </div>
       </div>
-    </div>
 
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      leave-to-class="opacity-0 scale-95"
-    >
-      <div
-        v-if="showForgot"
-        class="fixed inset-0 flex items-center justify-center z-50"
-      >
+      <!-- Right — Card -->
+      <div class="animate-[fadeUp_0.5s_0.2s_ease_both]">
         <div
-          class="absolute inset-0 bg-black/20 backdrop-blur-sm"
-          @click="closeForgot"
-        />
-        <div class="relative bg-white rounded-2xl p-6 shadow-xl w-80">
-          <p class="text-sm font-semibold text-stone-800 mb-1">
-            Forgot password?
-          </p>
-          <p class="text-xs text-stone-400 mb-4">
-            We'll send a reset link to your email.
-          </p>
-
-          <Transition
-            enter-active-class="transition-all duration-200"
-            enter-from-class="opacity-0"
-            leave-to-class="opacity-0"
+          class="rounded-3xl border border-[rgba(180,140,90,0.2)] bg-white/92 p-10 shadow-[0_24px_64px_rgba(60,30,10,0.1),0_2px_8px_rgba(60,30,10,0.04)] backdrop-blur-lg"
+        >
+          <p
+            class="mb-7 text-center text-[11px] font-medium uppercase tracking-widest text-[#9e7a52]"
           >
-            <div
-              v-if="forgotMessage"
-              :class="[
-                'text-xs font-medium px-3 py-2 rounded-lg mb-3 flex items-center gap-2',
-                forgotSuccess
-                  ? 'bg-emerald-50 text-emerald-600'
-                  : 'bg-red-50 text-red-500',
-              ]"
-            >
-              <i
-                :class="[
-                  'pi text-sm',
-                  forgotSuccess ? 'pi-check-circle' : 'pi-exclamation-circle',
-                ]"
-              />
-              {{ forgotMessage }}
-            </div>
-          </Transition>
+            Start your quest
+          </p>
 
-          <InputText
-            v-model="forgotEmail"
-            placeholder="you@example.com"
-            type="email"
-            class="w-full mb-3 opacity-60 cursor-not-allowed"
-            :disabled="true"
+          <GoogleLogin
+            :callback="handleGoogleLogin"
+            :auto-login="false"
+            prompt
+            class="mb-2 w-full"
           />
 
-          <div class="flex justify-end gap-2">
-            <button
-              type="button"
-              class="px-4 py-2 rounded-xl text-sm font-medium text-stone-600 hover:bg-stone-100 transition-all duration-150"
-              @click="closeForgot"
+          <p v-if="loading" class="my-1 text-center text-xs text-[#9e7a52]">
+            Signing in...
+          </p>
+          <p
+            v-if="error"
+            class="my-1 rounded-lg bg-[rgba(194,98,42,0.08)] px-3 py-2 text-center text-xs text-[#c2622a]"
+          >
+            {{ error }}
+          </p>
+
+          <!-- Divider -->
+          <div class="my-5 flex items-center gap-3">
+            <div class="h-px flex-1 bg-[rgba(180,140,90,0.2)]" />
+            <span
+              class="whitespace-nowrap text-[11px] font-medium uppercase tracking-widest text-[#b8976a]"
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              :disabled="forgotLoading || forgotSuccess"
-              class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-(--accent) hover:opacity-90 transition-all duration-150 disabled:opacity-50"
-              @click="handleForgot"
+              What you unlock
+            </span>
+            <div class="h-px flex-1 bg-[rgba(180,140,90,0.2)]" />
+          </div>
+
+          <!-- Perks -->
+          <div class="mb-7 flex flex-col gap-2.5">
+            <div
+              v-for="perk in perks"
+              :key="perk.title"
+              class="flex items-center gap-3 rounded-[10px] border border-[rgba(180,140,90,0.12)] bg-[#faf7f2] px-3.5 py-3"
             >
-              <i
-                v-if="forgotLoading"
-                class="pi pi-spinner pi-spin mr-1 text-xs"
-              />
-              {{
-                forgotLoading
-                  ? "Sending..."
-                  : forgotSuccess
-                    ? "Sent!"
-                    : "Send link"
-              }}
-            </button>
+              <div
+                class="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg text-base"
+                :class="perk.iconBg"
+              >
+                {{ perk.icon }}
+              </div>
+              <div>
+                <div class="mb-0.5 text-[13px] font-medium text-[#2c1f0e]">
+                  {{ perk.title }}
+                </div>
+                <div class="text-[11px] text-[#9e7a52]">{{ perk.sub }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
-import InputText from "primevue/inputtext";
 import { useAuthStore } from "@/stores/auth.store";
-import api from "@/api/axios";
+import { GoogleLogin } from "vue3-google-login";
 
 const router = useRouter();
 const auth = useAuthStore();
 
-const activeForm = ref<"login" | "register">("login");
 const loading = ref(false);
 const error = ref("");
-const failedAttempts = ref(0);
-const showForgotLink = ref(false);
-const emailLocked = ref(false);
-const showPassword = ref(false);
-const showRegisterPassword = ref(false);
-
-const loginForm = ref({ email: "", password: "" });
-const registerForm = ref({ displayName: "", email: "", password: "" });
-
-const showForgot = ref(false);
-const forgotEmail = ref("");
-const forgotLoading = ref(false);
-const forgotMessage = ref("");
-const forgotSuccess = ref(false);
 
 const features = [
   "Task management",
@@ -414,93 +198,42 @@ const stats = [
   { value: "🔥", label: "Streak tracking" },
 ];
 
-watch(activeForm, () => {
-  error.value = "";
-  failedAttempts.value = 0;
-  showForgotLink.value = false;
-  emailLocked.value = false;
-  showPassword.value = false;
-});
+const perks = [
+  {
+    icon: "⚡",
+    iconBg: "bg-[rgba(194,98,42,0.1)]",
+    title: "Earn XP for every task",
+    sub: "Track progress and level up over time",
+  },
+  {
+    icon: "🔥",
+    iconBg: "bg-[rgba(220,120,40,0.1)]",
+    title: "Build daily streaks",
+    sub: "Stay consistent and watch your streak grow",
+  },
+  {
+    icon: "🏆",
+    iconBg: "bg-[rgba(160,80,20,0.1)]",
+    title: "Unlock achievements",
+    sub: "Reach milestones and earn badges",
+  },
+];
 
-const handleLogin = async () => {
-  if (!loginForm.value.email || !loginForm.value.password) {
-    error.value = "Please fill in all fields";
+const handleGoogleLogin = async (response: any) => {
+  const credential = response?.credential ?? response?.access_token;
+  if (!credential) {
+    error.value = "No credential received from Google. Please try again.";
     return;
   }
+
   loading.value = true;
   error.value = "";
   try {
-    await auth.login(loginForm.value.email, loginForm.value.password);
-    failedAttempts.value = 0;
-    showForgotLink.value = false;
-    emailLocked.value = false;
+    await auth.googleLogin(credential);
     router.push("/personal-tasks");
-  } catch (e: unknown) {
-    const err = e as { response?: { data?: { message?: string } } };
-    error.value = err.response?.data?.message || "Something went wrong";
-    failedAttempts.value++;
-    if (failedAttempts.value >= 3) {
-      showForgotLink.value = true;
-      emailLocked.value = true;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const openForgotModal = () => {
-  forgotEmail.value = loginForm.value.email;
-  forgotMessage.value = "";
-  forgotSuccess.value = false;
-  showForgot.value = true;
-};
-
-const closeForgot = () => {
-  showForgot.value = false;
-  forgotMessage.value = "";
-  forgotSuccess.value = false;
-};
-
-const handleForgot = async () => {
-  if (!forgotEmail.value) {
-    forgotMessage.value = "Please enter your email";
-    forgotSuccess.value = false;
-    return;
-  }
-  forgotLoading.value = true;
-  forgotMessage.value = "";
-  forgotSuccess.value = false;
-  try {
-    await api.post("/auth/forgot-password", { email: forgotEmail.value });
-    forgotSuccess.value = true;
-    forgotMessage.value = "Reset link sent! Check your email.";
-  } catch (e: unknown) {
-    const err = e as { response?: { data?: { message?: string } } };
-    forgotMessage.value = err.response?.data?.message || "Something went wrong";
-    forgotSuccess.value = false;
-  } finally {
-    forgotLoading.value = false;
-  }
-};
-
-const handleRegister = async () => {
-  const { displayName, email, password } = registerForm.value;
-  if (!displayName || !email || !password) {
-    error.value = "Please fill in all fields";
-    return;
-  }
-  if (password.length < 6) {
-    error.value = "Password must be at least 6 characters";
-    return;
-  }
-  loading.value = true;
-  error.value = "";
-  try {
-    await auth.register(displayName, email, password);
-    router.push("/personal-tasks");
-  } catch (e: unknown) {
-    const err = e as { response?: { data?: { message?: string } } };
-    error.value = err.response?.data?.message || "Registration failed";
+  } catch (e: any) {
+    error.value =
+      e.response?.data?.message ?? "Google sign-in failed. Please try again.";
   } finally {
     loading.value = false;
   }
