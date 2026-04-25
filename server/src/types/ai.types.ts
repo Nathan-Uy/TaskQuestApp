@@ -1,10 +1,10 @@
 import type { IGoal } from "../types/goals.types";
-import type { ITask } from "../types/tasks.types";
+import type { IPersonalTask } from "../types/personalTask.types";
 import type { IUser } from "../types/user.types";
 
 export interface ReportData {
   user: IUser | null;
-  tasks: ITask[];
+  tasks: IPersonalTask[];
   goals: IGoal[];
   byDay: Record<string, number>;
   xpEarned: number;

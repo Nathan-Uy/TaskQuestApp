@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model } from "mongoose";
 import type { ITeamMember, ITeam } from "../types/team.types";
 
 const TeamMemberSchema = new Schema<ITeamMember>({
@@ -21,6 +21,8 @@ const TeamSchema = new Schema<ITeam>(
     description: { type: String, default: "" },
     owner: { type: String, required: true },
     members: [TeamMemberSchema],
+    color: { type: String, default: null },
+    coverPhoto: { type: String, default: null },
   },
   { timestamps: true },
 );

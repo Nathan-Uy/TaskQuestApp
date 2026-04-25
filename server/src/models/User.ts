@@ -1,11 +1,13 @@
 import { Schema, model } from "mongoose";
-import type{ IUser } from "../types/user.types";
+import type { IUser } from "../types/user.types";
 
 const UserSchema = new Schema<IUser>(
   {
     displayName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false, default: null },
+    googleId: { type: String, default: null },
+    avatar: { type: String, default: null },
     level: { type: Number, default: 1 },
     currentXP: { type: Number, default: 0 },
     xpToNextLevel: { type: Number, default: 100 },
@@ -25,8 +27,8 @@ const UserSchema = new Schema<IUser>(
         dailyReminderTime: { type: String, default: "09:00" },
       },
     },
-    resetPasswordToken:   { type: String },
-    resetPasswordExpires: { type: Date   },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true },
 );
