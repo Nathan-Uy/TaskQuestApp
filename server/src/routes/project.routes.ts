@@ -8,6 +8,8 @@ import {
   deleteProject,
   addMember,
   removeMember,
+  updateCoverPhoto, // ✅ add
+  updateProjectColor, // ✅ add
 } from "../controllers/project.controller";
 
 const router = Router();
@@ -20,5 +22,7 @@ router.put("/:projectId", updateProject);
 router.delete("/:projectId", deleteProject);
 router.post("/:projectId/members", addMember);
 router.delete("/:projectId/members/:userId", removeMember);
+router.patch("/:projectId/cover", updateCoverPhoto);
+router.patch("/:projectId/color", updateProjectColor);
 
 export default router;

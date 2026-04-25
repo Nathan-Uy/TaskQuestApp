@@ -10,18 +10,23 @@ import type {
   CreateProjectBody,
   UpdateProjectBody,
   AddMemberBody,
+  IProject,
 } from "../types/project.types";
+import Invitation from "../models/Invitation";
 
 interface AuthRequest extends Request {
   userId?: string;
 }
+
+// ✅ Helper — only the owner can do destructive/admin operations
+const requireOwner = (project: IProject, userId: string) =>
+  project.owner === String(userId);
 
 export const getProjects = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    // Return projects the user owns OR is a member of
     const projects = await Project.find({
       $or: [
         { owner: userId },
@@ -87,6 +92,13 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
     const result = await getProject(param(req, "projectId"), userId);
     if (!result.ok) return sendAuthError(res, result);
+
+    // ✅ Only owner can update
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the project owner can update this project" });
+
     const body = req.body as UpdateProjectBody;
     const project = result.data;
     if (body.name?.trim()) project.name = body.name.trim();
@@ -104,6 +116,13 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
     const result = await getProject(param(req, "projectId"), userId);
     if (!result.ok) return sendAuthError(res, result);
+
+    // ✅ Only owner can delete
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the project owner can delete this project" });
+
     const projectId = result.data._id.toString();
     const teams = await Team.find({ projectId });
     const teamIds = teams.map((t) => t._id.toString());
@@ -127,6 +146,12 @@ export const addMember = async (req: AuthRequest, res: Response) => {
     const result = await getProject(param(req, "projectId"), userId);
     if (!result.ok) return sendAuthError(res, result);
 
+    // ✅ Only owner can invite members
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the project owner can invite members" });
+
     const body = req.body as AddMemberBody;
     if (!body.email?.trim())
       return res.status(400).json({ error: "Email required" });
@@ -134,25 +159,62 @@ export const addMember = async (req: AuthRequest, res: Response) => {
     const email = body.email.trim().toLowerCase();
     const project = result.data;
 
-    if (project.members.some((m) => m.email === email))
-      return res.status(400).json({ error: "Member already in project" });
-
     const invitedUser = await User.findOne({ email });
-    if (!invitedUser) return res.status(404).json({ error: "User not found" });
+    if (!invitedUser)
+      return res
+        .status(404)
+        .json({ error: "User not found. They must have a TaskQuest account." });
 
-    project.members.push({
-      userId: invitedUser._id.toString(),
-      email,
-      name: invitedUser.displayName ?? "Unknown",
-      role: body.role === "admin" ? "admin" : "member",
-      joinedAt: new Date(),
-      inviteStatus: "pending",
+    const inviteeId = String(invitedUser._id);
+
+    if (project.members.some((m) => m.userId === inviteeId))
+      return res
+        .status(400)
+        .json({ error: "User is already a member of this project" });
+
+    const existingInvite = await Invitation.findOne({
+      projectId: String(project._id),
+      inviteeId,
+      status: "pending",
     });
+    if (existingInvite)
+      return res
+        .status(400)
+        .json({ error: "An invitation has already been sent to this user" });
 
-    await project.save();
-    res.json(project);
-  } catch {
-    res.status(500).json({ error: "Failed to add member" });
+    const inviter = await User.findById(userId);
+
+    try {
+      await Invitation.create({
+        projectId: String(project._id),
+        projectName: project.name,
+        inviterId: String(userId),
+        inviterName: inviter?.displayName ?? "Someone",
+        inviteeId,
+        inviteeEmail: email,
+        status: "pending",
+      });
+    } catch (createErr) {
+      console.error("❌ Invitation.create() failed:", createErr);
+      return res
+        .status(500)
+        .json({ error: "Failed to create invitation record" });
+    }
+
+    const { sendInviteEmail } = await import("../lib/mailer");
+    sendInviteEmail({
+      to: email,
+      inviteeName: invitedUser.displayName ?? "there",
+      teamName: project.name,
+      projectName: project.name,
+      inviterName: inviter?.displayName ?? "A teammate",
+      acceptUrl: `${process.env.CLIENT_URL}/taskspace/projects`,
+    }).catch((err) => console.error("Invite email failed:", err));
+
+    res.json({ message: "Invitation sent successfully" });
+  } catch (err) {
+    console.error("addMember error:", err);
+    res.status(500).json({ error: "Failed to send invitation" });
   }
 };
 
@@ -163,6 +225,12 @@ export const removeMember = async (req: AuthRequest, res: Response) => {
 
     const result = await getProject(param(req, "projectId"), userId);
     if (!result.ok) return sendAuthError(res, result);
+
+    // ✅ Only owner can remove members
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the project owner can remove members" });
 
     const memberId = param(req, "userId");
     const project = result.data;
@@ -178,5 +246,43 @@ export const removeMember = async (req: AuthRequest, res: Response) => {
     res.json(project);
   } catch {
     res.status(500).json({ error: "Failed to remove member" });
+  }
+};
+
+export const updateCoverPhoto = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+    if (!requireOwner(result.data, userId))
+      return res
+        .status(403)
+        .json({ error: "Only the owner can update cover photo" });
+    const { coverPhoto } = req.body;
+    if (coverPhoto && coverPhoto.length > 200 * 1024)
+      return res.status(400).json({ error: "Image too large" });
+    result.data.coverPhoto = coverPhoto ?? null;
+    await result.data.save();
+    res.json(result.data);
+  } catch {
+    res.status(500).json({ error: "Failed to update cover photo" });
+  }
+};
+
+export const updateProjectColor = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const result = await getProject(param(req, "projectId"), userId);
+    if (!result.ok) return sendAuthError(res, result);
+    if (!requireOwner(result.data, userId))
+      return res.status(403).json({ error: "Only the owner can update color" });
+    const { color } = req.body;
+    result.data.color = color ?? null;
+    await result.data.save();
+    res.json(result.data);
+  } catch {
+    res.status(500).json({ error: "Failed to update color" });
   }
 };

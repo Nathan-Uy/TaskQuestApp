@@ -27,6 +27,8 @@ const ProjectSchema = new Schema<IProject>(
     description: { type: String, default: "" },
     owner: { type: String, required: true },
     members: [ProjectMemberSchema],
+    color: { type: String, default: null },
+    coverPhoto: { type: String, default: null },
   },
   { timestamps: true },
 );

@@ -1,6 +1,4 @@
-import { Document } from "mongoose";
-
-export interface IProjectMember {
+export interface ProjectMember {
   userId: string;
   email: string;
   name: string;
@@ -9,32 +7,29 @@ export interface IProjectMember {
   inviteStatus: "pending" | "accepted";
 }
 
-export interface IProject extends Document {
+export interface Project {
+  _id: string;
   name: string;
   description: string;
   owner: string;
-  members: IProjectMember[];
-  createdAt: Date;
-  updatedAt: Date;
+  members: ProjectMember[];
   color?: string | null;
   coverPhoto?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface CreateProjectBody {
+export interface CreateProjectDto {
   name: string;
   description?: string;
 }
 
-export interface UpdateProjectBody {
+export interface UpdateProjectDto {
   name?: string;
   description?: string;
 }
 
-export interface AddMemberBody {
+export interface AddMemberDto {
   email: string;
   role?: "admin" | "member";
-}
-
-export interface RemoveMemberBody {
-  userId: string;
 }
