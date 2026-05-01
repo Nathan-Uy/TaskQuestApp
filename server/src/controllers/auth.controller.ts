@@ -26,13 +26,22 @@ const sanitizeUser = (user: any) => ({
   avatar: user.avatar,
 });
 
+const setTokenCookie = (res: Response, token: string) => {
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+};
+
 export const googleAuth = async (req: Request, res: Response) => {
   try {
     const { credential } = req.body;
     if (!credential)
       return res.status(400).json({ message: "No credential provided" });
 
-    // Verify token with Google
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -44,11 +53,8 @@ export const googleAuth = async (req: Request, res: Response) => {
 
     const { email, name, picture, sub: googleId } = payload;
 
-    // Find or create user
     let user = await User.findOne({ email });
-
     if (user) {
-      // Update Google ID and avatar if logging in with Google for first time
       if (!user.googleId) user.googleId = googleId;
       if (picture) user.avatar = picture;
       await user.save();
@@ -56,18 +62,28 @@ export const googleAuth = async (req: Request, res: Response) => {
       user = await User.create({
         displayName: name ?? email.split("@")[0],
         email,
-        password: crypto.randomBytes(32).toString("hex"), 
+        password: crypto.randomBytes(32).toString("hex"),
         googleId,
         avatar: picture ?? "",
       });
     }
-
     const token = signToken(user._id.toString());
-    res.json({ token, user: sanitizeUser(user) });
+    setTokenCookie(res, token); // ← set httpOnly cookie
+    res.json({ token, user: sanitizeUser(user) }); // ← also return token for sessionStorage
   } catch (err) {
     console.error("Google auth error:", err);
     res.status(401).json({ message: "Google authentication failed" });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+  res.json({ message: "Logged out" });
 };
 
 export const getMe = async (req: AuthRequest, res: Response) => {
