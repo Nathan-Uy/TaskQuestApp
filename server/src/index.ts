@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import path from "node:path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import personalTaskRoutes from "./routes/personalTask.routes";
@@ -36,16 +37,26 @@ app.use("/api/", limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === "production" ? 20 : 100,
   message: { error: "Too many auth attempts, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
+
+app.use("/api/", (req, res, next) => {
+  if (req.path.startsWith("/auth")) return next();
+  return limiter(req, res, next);
+});
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/tasks", taskRoutes);

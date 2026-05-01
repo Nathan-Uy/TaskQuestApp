@@ -108,21 +108,14 @@ export const setInitialized = (val: boolean) => {
 router.beforeEach(async (to, _, next) => {
   const auth = useAuthStore();
 
-  if (auth.token && !initialized) {
-    if (!auth.user) {
-      await auth.fetchMe();
-    }
-    await auth.syncStores();
-    initialized = true;
+  if (auth.isLoggingIn) return next();
+
+  if (!auth.initialized) {
+    await auth.fetchMe();
   }
 
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return next("/");
-  }
-
-  if (to.meta.guest && auth.isAuthenticated) {
-    return next("/personal-tasks");
-  }
+  if (to.meta.requiresAuth && !auth.isAuthenticated) return next("/");
+  if (to.meta.guest && auth.isAuthenticated) return next("/personal-tasks");
 
   next();
 });

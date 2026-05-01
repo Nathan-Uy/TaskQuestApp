@@ -230,8 +230,10 @@ const handleGoogleLogin = async (response: any) => {
   error.value = "";
   try {
     await auth.googleLogin(credential);
-    router.push("/personal-tasks");
+    await router.push("/personal-tasks");
+    await auth.syncStores();
   } catch (e: any) {
+    if (e?.name?.includes("Navigation")) return;
     error.value =
       e.response?.data?.message ?? "Google sign-in failed. Please try again.";
   } finally {
