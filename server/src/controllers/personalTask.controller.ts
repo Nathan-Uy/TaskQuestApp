@@ -5,6 +5,7 @@ import {
   CreatePersonalTaskDto,
   UpdatePersonalTaskDto,
 } from "../types/personalTask.types";
+import Task from "../models/Task";
 
 interface AuthRequest extends Request {
   userId?: string;
@@ -108,6 +109,10 @@ export const completeTask = async (req: AuthRequest, res: Response) => {
     task.status = "completed";
     task.completedAt = new Date();
     await task.save();
+
+    if (task.isSprintTask && task.sprintTaskId) {
+      await Task.findByIdAndUpdate(task.sprintTaskId, { status: "done" });
+    }
 
     // Award XP to user
     const user = await User.findByIdAndUpdate(

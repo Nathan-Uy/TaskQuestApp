@@ -155,25 +155,25 @@ export const downloadReport = async (req: AuthRequest, res: Response) => {
   try {
     const period = getReportPeriod(new Date());
     const data = await gatherReportData(req.userId!, period.start, period.end);
+    const bullets = await generateBullets(data, period.label);
     const { user, tasks } = data;
 
+    // Group by date
     const tasksByDate: Record<string, IPersonalTask[]> = {};
     tasks.forEach((t: IPersonalTask) => {
       if (!t.completedAt) return;
-      const dateKey = new Date(t.completedAt).toLocaleDateString("en-US", {
+      const dk = new Date(t.completedAt).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
         year: "numeric",
       });
-      if (!tasksByDate[dateKey]) tasksByDate[dateKey] = [];
-      tasksByDate[dateKey].push(t);
+      (tasksByDate[dk] ??= []).push(t);
     });
-
     const sortedDates = Object.keys(tasksByDate).sort(
       (a, b) => new Date(a).getTime() - new Date(b).getTime(),
     );
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -181,119 +181,396 @@ export const downloadReport = async (req: AuthRequest, res: Response) => {
     );
     doc.pipe(res);
 
-    doc
-      .fontSize(20)
-      .font("Helvetica-Bold")
-      .fillColor("#1a1714")
-      .text("TaskQuest", { align: "center" });
-    doc
-      .fontSize(11)
-      .font("Helvetica")
-      .fillColor("#555")
-      .text("Productivity Report", { align: "center" });
-    doc.fontSize(10).fillColor("#888").text(period.label, { align: "center" });
-    doc.moveDown(0.5);
-    doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#e8e4de").stroke();
-    doc.moveDown(0.8);
+    // ── Constants ────────────────────────────────────────────────
+    const ML = 40,
+      MR = 555,
+      PW = MR - ML;
+    const BLACK = "#000000";
+    const GRAY = "#666666";
+    const LGRAY = "#f2f2f2";
+    const BORDER = "#999999";
 
-    doc
-      .fontSize(12)
-      .font("Helvetica-Bold")
-      .fillColor("#1a1714")
-      .text(user?.displayName || "User");
-    doc
-      .fontSize(9)
-      .font("Helvetica")
-      .fillColor("#888")
-      .text(
-        `Level ${user?.level}  •  ${user?.totalXP} Total XP  •  ${user?.streakDays} Day Streak`,
-      );
-    doc.moveDown(0.8);
-    doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#e8e4de").stroke();
-    doc.moveDown(0.8);
-
-    const col1X = 50;
-    const col2X = 200;
-    const tableWidth = 512;
-    const rowHeight = 20;
-    const tableTopY = doc.y;
-
-    doc.rect(col1X, doc.y, tableWidth, rowHeight).fillColor("#f2efe9").fill();
-    const headerY = doc.y + 5;
-    doc
-      .fontSize(9)
-      .font("Helvetica-Bold")
-      .fillColor("#1a1714")
-      .text("DATE", col1X + 5, headerY, { width: col2X - col1X - 10 });
-    doc.text("TASKS COMPLETED", col2X + 5, headerY, {
-      width: tableWidth - (col2X - col1X) - 10,
-    });
-    doc.y = tableTopY + rowHeight;
-    doc
-      .moveTo(col1X, doc.y)
-      .lineTo(col1X + tableWidth, doc.y)
-      .strokeColor("#e8e4de")
-      .stroke();
-
-    if (sortedDates.length === 0) {
-      doc.moveDown(0.5);
+    // helper: draw cell with border
+    const cell = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      fill?: string,
+    ) => {
+      if (fill) doc.rect(x, y, w, h).fill(fill);
+      doc.rect(x, y, w, h).stroke(BORDER);
+    };
+    const txt = (
+      text: string,
+      x: number,
+      y: number,
+      w: number,
+      opts: {
+        size?: number;
+        bold?: boolean;
+        color?: string;
+        align?: "left" | "center" | "right";
+      } = {},
+    ) => {
       doc
-        .fontSize(9)
-        .font("Helvetica")
-        .fillColor("#888")
-        .text("No tasks completed during this period.", col1X + 5);
-      doc.moveDown(1);
+        .fontSize(opts.size ?? 8)
+        .font(opts.bold ? "Helvetica-Bold" : "Helvetica")
+        .fillColor(opts.color ?? BLACK)
+        .text(text, x + 3, y + 3, {
+          width: w - 6,
+          align: opts.align ?? "left",
+        });
+    };
+
+    // ── HEADER ───────────────────────────────────────────────────
+    const HDR_H = 60;
+    doc.rect(ML, 40, PW, HDR_H).fill(LGRAY).stroke(BORDER);
+
+    // Left: app name
+    doc
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .fillColor(BLACK)
+      .text("TaskQuest", ML + 10, 52);
+    doc
+      .fontSize(8)
+      .font("Helvetica")
+      .fillColor(GRAY)
+      .text("Gamified Productivity Tracker", ML + 10, 72);
+
+    // Right: report label
+    doc
+      .fontSize(10)
+      .font("Helvetica-Bold")
+      .fillColor(BLACK)
+      .text("PRODUCTIVITY REPORT", ML, 56, { width: PW - 10, align: "right" });
+    doc
+      .fontSize(8)
+      .font("Helvetica")
+      .fillColor(GRAY)
+      .text(period.label, ML, 70, { width: PW - 10, align: "right" });
+
+    // Divider line under header
+    doc
+      .moveTo(ML, 100)
+      .lineTo(MR, 100)
+      .strokeColor(BLACK)
+      .lineWidth(1.5)
+      .stroke();
+    doc.lineWidth(0.5);
+
+    // ── INFO TABLE (PSA-style: FOR THE PERIOD OF / NAME / etc.) ──
+    let y = 108;
+    const INFO_H = 16;
+    const LBL_W = 130;
+
+    const infoRows = [
+      ["FOR THE PERIOD OF:", period.label],
+      ["NAME:", user?.displayName ?? "—"],
+      ["LEVEL / XP:", `Level ${user?.level}  |  ${user?.totalXP} Total XP`],
+      [
+        "STREAK / TASKS:",
+        `${user?.streakDays} Day Streak  |  ${user?.tasksCompleted} Tasks Completed`,
+      ],
+    ];
+
+    infoRows.forEach(([label, value]) => {
+      cell(ML, y, LBL_W, INFO_H, LGRAY);
+      cell(ML + LBL_W, y, PW - LBL_W, INFO_H);
+      txt(label, ML, y, LBL_W, { bold: true, size: 7.5 });
+      txt(value, ML + LBL_W, y, PW - LBL_W, { size: 7.5 });
+      y += INFO_H;
+    });
+
+    y += 10;
+
+    // ── MAIN TABLE ────────────────────────────────────────────────
+    // Columns: Date | Qty | Output (Task Title) | Status | Time Hrs | Mins | Remarks
+    const C = {
+      date: { x: ML, w: 90 },
+      qty: { x: ML + 90, w: 25 },
+      output: { x: ML + 115, w: 220 },
+      status: { x: ML + 335, w: 50 },
+      hrs: { x: ML + 385, w: 30 },
+      mins: { x: ML + 415, w: 30 },
+      remarks: { x: ML + 445, w: MR - ML - 445 },
+    };
+
+    // ── Table header: top two rows (PSA-style merged cells) ───────
+    const TH1 = 14; // first header row height
+    const TH2 = 14; // second header row height
+
+    // Row 1 — top labels
+    cell(C.date.x, y, C.date.w, TH1, BLACK);
+    cell(C.qty.x, y, C.qty.w, TH1, BLACK);
+    cell(C.output.x, y, C.output.w, TH1, BLACK);
+    cell(C.status.x, y, C.status.w, TH1, BLACK);
+    cell(C.hrs.x, y, C.hrs.w + C.mins.w, TH1, BLACK); // "Time Spent" spans Hrs+Mins
+    cell(C.remarks.x, y, C.remarks.w, TH1, BLACK);
+
+    txt("Project/Activity/Task", C.date.x, y, C.date.w + C.qty.w + C.output.w, {
+      bold: true,
+      size: 7,
+      color: "#ffffff",
+      align: "center",
+    });
+    txt("", C.status.x, y, C.status.w, {
+      bold: true,
+      size: 7,
+      color: "#ffffff",
+      align: "center",
+    });
+    txt("Time Spent", C.hrs.x, y, C.hrs.w + C.mins.w, {
+      bold: true,
+      size: 7,
+      color: "#ffffff",
+      align: "center",
+    });
+    txt("REMARKS", C.remarks.x, y, C.remarks.w, {
+      bold: true,
+      size: 7,
+      color: "#ffffff",
+      align: "center",
+    });
+
+    y += TH1;
+
+    // Row 2 — sub-labels
+    cell(C.date.x, y, C.date.w, TH2, LGRAY);
+    cell(C.qty.x, y, C.qty.w, TH2, LGRAY);
+    cell(C.output.x, y, C.output.w, TH2, LGRAY);
+    cell(C.status.x, y, C.status.w, TH2, LGRAY);
+    cell(C.hrs.x, y, C.hrs.w, TH2, LGRAY);
+    cell(C.mins.x, y, C.mins.w, TH2, LGRAY);
+    cell(C.remarks.x, y, C.remarks.w, TH2, LGRAY);
+
+    txt("Date", C.date.x, y, C.date.w, {
+      bold: true,
+      size: 7,
+      align: "center",
+    });
+    txt("Qty", C.qty.x, y, C.qty.w, { bold: true, size: 7, align: "center" });
+    txt("Output", C.output.x, y, C.output.w, {
+      bold: true,
+      size: 7,
+      align: "center",
+    });
+    txt("Status", C.status.x, y, C.status.w, {
+      bold: true,
+      size: 7,
+      align: "center",
+    });
+    txt("Hrs", C.hrs.x, y, C.hrs.w, { bold: true, size: 7, align: "center" });
+    txt("Mins", C.mins.x, y, C.mins.w, {
+      bold: true,
+      size: 7,
+      align: "center",
+    });
+    txt("", C.remarks.x, y, C.remarks.w, {
+      bold: true,
+      size: 7,
+      align: "center",
+    });
+
+    y += TH2;
+
+    // ── Data rows ─────────────────────────────────────────────────
+    if (sortedDates.length === 0) {
+      const ERH = 20;
+      cell(ML, y, PW, ERH);
+      txt("No tasks completed during this period.", ML, y, PW, {
+        color: GRAY,
+        align: "center",
+      });
+      y += ERH;
     } else {
-      sortedDates.forEach((date, idx) => {
+      sortedDates.forEach((date, di) => {
         const dayTasks = tasksByDate[date];
-        const startY = doc.y;
-        const rowH = Math.max(rowHeight, dayTasks.length * 16 + 10);
+        const ROW_H = Math.max(16, dayTasks.length * 13 + 6);
+        const rowFill = di % 2 === 0 ? "#ffffff" : LGRAY;
 
-        if (idx % 2 === 0) {
-          doc.rect(col1X, startY, tableWidth, rowH).fillColor("#faf9f7").fill();
-        }
+        cell(C.date.x, y, C.date.w, ROW_H, rowFill);
+        cell(C.qty.x, y, C.qty.w, ROW_H, rowFill);
+        cell(C.output.x, y, C.output.w, ROW_H, rowFill);
+        cell(C.status.x, y, C.status.w, ROW_H, rowFill);
+        cell(C.hrs.x, y, C.hrs.w, ROW_H, rowFill);
+        cell(C.mins.x, y, C.mins.w, ROW_H, rowFill);
+        cell(C.remarks.x, y, C.remarks.w, ROW_H, rowFill);
 
-        doc
-          .fontSize(9)
-          .font("Helvetica-Bold")
-          .fillColor("#1a1714")
-          .text(date, col1X + 5, startY + 5, { width: col2X - col1X - 10 });
-
-        dayTasks.forEach((task, taskIdx) => {
-          doc
-            .fontSize(9)
-            .font("Helvetica")
-            .fillColor("#333")
-            .text(`- ${task.title}`, col2X + 5, startY + 5 + taskIdx * 16, {
-              width: tableWidth - (col2X - col1X) - 10,
-            });
+        // Date (bold, vertically centered)
+        txt(date, C.date.x, y + ROW_H / 2 - 6, C.date.w, {
+          bold: true,
+          size: 7,
         });
 
-        doc.y = startY + rowH;
-        doc
-          .moveTo(col1X, doc.y)
-          .lineTo(col1X + tableWidth, doc.y)
-          .strokeColor("#e8e4de")
-          .stroke();
+        // Qty
+        txt(`${dayTasks.length}`, C.qty.x, y + ROW_H / 2 - 6, C.qty.w, {
+          size: 7,
+          align: "center",
+        });
+
+        // Tasks list
+        dayTasks.forEach((task, ti) => {
+          const ty = y + 3 + ti * 13;
+          const isSprintTask = task.isSprintTask;
+          doc
+            .fontSize(7)
+            .font(isSprintTask ? "Helvetica-Oblique" : "Helvetica")
+            .fillColor(BLACK)
+            .text(
+              `${isSprintTask ? "[Sprint] " : ""}${task.title}`,
+              C.output.x + 3,
+              ty,
+              { width: C.output.w - 6 },
+            );
+        });
+
+        // Status — 100% since all are completed
+        txt("100%", C.status.x, y + ROW_H / 2 - 6, C.status.w, {
+          size: 7,
+          align: "center",
+        });
+
+        // Time: duration in hrs/mins (sum of tasks)
+        const totalSecs = dayTasks.reduce(
+          (s, t) => s + (t.duration ?? 1500),
+          0,
+        );
+        const hrs = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        txt(hrs > 0 ? `${hrs}` : "0", C.hrs.x, y + ROW_H / 2 - 6, C.hrs.w, {
+          size: 7,
+          align: "center",
+        });
+        txt(
+          mins > 0 ? `${mins}` : "00",
+          C.mins.x,
+          y + ROW_H / 2 - 6,
+          C.mins.w,
+          { size: 7, align: "center" },
+        );
+
+        // Remarks: priority badge
+        const priorityLabel = dayTasks
+          .map((t) => t.priority.toUpperCase()[0])
+          .join(",");
+        txt(priorityLabel, C.remarks.x, y + ROW_H / 2 - 6, C.remarks.w, {
+          size: 6.5,
+          align: "center",
+          color: GRAY,
+        });
+
+        y += ROW_H;
       });
     }
 
-    const tableBottomY = doc.y;
-    doc
-      .rect(col1X, tableTopY, tableWidth, tableBottomY - tableTopY)
-      .strokeColor("#e8e4de")
-      .stroke();
-    doc
-      .moveTo(col2X, tableTopY)
-      .lineTo(col2X, tableBottomY)
-      .strokeColor("#e8e4de")
-      .stroke();
+    // Total row
+    const TOT_H = 16;
+    cell(ML, y, PW, TOT_H, LGRAY);
+    txt("Total", ML, y, LBL_W, { bold: true, size: 8 });
+    txt(`${tasks.length} tasks`, ML + LBL_W, y, PW - LBL_W, {
+      bold: true,
+      size: 8,
+      align: "right",
+    });
+    y += TOT_H + 16;
 
-    doc.moveDown(1);
+    // ── AI INSIGHTS (as Remarks/Notes section) ────────────────────
+    cell(ML, y, PW, 14, BLACK);
+    txt("AI PRODUCTIVITY INSIGHTS", ML, y, PW, {
+      bold: true,
+      size: 8,
+      color: "#ffffff",
+      align: "center",
+    });
+    y += 14;
+
+    bullets.forEach((bullet, i) => {
+      const bh = 22;
+      cell(ML, y, PW, bh, i % 2 === 0 ? "#ffffff" : LGRAY);
+      // Number badge
+      doc.rect(ML + 3, y + 4, 13, 13).fill(BLACK);
+      doc
+        .fontSize(7)
+        .font("Helvetica-Bold")
+        .fillColor("#ffffff")
+        .text(`${i + 1}`, ML + 3, y + 7, { width: 13, align: "center" });
+      // Text
+      doc
+        .fontSize(7)
+        .font("Helvetica")
+        .fillColor(BLACK)
+        .text(bullet, ML + 20, y + 4, { width: PW - 25 });
+      y += bh;
+    });
+
+    y += 20;
+
+    // ── SIGNATURE BLOCK (PSA-style 3-column) ─────────────────────
+    const SIG_W = PW / 3;
+    const SIG_H = 50;
+    const sigData = [
+      {
+        role: "PREPARED BY:",
+        name: user?.displayName ?? "—",
+        title: "TaskQuest User",
+      },
+      { role: "NOTED BY:", name: "—", title: "Team Lead" },
+      { role: "APPROVED BY:", name: "—", title: "Division Head" },
+    ];
+
+    // Top border
+    doc.moveTo(ML, y).lineTo(MR, y).strokeColor(BLACK).lineWidth(1).stroke();
+    doc.lineWidth(0.5);
+    y += 4;
+
+    sigData.forEach((s, i) => {
+      const sx = ML + i * SIG_W;
+      cell(sx, y, SIG_W, SIG_H);
+      // Role label
+      doc
+        .fontSize(7)
+        .font("Helvetica-Bold")
+        .fillColor(BLACK)
+        .text(s.role, sx + 4, y + 4, { width: SIG_W - 8 });
+      // Signature line
+      doc
+        .moveTo(sx + 10, y + 32)
+        .lineTo(sx + SIG_W - 10, y + 32)
+        .strokeColor(BLACK)
+        .lineWidth(0.5)
+        .stroke();
+      // Name
+      doc
+        .fontSize(7.5)
+        .font("Helvetica-Bold")
+        .fillColor(BLACK)
+        .text(s.name, sx, y + 34, { width: SIG_W, align: "center" });
+      // Title
+      doc
+        .fontSize(6.5)
+        .font("Helvetica")
+        .fillColor(GRAY)
+        .text(s.title, sx, y + 43, { width: SIG_W, align: "center" });
+    });
+
+    y += SIG_H + 10;
+
+    // ── FOOTER ───────────────────────────────────────────────────
+    doc.moveTo(ML, y).lineTo(MR, y).strokeColor(BLACK).lineWidth(1).stroke();
+    y += 4;
     doc
-      .fontSize(8)
-      .fillColor("#aaa")
-      .text("Generated by TaskQuest", { align: "center" });
+      .fontSize(7)
+      .font("Helvetica")
+      .fillColor(GRAY)
+      .text(
+        `Generated by TaskQuest  •  ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
+        ML,
+        y,
+        { width: PW, align: "center" },
+      );
+
     doc.end();
   } catch (err: unknown) {
     const error = err as Error;
@@ -301,7 +578,6 @@ export const downloadReport = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "PDF generation failed" });
   }
 };
-
 // ── 3. Task Description Generator ─────────────────────────────────
 export const generateTaskDescription = async (
   req: AuthRequest,

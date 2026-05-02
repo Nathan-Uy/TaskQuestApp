@@ -22,6 +22,10 @@ const PersonalTaskSchema = new Schema<IPersonalTask>(
     xpReward: { type: Number, default: 20 },
     dueDate: { type: Date, default: null },
     completedAt: { type: Date, default: null },
+    sprintTaskId: { type: String, default: null },
+    sprintId: { type: String, default: null },
+    teamId: { type: String, default: null },
+    isSprintTask: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
