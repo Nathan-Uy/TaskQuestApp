@@ -10,6 +10,10 @@ export interface IPersonalTask extends Document {
   xpReward: number;
   dueDate?: Date | null;
   completedAt?: Date | null;
+  sprintTaskId?: string | null;
+  sprintId?: string | null;
+  teamId?: string | null;
+  isSprintTask: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
