@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Button from "primevue/button";
 import { useSprint } from "./sprint.tanstack";
@@ -206,7 +206,7 @@ const sprint = computed(() => sprintData?.value);
 const { data: teamData } = useTeam(teamId);
 const teamMembers = computed(() => teamData?.value?.members ?? []);
 
-const { tasks, isLoading, error, saveInlineTask, deleteInlineTask } =
+const { tasks, isLoading, saveInlineTask, deleteInlineTask } =
   useTaskManager(sprintId);
 
 interface RowTask extends Partial<Task> {
@@ -233,9 +233,7 @@ const addRow = () => {
 };
 
 const handleUpdate = (task: RowTask, patch: Partial<Task>) => {
-  if (task._isNew) {
-    Object.assign(task, patch);
-  }
+  if (task._isNew) Object.assign(task, patch);
 };
 
 const handleSave = async (task: RowTask, patch: Partial<Task>) => {
