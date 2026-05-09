@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col pl-8">
+    <Toast position="bottom-right" />
+
+    <!-- Header -->
     <div class="flex items-center justify-between" style="margin-bottom: 28px">
       <div>
         <h1
@@ -20,14 +23,11 @@
       />
     </div>
 
+    <!-- Stats row -->
     <div class="grid grid-cols-4 gap-3" style="margin-bottom: 28px">
       <div
-        class="rounded-2xl border"
-        style="
-          padding: 16px 18px;
-          background: var(--card-bg);
-          border-color: var(--card-border);
-        "
+        class="rounded-2xl border border-stone-300 ring-1 ring-stone-100"
+        style="padding: 16px 18px; background: var(--card-bg)"
       >
         <p
           class="font-serif"
@@ -35,10 +35,10 @@
             font-size: 1.75rem;
             line-height: 1;
             margin-bottom: 6px;
-            color: var(--ink-primary);
+            color: var(--accent);
           "
         >
-          {{ activeTasks.length }}
+          {{ visibleActiveTasks.length }}
         </p>
         <p
           class="font-semibold uppercase tracking-wide"
@@ -47,6 +47,7 @@
           Active
         </p>
       </div>
+
       <div
         class="rounded-2xl border"
         style="
@@ -73,6 +74,7 @@
           Done Today
         </p>
       </div>
+
       <div
         class="rounded-2xl border"
         style="
@@ -99,6 +101,7 @@
           All Time
         </p>
       </div>
+
       <div
         class="rounded-2xl"
         style="padding: 16px 18px; background: var(--xp-soft)"
@@ -106,7 +109,7 @@
         <p
           class="font-serif"
           style="
-            font-size: 1.75rem;
+            font-size: 2rem;
             line-height: 1;
             margin-bottom: 6px;
             color: var(--xp);
@@ -123,54 +126,35 @@
       </div>
     </div>
 
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0 -translate-y-2"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-to-class="opacity-0 -translate-y-2"
+    <!-- New Task Dialog -->
+    <Dialog
+      v-model:visible="showAddTask"
+      modal
+      header="New Task"
+      :style="{ width: '520px' }"
+      :draggable="false"
     >
-      <div
-        v-if="showAddTask"
-        class="rounded-2xl border"
-        style="
-          padding: 24px;
-          margin-bottom: 24px;
-          box-shadow: 0 4px 20px rgba(26, 23, 20, 0.08);
-          background: var(--card-bg);
-          border-color: var(--card-border);
-        "
+      <TaskForm
+        v-model:form="form"
+        submit-label="Add Task"
+        :loading="isCreating"
+        @submit="submitTask"
+        @cancel="closeAddTask"
       >
-        <p
-          class="font-semibold"
-          style="
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-            color: var(--ink-primary);
-          "
-        >
-          New Task
-        </p>
-        <TaskForm
-          v-model:form="form"
-          submit-label="Add Task"
-          :loading="isCreating"
-          @submit="submitTask"
-          @cancel="cancelAdd"
-        >
-          <template #ai-button>
-            <Button
-              :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
-              :label="descLoading ? 'Thinking...' : 'AI Fill'"
-              :disabled="!form.title.trim() || descLoading"
-              class="bg-(--accent-soft)! text-(--accent)! border-none! rounded-lg! text-xs! font-semibold! hover:bg-(--accent)! hover:text-white! shrink-0!"
-              title="Generate description with AI"
-              @click="generateDescription"
-            />
-          </template>
-        </TaskForm>
-      </div>
-    </Transition>
+        <template #ai-button>
+          <Button
+            :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
+            :label="descLoading ? 'Thinking...' : 'AI Fill'"
+            :disabled="!form.title.trim() || descLoading"
+            class="bg-(--accent-soft)! text-(--accent)! border-none! rounded-lg! text-xs! font-semibold! hover:bg-(--accent)! hover:text-white! shrink-0!"
+            title="Generate description with AI"
+            @click="generateDescription"
+          />
+        </template>
+      </TaskForm>
+    </Dialog>
 
+    <!-- Triage results -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -190,8 +174,9 @@
             </p>
             <span
               class="bg-amber-50 text-amber-600 text-xs font-medium px-2 py-0.5 rounded-full"
-              >{{ triageResult.length }} tasks</span
             >
+              {{ triageResult.length }} tasks
+            </span>
           </div>
           <Button
             icon="pi pi-times"
@@ -236,6 +221,7 @@
       </div>
     </Transition>
 
+    <!-- Active tasks -->
     <section style="margin-bottom: 32px">
       <div
         class="flex items-center justify-between"
@@ -256,20 +242,31 @@
               padding: 1px 8px;
             "
           >
-            {{ activeTasks.length }}
+            {{ visibleActiveTasks.length }}
           </span>
         </div>
-        <Button
-          v-if="overdueCount > 0"
-          :icon="triageLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
-          :label="
-            triageLoading ? 'Triaging...' : `Triage ${overdueCount} overdue`
-          "
-          :disabled="triageLoading"
-          class="bg-amber-50! text-amber-600! border-none! rounded-lg! text-xs! font-semibold! hover:bg-amber-100!"
-          @click="runTriage"
-        />
+        <div class="flex items-center gap-2">
+          <Select
+            v-model="sortBy"
+            :options="sortOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Sort"
+            style="height: 28px; font-size: 0.75rem"
+          />
+          <Button
+            v-if="overdueCount > 0"
+            :icon="triageLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
+            :label="
+              triageLoading ? 'Triaging...' : `Triage ${overdueCount} overdue`
+            "
+            :disabled="triageLoading"
+            class="bg-amber-50! text-amber-600! border-none! rounded-lg! text-xs! font-semibold! hover:bg-amber-100!"
+            @click="runTriage"
+          />
+        </div>
       </div>
+
       <div
         v-if="isLoading"
         class="rounded-2xl border text-center"
@@ -284,7 +281,7 @@
         <i class="pi pi-spinner pi-spin mr-2" />Loading tasks...
       </div>
       <div
-        v-else-if="activeTasks.length === 0"
+        v-else-if="visibleActiveTasks.length === 0"
         class="rounded-2xl border border-dashed text-center"
         style="
           padding: 40px;
@@ -298,44 +295,16 @@
       </div>
       <div v-else class="flex flex-col" style="gap: 8px">
         <TaskCard
-          v-for="task in activeTasks"
+          v-for="task in visibleActiveTasks"
           :key="task._id"
           :task="task"
           @complete="completeTask(task._id)"
-          @delete="deleteTask(task._id)"
+          @delete="handleDelete(task._id)"
         />
       </div>
     </section>
 
-    <section v-if="completedToday.length > 0" style="margin-bottom: 32px">
-      <div class="flex items-center" style="gap: 8px; margin-bottom: 12px">
-        <span
-          class="font-semibold uppercase tracking-widest"
-          style="font-size: 0.68rem; color: var(--success)"
-          >Completed Today</span
-        >
-        <span
-          class="font-semibold rounded-full"
-          style="
-            background: var(--success-soft);
-            color: var(--success);
-            font-size: 0.7rem;
-            padding: 1px 8px;
-          "
-        >
-          {{ completedToday.length }}
-        </span>
-      </div>
-      <div class="flex flex-col" style="gap: 8px">
-        <TaskCard
-          v-for="task in completedToday"
-          :key="task._id"
-          :task="task"
-          :readonly="true"
-        />
-      </div>
-    </section>
-
+    <!-- Completed (merged, defaults to today) -->
     <section v-if="allCompleted.length > 0" style="margin-bottom: 32px">
       <div
         class="flex items-center justify-between"
@@ -346,7 +315,7 @@
             class="font-semibold uppercase tracking-widest"
             style="font-size: 0.68rem; color: var(--success)"
           >
-            {{ selectedDate ? "Filtered" : "All Completed" }}
+            Completed
           </span>
           <span
             class="font-semibold rounded-full"
@@ -381,6 +350,7 @@
           />
         </div>
       </div>
+
       <div
         v-if="filteredCompleted.length === 0"
         class="rounded-2xl border border-dashed text-center"
@@ -407,10 +377,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import DatePicker from "primevue/datepicker";
+import Select from "primevue/select";
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
 import { useGamificationStore } from "@/components/sidebar.store";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
 import {
@@ -438,6 +412,7 @@ const { profile } = storeToRefs(useGamificationStore());
 const tasksStore = useTasksStore();
 const { showAddTask } = storeToRefs(tasksStore);
 const { openAddTask, closeAddTask } = tasksStore;
+const toast = useToast();
 
 const { form, resetForm, getDuration } = useTaskForm();
 const {
@@ -447,10 +422,63 @@ const {
   filteredCompleted,
   overdueCount,
   selectedDate,
+  sortBy,
   clearDateFilter,
 } = useTaskFilters(() => tasks.value);
 const { today } = useTaskDate();
 
+const sortOptions = [
+  { label: "Created", value: "created" },
+  { label: "Priority", value: "priority" },
+  { label: "Due Date", value: "dueDate" },
+  { label: "Duration", value: "duration" },
+];
+
+// ── Delete with undo ──────────────────────────────────────────────────────────
+const pendingDeleteIds = ref<Set<string>>(new Set());
+const pendingDeletes = new Map<string, ReturnType<typeof setTimeout>>();
+
+const visibleActiveTasks = computed(() =>
+  activeTasks.value.filter((t) => !pendingDeleteIds.value.has(t._id)),
+);
+
+const handleDelete = (id: string) => {
+  const task = tasks.value?.find((t) => t._id === id);
+  if (!task) return;
+
+  pendingDeleteIds.value = new Set([...pendingDeleteIds.value, id]);
+
+  toast.add({
+    severity: "secondary",
+    summary: `"${task.title}" will be deleted`,
+    life: 5000,
+    closable: true,
+    group: `delete-${id}`,
+  });
+
+  const timer = setTimeout(() => {
+    deleteTask(id);
+    pendingDeleteIds.value = new Set(
+      [...pendingDeleteIds.value].filter((x) => x !== id),
+    );
+    pendingDeletes.delete(id);
+  }, 5000);
+
+  pendingDeletes.set(id, timer);
+};
+
+const undoDelete = (id: string) => {
+  const timer = pendingDeletes.get(id);
+  if (timer) {
+    clearTimeout(timer);
+    pendingDeletes.delete(id);
+    pendingDeleteIds.value = new Set(
+      [...pendingDeleteIds.value].filter((x) => x !== id),
+    );
+  }
+};
+
+// ── Form ──────────────────────────────────────────────────────────────────────
 const descLoading = ref(false);
 const descError = ref("");
 const triageLoading = ref(false);

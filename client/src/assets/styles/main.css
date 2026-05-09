@@ -1,27 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 @import "tailwindcss";
 
+/* ─── Design Tokens ──────────────────────────────────────────────────────────── */
 :root {
+  /* Surfaces */
   --surface-bg:      #f7f6f3;
   --surface-card:    #ffffff;
   --surface-hover:   #f0ede8;
   --surface-border:  #e8e4de;
   --surface-muted:   #f2efe9;
+
+  /* Ink */
   --ink-primary:     #1a1714;
   --ink-secondary:   #6b6560;
   --ink-muted:       #a09890;
   --ink-inverse:     #ffffff;
+
+  /* Cards */
   --card-bg:         #ffffff;
   --card-border:     #e7e5e4;
+
+  /* Inputs */
   --input-bg:        #ffffff;
   --input-border:    #d6d3d1;
   --input-text:      #1a1714;
+
+  /* Sidebar */
   --sidebar-bg:      #ffffff;
   --sidebar-border:  #e7e5e4;
   --nav-hover:       #f5f5f4;
+
+  /* Accent */
   --accent:          #c2622a;
   --accent-soft:     #f5e9e1;
   --accent-hover:    #a8511f;
+
+  /* Semantic */
   --success:         #2d7a4f;
   --success-soft:    #e5f3ec;
   --warning:         #a07620;
@@ -30,27 +44,36 @@
   --danger-soft:     #fbeae8;
   --xp:              #7c5cbf;
   --xp-soft:         #f0ebfb;
+
+  /* Radii */
   --radius-sm:       6px;
   --radius-md:       12px;
   --radius-lg:       18px;
   --radius-xl:       24px;
+
+  /* Shadows */
   --shadow-xs:       0 1px 2px rgba(26,23,20,0.06);
   --shadow-sm:       0 2px 8px rgba(26,23,20,0.08);
   --shadow-md:       0 4px 20px rgba(26,23,20,0.10);
   --shadow-lg:       0 8px 40px rgba(26,23,20,0.12);
+
+  /* Motion */
   --ease:            cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --duration-fast:   120ms;
   --duration-normal: 220ms;
   --duration-slow:   380ms;
 }
 
+/* ─── Base ───────────────────────────────────────────────────────────────────── */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
 }
 
-*, *::before, *::after { box-sizing: inherit; }
+*, *::before, *::after {
+  box-sizing: inherit;
+}
 
 body {
   font-family: 'DM Sans', sans-serif;
@@ -62,15 +85,23 @@ body {
 
 h1, h2, h3, h4 {
   font-family: 'DM Serif Display', serif;
-  line-height: 1.2;
   font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink-primary);
 }
 
+/* Subtle transitions on interactive elements */
+body, aside, main, nav, div, section, button, input, textarea, select, a {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }
 
+/* ─── Utility Classes ────────────────────────────────────────────────────────── */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -97,8 +128,10 @@ h1, h2, h3, h4 {
 .btn-primary { background: var(--accent); color: var(--ink-inverse); }
 .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .btn-primary:active { transform: translateY(0); }
+
 .btn-ghost { background: transparent; color: var(--ink-secondary); border: 1px solid var(--surface-border); }
 .btn-ghost:hover { background: var(--surface-hover); color: var(--ink-primary); }
+
 .btn-icon { padding: 8px; border-radius: var(--radius-sm); }
 
 .badge {
@@ -115,89 +148,101 @@ h1, h2, h3, h4 {
 .badge-success { background: var(--success-soft);  color: var(--success); }
 .badge-warning { background: var(--warning-soft);  color: var(--warning); }
 
-.page-enter-active, .page-leave-active { transition: opacity var(--duration-normal) var(--ease), transform var(--duration-normal) var(--ease); }
+/* ─── Page Transitions ───────────────────────────────────────────────────────── */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity var(--duration-normal) var(--ease), transform var(--duration-normal) var(--ease);
+}
 .page-enter-from { opacity: 0; transform: translateY(6px); }
 .page-leave-to   { opacity: 0; transform: translateY(-4px); }
 
+/* ─── Landing ────────────────────────────────────────────────────────────────── */
 .landing-bg {
   background:
     radial-gradient(ellipse at 20% 50%, rgba(194, 98, 42, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(194, 98, 42, 0.05) 0%, transparent 50%);
 }
 
-body, aside, main, nav, div, section, button, input, textarea, select, a {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+/* ─── Empty State ────────────────────────────────────────────────────────────── */
+.report-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  text-align: center;
 }
 
-h1, h2, h3, h4 {
-  color: var(--ink-primary);
-}
+/* ══════════════════════════════════════════════════════════════════════════════
+   PrimeVue Overrides
+   ══════════════════════════════════════════════════════════════════════════════ */
 
+/* ─── Base Component ─────────────────────────────────────────────────────────── */
 .p-component {
   font-family: 'DM Sans', sans-serif;
   color: var(--ink-primary);
 }
 
+/* ─── Button ─────────────────────────────────────────────────────────────────── */
 .p-button {
   border-radius: var(--radius-md) !important;
   font-weight: 600 !important;
   font-size: 0.875rem !important;
-  transition: all var(--duration-fast) var(--ease) !important;
   box-shadow: none !important;
+  transition: all var(--duration-fast) var(--ease) !important;
 }
 
 .p-button:focus {
   box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.15) !important;
 }
 
+/* Primary */
 .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary) {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
   color: var(--ink-inverse) !important;
 }
-
 .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):hover {
   background: var(--accent-hover) !important;
   border-color: var(--accent-hover) !important;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm) !important;
 }
 
+/* Secondary / Outlined */
 .p-button.p-button-secondary,
 .p-button.p-button-outlined {
   background: var(--surface-card) !important;
   border: 1px solid var(--surface-border) !important;
   color: var(--ink-secondary) !important;
 }
-
 .p-button.p-button-secondary:hover,
 .p-button.p-button-outlined:hover {
   background: var(--surface-hover) !important;
   color: var(--ink-primary) !important;
 }
 
+/* Text */
 .p-button.p-button-text {
   background: transparent !important;
   border: none !important;
   color: var(--ink-secondary) !important;
 }
-
 .p-button.p-button-text:hover {
   background: var(--surface-hover) !important;
   color: var(--ink-primary) !important;
 }
 
+/* Icon only */
 .p-button.p-button-icon-only {
   width: 2.5rem;
   height: 2.5rem;
 }
 
+/* ─── Inputs (Text, Number, Textarea) ────────────────────────────────────────── */
 .p-inputtext,
 .p-inputnumber-input,
-.p-textarea,
-.p-select-label,
-.p-datepicker-input,
-.p-multiselect-label {
+.p-textarea {
   background: var(--input-bg) !important;
   border: 1px solid var(--input-border) !important;
   color: var(--input-text) !important;
@@ -205,24 +250,19 @@ h1, h2, h3, h4 {
   font-size: 0.875rem !important;
   padding: 0.75rem 0.875rem !important;
   box-shadow: none !important;
-  transition: all var(--duration-fast) var(--ease) !important;
+  transition: border-color var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease) !important;
 }
 
 .p-inputtext:enabled:hover,
 .p-inputnumber-input:enabled:hover,
-.p-textarea:enabled:hover,
-.p-select:not(.p-disabled):hover,
-.p-datepicker:not(.p-disabled):hover,
-.p-multiselect:not(.p-disabled):hover {
+.p-textarea:enabled:hover {
   border-color: var(--ink-muted) !important;
 }
 
 .p-inputtext:enabled:focus,
 .p-inputnumber-input:enabled:focus,
-.p-textarea:enabled:focus,
-.p-select.p-focus,
-.p-datepicker.p-focus,
-.p-multiselect.p-focus {
+.p-textarea:enabled:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.12) !important;
   outline: none !important;
@@ -234,50 +274,104 @@ h1, h2, h3, h4 {
   color: var(--ink-muted) !important;
 }
 
+.p-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+/* ─── Select / Multiselect / Datepicker (wrapper) ────────────────────────────── */
 .p-select,
 .p-multiselect,
 .p-datepicker {
   width: 100%;
-  border-radius: var(--radius-md) !important;
-  border: 1px solid var(--input-border) !important;
-  background: var(--input-bg) !important;
   min-height: 44px;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+  transition: border-color var(--duration-fast) var(--ease) !important;
 }
 
-.p-select-label {
+.p-select:not(.p-disabled):hover,
+.p-multiselect:not(.p-disabled):hover,
+.p-datepicker:not(.p-disabled):hover {
+  border-color: var(--ink-muted) !important;
+}
+
+/* Remove all focus rings on select wrapper — we style only the border */
+.p-select:focus,
+.p-select:focus-within,
+.p-select.p-focus,
+.p-multiselect:focus,
+.p-multiselect:focus-within,
+.p-multiselect.p-focus,
+.p-datepicker:focus,
+.p-datepicker:focus-within,
+.p-datepicker.p-focus,
+.p-inputwrapper:focus,
+.p-inputwrapper:focus-within,
+.p-inputwrapper.p-focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: var(--input-border) !important;
+}
+
+/* Label inside select */
+.p-select-label,
+.p-multiselect-label,
+.p-datepicker-input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--input-text) !important;
+  font-size: 0.875rem !important;
   padding: 0.75rem 0.875rem !important;
+  box-shadow: none !important;
 }
 
+/* Dropdown icon */
 .p-select-dropdown,
 .p-multiselect-dropdown,
 .p-datepicker-trigger {
   color: var(--ink-muted) !important;
 }
 
+/* ─── Select / Multiselect Overlay (dropdown panel) ──────────────────────────── */
 .p-select-overlay,
-.p-datepicker-panel,
 .p-multiselect-overlay,
+.p-datepicker-panel,
 .p-popover,
 .p-dialog,
 .p-menu,
 .p-tieredmenu,
 .p-overlaypanel {
+  background: var(--surface-card) !important;
   border: 1px solid var(--surface-border) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-md) !important;
-  background: var(--surface-card) !important;
   overflow: hidden;
 }
 
+/* List container */
+.p-select-list,
+.p-multiselect-list {
+  padding: 4px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Options */
 .p-select-option,
 .p-multiselect-option {
   padding: 0.75rem 0.875rem !important;
   font-size: 0.875rem !important;
   color: var(--ink-primary) !important;
+  border-radius: var(--radius-md) !important;
+  transition: background var(--duration-fast) var(--ease) !important;
 }
 
-.p-select-option:hover,
-.p-multiselect-option:hover {
+.p-select-option:not(.p-select-option-selected):hover,
+.p-multiselect-option:not(.p-multiselect-option-selected):hover {
   background: var(--surface-hover) !important;
 }
 
@@ -288,11 +382,7 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
-.p-textarea {
-  resize: vertical;
-  min-height: 90px;
-}
-
+/* ─── Card ───────────────────────────────────────────────────────────────────── */
 .p-card {
   background: var(--card-bg) !important;
   border: 1px solid var(--card-border) !important;
@@ -304,6 +394,7 @@ h1, h2, h3, h4 {
   padding: 1.25rem !important;
 }
 
+/* ─── Tab Menu ───────────────────────────────────────────────────────────────── */
 .p-tabmenu {
   background: transparent !important;
   border: none !important;
@@ -321,8 +412,8 @@ h1, h2, h3, h4 {
   border-radius: 10px !important;
   padding: 0.5rem 0.9rem !important;
   border: none !important;
-  color: var(--ink-muted) !important;
   background: transparent !important;
+  color: var(--ink-muted) !important;
   transition: all var(--duration-fast) var(--ease) !important;
 }
 
@@ -336,6 +427,7 @@ h1, h2, h3, h4 {
   color: var(--ink-secondary) !important;
 }
 
+/* ─── Progress Bar ───────────────────────────────────────────────────────────── */
 .p-progressbar {
   background: var(--surface-muted) !important;
   border-radius: 999px !important;
@@ -347,6 +439,7 @@ h1, h2, h3, h4 {
   background: var(--accent) !important;
 }
 
+/* ─── Tag ────────────────────────────────────────────────────────────────────── */
 .p-tag {
   border-radius: 10px !important;
   font-size: 0.72rem !important;
@@ -354,6 +447,7 @@ h1, h2, h3, h4 {
   padding: 0.2rem 0.55rem !important;
 }
 
+/* ─── Checkbox / Radio ───────────────────────────────────────────────────────── */
 .p-checkbox .p-checkbox-box,
 .p-radiobutton .p-radiobutton-box {
   border-radius: 8px !important;
@@ -366,14 +460,17 @@ h1, h2, h3, h4 {
   border-color: var(--accent) !important;
 }
 
+/* ─── Divider ────────────────────────────────────────────────────────────────── */
 .p-divider.p-divider-horizontal:before {
   border-top: 1px solid var(--surface-border) !important;
 }
 
+/* ─── Skeleton ───────────────────────────────────────────────────────────────── */
 .p-skeleton {
   background: var(--surface-muted) !important;
 }
 
+/* ─── Message / Panel / Fieldset ─────────────────────────────────────────────── */
 .p-message,
 .p-panel,
 .p-fieldset {
@@ -381,6 +478,7 @@ h1, h2, h3, h4 {
   border-color: var(--surface-border) !important;
 }
 
+/* ─── Dialog ─────────────────────────────────────────────────────────────────── */
 .p-dialog .p-dialog-header,
 .p-dialog .p-dialog-content,
 .p-dialog .p-dialog-footer {
@@ -396,6 +494,7 @@ h1, h2, h3, h4 {
   border-top: 1px solid var(--surface-border) !important;
 }
 
+/* ─── DataTable ──────────────────────────────────────────────────────────────── */
 .p-datatable {
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -411,13 +510,4 @@ h1, h2, h3, h4 {
 
 .p-datatable .p-datatable-tbody > tr:hover {
   background: var(--surface-hover) !important;
-}
-
-.report-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 180px;
-  text-align: center;
 }
