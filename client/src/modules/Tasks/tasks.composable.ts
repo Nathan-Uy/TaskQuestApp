@@ -40,10 +40,29 @@ export const useTaskForm = () => {
 
 export const useTaskFilters = (tasks: () => Task[] | undefined) => {
   const selectedDate = ref<Date | null>(null);
-
-  const activeTasks = computed(
-    () => tasks()?.filter((t) => t.status === "active") ?? [],
+  const sortBy = ref<"created" | "priority" | "dueDate" | "duration">(
+    "created",
   );
+
+  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+
+  const activeTasks = computed(() => {
+    const list = tasks()?.filter((t) => t.status === "active") ?? [];
+    return [...list].sort((a, b) => {
+      if (sortBy.value === "priority")
+        return (
+          (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1)
+        );
+      if (sortBy.value === "dueDate") {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (sortBy.value === "duration")
+        return (a.duration ?? 0) - (b.duration ?? 0);
+      return 0;
+    });
+  });
 
   const completedToday = computed(() => {
     const today = new Date().toDateString();
@@ -61,12 +80,18 @@ export const useTaskFilters = (tasks: () => Task[] | undefined) => {
     () => tasks()?.filter((t) => t.status === "completed") ?? [],
   );
 
+  // Defaults to today when no date filter is selected
   const filteredCompleted = computed(() => {
-    if (!selectedDate.value) return allCompleted.value;
-    const selected = new Date(selectedDate.value).toDateString();
+    if (selectedDate.value) {
+      const selected = new Date(selectedDate.value).toDateString();
+      return allCompleted.value.filter(
+        (t) =>
+          t.completedAt && new Date(t.completedAt).toDateString() === selected,
+      );
+    }
+    const today = new Date().toDateString();
     return allCompleted.value.filter(
-      (t) =>
-        t.completedAt && new Date(t.completedAt).toDateString() === selected,
+      (t) => t.completedAt && new Date(t.completedAt).toDateString() === today,
     );
   });
 
@@ -88,6 +113,7 @@ export const useTaskFilters = (tasks: () => Task[] | undefined) => {
     filteredCompleted,
     overdueCount,
     selectedDate,
+    sortBy,
     clearDateFilter,
   };
 };
