@@ -23,7 +23,10 @@
               fill="none"
               stroke="#f2efe9"
               stroke-width="6"
+              :opacity="!isRunning && progress === 0 ? 0.5 : 1"
+              class="transition-opacity duration-500"
             />
+
             <!-- Progress ring -->
             <circle
               cx="100"
@@ -36,6 +39,15 @@
               :stroke-dasharray="circumference"
               :stroke-dashoffset="dashOffset"
               class="transition-[stroke-dashoffset] duration-1000 ease-linear"
+            />
+
+            <!-- Idle pulse dot at 12 o'clock -->
+            <circle
+              cx="188"
+              cy="100"
+              r="3"
+              :fill="phaseColor"
+              :class="{ 'animate-pulse': !isRunning && progress === 0 }"
             />
           </svg>
 
@@ -83,34 +95,46 @@
             :disabled="!isRunning && progress === 0"
             class="w-11! h-11!"
             title="Skip"
-            @click="
-              emit('complete-task');
-              emit('skip');
-            "
+            @click="emit('skip')"
           />
         </div>
+        <Transition name="fade">
+          <Button
+            v-if="linkedTaskId"
+            class="text-xs text-stone-400 hover:text-emerald-600 transition-colors flex items-center gap-1"
+            @click="emit('complete-task')"
+          >
+            <i class="pi pi-check-circle" />
+            Mark task complete
+          </Button>
+        </Transition>
 
         <!-- Session dots -->
-        <div class="flex items-center gap-2">
-          <div
-            v-for="i in settings.sessionsUntilLongBreak"
-            :key="i"
-            :class="[
-              'w-2 h-2 rounded-full transition-all duration-300',
-              sessionsCompleted % settings.sessionsUntilLongBreak >= i
-                ? 'scale-110'
-                : 'bg-stone-200',
-            ]"
-            :style="
-              sessionsCompleted % settings.sessionsUntilLongBreak >= i
-                ? { background: phaseColor }
-                : {}
-            "
-          />
-          <span class="text-xs text-stone-400 ml-1">
-            {{ sessionsCompleted }} session{{
-              sessionsCompleted !== 1 ? "s" : ""
-            }}
+        <div class="flex flex-col items-center gap-2">
+          <div class="flex items-center gap-2">
+            <div
+              v-for="i in settings.sessionsUntilLongBreak"
+              :key="i"
+              :class="[
+                'w-2 h-2 rounded-full transition-all duration-300',
+                sessionsCompleted % settings.sessionsUntilLongBreak >= i
+                  ? 'scale-110'
+                  : 'bg-stone-200',
+              ]"
+              :style="
+                sessionsCompleted % settings.sessionsUntilLongBreak >= i
+                  ? { background: phaseColor }
+                  : {}
+              "
+            />
+          </div>
+          <!-- Replace "0 sessions" text with contextual label -->
+          <span class="text-xs text-stone-400">
+            Session
+            {{ (sessionsCompleted % settings.sessionsUntilLongBreak) + 1 }} of
+            {{ settings.sessionsUntilLongBreak }}
+            <span class="text-stone-300 mx-1">·</span>
+            {{ sessionsCompleted }} total
           </span>
         </div>
       </div>
@@ -132,6 +156,7 @@ const props = defineProps<{
   isRunning: boolean;
   sessionsCompleted: number;
   settings: PomodoroSettings;
+  linkedTaskId: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -189,5 +214,18 @@ const dashOffset = computed(() => circumference * (1 - props.progress / 100));
   background: white;
   color: #292524;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
 }
 </style>
