@@ -67,9 +67,9 @@ export const googleAuth = async (req: Request, res: Response) => {
         avatar: picture ?? "",
       });
     }
+
     const token = signToken(user._id.toString());
-    setTokenCookie(res, token); // ← set httpOnly cookie
-    res.json({ token, user: sanitizeUser(user) }); // ← also return token for sessionStorage
+    res.json({ token, user: sanitizeUser(user) }); // token only in body
   } catch (err) {
     console.error("Google auth error:", err);
     res.status(401).json({ message: "Google authentication failed" });
@@ -77,12 +77,6 @@ export const googleAuth = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
   res.json({ message: "Logged out" });
 };
 
