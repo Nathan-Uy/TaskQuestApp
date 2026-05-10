@@ -11,7 +11,7 @@ interface AuthRequest extends Request {
   userId?: string;
 }
 
-const XP_MAP: Record<string, number> = { low: 10, medium: 20, high: 35 };
+const XP_MAP: Record<string, number> = { low: 10, medium: 25, high: 35 };
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
@@ -35,7 +35,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: "Title required" });
 
     const p = priority || "medium";
-    const xpReward = XP_MAP[p] ?? 20;
+    const xpReward = XP_MAP[p] ?? 25;
 
     const task = new PersonalTask({
       userId,

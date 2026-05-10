@@ -3,7 +3,7 @@ import { IPersonalTask } from "../types/personalTask.types";
 
 const XP_MAP: Record<string, number> = {
   low: 10,
-  medium: 20,
+  medium: 25,
   high: 35,
 };
 

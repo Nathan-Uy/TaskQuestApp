@@ -19,6 +19,19 @@ export const useAnalyticsCharts = () => {
   );
   const weekdayLabels = computed(() => weekdayStats.value.map((d) => d.day));
 
+  // ── Peak day detection ─────────────────────────────────────────────────────
+  const peakDayIndex = computed(() => {
+    const totals = weekdayStats.value.map(
+      (d) => d.tasksCompleted + d.pomodoroSessions,
+    );
+    return totals.indexOf(Math.max(...totals));
+  });
+
+  const peakDayLabel = computed(
+    () => weekdayStats.value[peakDayIndex.value]?.day ?? null,
+  );
+
+  // ── Chart options ──────────────────────────────────────────────────────────
   const baseLineOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -40,10 +53,51 @@ export const useAnalyticsCharts = () => {
     },
   };
 
-  const baseBarOptions: ChartOptions<"bar"> = {
+  // Dual-axis line options for combined Tasks + XP chart
+  const combinedLineOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: {
+        display: true,
+        labels: { font: { size: 11 }, color: "#6b6560", boxWidth: 12 },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11 }, color: "#a09890" },
+      },
+      tasks: {
+        type: "linear",
+        position: "left",
+        beginAtZero: true,
+        grid: { color: "#f2efe9" },
+        ticks: { font: { size: 11 }, color: "#c2622a", stepSize: 1 },
+      },
+      xp: {
+        type: "linear",
+        position: "right",
+        beginAtZero: true,
+        grid: { display: false },
+        ticks: { font: { size: 11 }, color: "#7c5cbf" },
+      },
+    },
+    elements: {
+      line: { tension: 0.4 },
+      point: { radius: 3, hoverRadius: 5 },
+    },
+  };
+
+  const productivityBarOptions = computed<ChartOptions<"bar">>(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        labels: { font: { size: 11 }, color: "#6b6560", boxWidth: 12 },
+      },
+    },
     scales: {
       x: {
         grid: { display: false },
@@ -56,16 +110,29 @@ export const useAnalyticsCharts = () => {
       },
     },
     borderRadius: 6,
-  } as ChartOptions<"bar">;
+  }));
 
-  const tasksChartData = computed<ChartData<"line">>(() => ({
+  // ── Chart data ─────────────────────────────────────────────────────────────
+
+  // Combined Tasks + XP dual-axis chart
+  const combinedChartData = computed<ChartData<"line">>(() => ({
     labels: labels.value,
     datasets: [
       {
+        label: "Tasks",
         data: dailyStats.value.map((d) => d.tasksCompleted),
         borderColor: "#c2622a",
         backgroundColor: "rgba(194,98,42,0.08)",
         fill: true,
+        yAxisID: "tasks",
+      },
+      {
+        label: "XP",
+        data: dailyStats.value.map((d) => d.xpEarned),
+        borderColor: "#7c5cbf",
+        backgroundColor: "rgba(124,92,191,0.06)",
+        fill: true,
+        yAxisID: "xp",
       },
     ],
   }));
@@ -82,50 +149,38 @@ export const useAnalyticsCharts = () => {
     ],
   }));
 
-  const xpChartData = computed<ChartData<"line">>(() => ({
-    labels: labels.value,
-    datasets: [
-      {
-        data: dailyStats.value.map((d) => d.xpEarned),
-        borderColor: "#7c5cbf",
-        backgroundColor: "rgba(124,92,191,0.08)",
-        fill: true,
-      },
-    ],
-  }));
-
   const productivityChartData = computed<ChartData<"bar">>(() => ({
     labels: weekdayLabels.value,
     datasets: [
       {
         label: "Tasks",
         data: weekdayStats.value.map((d) => d.tasksCompleted),
-        backgroundColor: "rgba(194,98,42,0.7)",
+        // Highlight peak bar
+        backgroundColor: weekdayStats.value.map((_, i) =>
+          i === peakDayIndex.value
+            ? "rgba(194,98,42,1)"
+            : "rgba(194,98,42,0.4)",
+        ),
       },
       {
         label: "Pomodoros",
         data: weekdayStats.value.map((d) => d.pomodoroSessions),
-        backgroundColor: "rgba(16,185,129,0.7)",
+        backgroundColor: weekdayStats.value.map((_, i) =>
+          i === peakDayIndex.value
+            ? "rgba(16,185,129,1)"
+            : "rgba(16,185,129,0.4)",
+        ),
       },
     ],
   }));
 
-  const productivityBarOptions: ChartOptions<"bar"> = {
-    ...baseBarOptions,
-    plugins: {
-      legend: {
-        display: true,
-        labels: { font: { size: 11 }, color: "#6b6560", boxWidth: 12 },
-      },
-    },
-  } as ChartOptions<"bar">;
-
   return {
-    tasksChartData,
+    combinedChartData,
+    combinedLineOptions,
     pomodoroChartData,
-    xpChartData,
     productivityChartData,
-    baseLineOptions,
     productivityBarOptions,
+    baseLineOptions,
+    peakDayLabel,
   };
 };

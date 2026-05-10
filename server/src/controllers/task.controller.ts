@@ -10,7 +10,7 @@ interface AuthRequest extends Request {
   userId?: string;
 }
 
-const XP_MAP: Record<string, number> = { low: 10, medium: 20, high: 35 };
+const XP_MAP: Record<string, number> = { low: 10, medium: 25, high: 35 };
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
