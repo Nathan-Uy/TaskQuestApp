@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "node:path";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import personalTaskRoutes from "./routes/personalTask.routes";
@@ -62,7 +62,7 @@ const aiLimiter = rateLimit({
   keyGenerator: (req) => {
     const auth = req.headers.authorization;
     if (auth?.startsWith("Bearer ")) return auth.slice(7);
-    return req.ip ?? "unknown";
+    return ipKeyGenerator(req.ip ?? "Unknown");
   },
   message: { error: "AI rate limit reached, please wait a moment." },
 });
