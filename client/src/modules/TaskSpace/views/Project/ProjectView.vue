@@ -3,19 +3,33 @@
     <div class="flex items-center justify-between">
       <div>
         <h1
-          class="font-serif text-3xl leading-tight"
-          style="color: var(--ink-primary)"
+          style="
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--ink-primary);
+            line-height: 1;
+            margin: 0;
+          "
         >
           Projects
         </h1>
-        <p class="text-xs mt-1" style="color: var(--ink-muted)">
+        <p
+          style="
+            font-size: 0.75rem;
+            margin-top: 6px;
+            color: var(--ink-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
+        >
           Select a project to manage your teams and sprints
         </p>
       </div>
       <Button
-        label="New Project"
-        icon="pi pi-plus"
-        class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+        label="+ New Project"
+        style="font-weight: 800"
         @click="store.openCreate()"
       />
     </div>
@@ -23,81 +37,149 @@
     <!-- Pending Invitations -->
     <div v-if="pendingInvitations.length > 0" class="flex flex-col gap-2">
       <p
-        class="text-xs font-semibold uppercase tracking-widest"
-        style="color: var(--ink-muted)"
+        style="
+          font-size: 0.65rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--ink-muted);
+        "
       >
         Pending Invitations
       </p>
       <div
         v-for="inv in pendingInvitations"
         :key="inv._id"
-        class="flex items-center justify-between rounded-2xl border px-5 py-4 transition-all duration-150"
-        style="background: var(--card-bg); border-color: var(--card-border)"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          background: var(--card-bg);
+          border: 2px solid var(--ink-primary);
+          box-shadow: 3px 3px 0 var(--ink-primary);
+        "
       >
-        <div class="flex items-center gap-3">
+        <div style="display: flex; align-items: center; gap: 12px">
           <div
-            class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0"
-            style="background: var(--accent)"
+            style="
+              width: 36px;
+              height: 36px;
+              flex-shrink: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 0.875rem;
+              font-weight: 800;
+              color: #fff;
+              background: var(--accent);
+              border: 2px solid var(--ink-primary);
+            "
           >
             {{ inv.inviterName.charAt(0).toUpperCase() }}
           </div>
           <div>
-            <p class="text-sm font-medium" style="color: var(--ink-primary)">
-              <span class="font-semibold">{{ inv.inviterName }}</span> has
+            <p
+              style="
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--ink-primary);
+                margin: 0;
+              "
+            >
+              <span style="font-weight: 800">{{ inv.inviterName }}</span> has
               invited you to
-              <span class="font-semibold">{{ inv.projectName }}</span>
+              <span style="font-weight: 800">{{ inv.projectName }}</span>
             </p>
-            <p class="text-xs mt-0.5" style="color: var(--ink-muted)">
+            <p
+              style="
+                font-size: 0.7rem;
+                color: var(--ink-muted);
+                margin: 2px 0 0;
+                font-weight: 600;
+              "
+            >
               {{ formatInviteDate(inv.createdAt) }}
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
+        <div
+          style="display: flex; align-items: center; gap: 8px; flex-shrink: 0"
+        >
           <Button
             label="Decline"
             severity="secondary"
             text
-            class="rounded-xl! text-sm! h-8!"
             :loading="rejectingId === inv._id"
             @click="handleReject(inv._id)"
           />
           <Button
             label="Accept"
-            class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold! h-8!"
             :loading="acceptingId === inv._id"
+            style="background: var(--success); color: #fff; font-weight: 800"
             @click="handleAccept(inv._id)"
           />
         </div>
       </div>
     </div>
 
-    <div v-if="isLoading" class="flex items-center justify-center py-20">
+    <!-- Loading -->
+    <div
+      v-if="isLoading"
+      style="display: flex; justify-content: center; padding: 5rem 0"
+    >
       <i
-        class="pi pi-spinner pi-spin text-2xl"
-        style="color: var(--ink-muted)"
+        class="pi pi-spinner pi-spin"
+        style="font-size: 1.5rem; color: var(--ink-muted)"
       />
     </div>
 
+    <!-- Empty -->
     <div
       v-else-if="!projects?.length"
-      class="rounded-2xl border border-dashed flex flex-col items-center justify-center py-20 gap-3"
-      style="border-color: var(--card-border)"
+      style="
+        border: 2px dashed var(--ink-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5rem 2rem;
+        gap: 12px;
+        text-align: center;
+      "
     >
-      <i class="pi pi-folder-open text-3xl" style="color: var(--ink-muted)" />
-      <p class="text-sm font-medium" style="color: var(--ink-secondary)">
+      <i
+        class="pi pi-folder-open"
+        style="font-size: 2rem; color: var(--ink-muted)"
+      />
+      <p
+        style="
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: var(--ink-secondary);
+          margin: 0;
+        "
+      >
         No projects yet
       </p>
-      <p class="text-xs" style="color: var(--ink-muted)">
+      <p
+        style="
+          font-size: 0.75rem;
+          color: var(--ink-muted);
+          margin: 0;
+          font-weight: 500;
+        "
+      >
         Create a project to start organizing your work
       </p>
       <Button
-        label="Create your first project"
-        icon="pi pi-plus"
-        class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold! mt-2!"
+        label="+ Create your first project"
+        style="font-weight: 800; margin-top: 8px"
         @click="store.openCreate()"
       />
     </div>
 
+    <!-- Project grid -->
     <div
       v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -105,38 +187,99 @@
       <div
         v-for="project in projects"
         :key="project._id"
-        class="group relative rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
-        :class="{
-          'ring-2 ring-(--accent) shadow-md':
-            store.selectedProjectId === project._id,
+        class="group relative overflow-hidden cursor-pointer transition-all duration-100"
+        :style="{
+          ...getProjectCardStyle(project._id),
+          border:
+            store.selectedProjectId === project._id
+              ? '3px solid var(--accent)'
+              : '2px solid var(--ink-primary)',
+          boxShadow:
+            store.selectedProjectId === project._id
+              ? '5px 5px 0 var(--accent)'
+              : '4px 4px 0 var(--ink-primary)',
+          background:
+            getProjectCardStyle(project._id).background || 'var(--card-bg)',
         }"
-        :style="getProjectCardStyle(project._id)"
+        @mouseenter="
+          ($event.currentTarget as HTMLElement).style.transform =
+            'translate(-2px,-2px)';
+          ($event.currentTarget as HTMLElement).style.boxShadow =
+            store.selectedProjectId === project._id
+              ? '7px 7px 0 var(--accent)'
+              : '6px 6px 0 var(--ink-primary)';
+        "
+        @mouseleave="
+          ($event.currentTarget as HTMLElement).style.transform = 'none';
+          ($event.currentTarget as HTMLElement).style.boxShadow =
+            store.selectedProjectId === project._id
+              ? '5px 5px 0 var(--accent)'
+              : '4px 4px 0 var(--ink-primary)';
+        "
         @click="selectProject(project._id)"
       >
-        <div v-if="getProjectCover(project._id)" class="h-24 overflow-hidden">
+        <div
+          v-if="getProjectCover(project._id)"
+          style="
+            height: 96px;
+            overflow: hidden;
+            border-bottom: 2px solid var(--ink-primary);
+          "
+        >
           <img
             :src="getProjectCover(project._id)!"
-            :alt="`${project.name} cover image`"
-            class="w-full h-full object-cover"
+            :alt="`${project.name} cover`"
+            style="width: 100%; height: 100%; object-fit: cover"
           />
         </div>
-        <div class="p-4">
+        <div style="padding: 14px 16px">
           <p
-            class="font-semibold text-sm leading-snug mb-1 truncate"
-            style="color: var(--ink-primary)"
+            style="
+              font-size: 0.875rem;
+              font-weight: 800;
+              color: var(--ink-primary);
+              margin: 0 0 4px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              letter-spacing: -0.01em;
+            "
           >
             {{ project.name }}
           </p>
           <p
             v-if="project.description"
-            class="text-xs truncate"
-            style="color: var(--ink-muted)"
+            style="
+              font-size: 0.75rem;
+              color: var(--ink-muted);
+              margin: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-weight: 500;
+            "
           >
             {{ project.description }}
           </p>
-          <div class="flex items-center gap-1 mt-3">
-            <i class="pi pi-users text-xs" style="color: var(--ink-muted)" />
-            <span class="text-xs" style="color: var(--ink-muted)">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              margin-top: 10px;
+            "
+          >
+            <i
+              class="pi pi-users"
+              style="font-size: 0.65rem; color: var(--ink-muted)"
+            />
+            <span
+              style="
+                font-size: 0.7rem;
+                color: var(--ink-muted);
+                font-weight: 700;
+              "
+            >
               {{ project.members?.length ?? 0 }} member{{
                 (project.members?.length ?? 0) !== 1 ? "s" : ""
               }}
@@ -144,13 +287,26 @@
           </div>
         </div>
         <div
-          class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+          style="
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0;
+            transition: opacity 80ms ease;
+          "
+          class="group-hover:opacity-100"
         >
           <Button
             icon="pi pi-palette"
             text
             rounded
-            class="w-7! h-7! bg-white/80!"
+            style="
+              background: #fff;
+              border: 2px solid var(--ink-primary);
+              width: 28px;
+              height: 28px;
+              box-shadow: 2px 2px 0 var(--ink-primary);
+            "
             @click.stop="store.openCustomize(project)"
           />
         </div>
@@ -249,7 +405,6 @@ const getProjectCardStyle = (projectId: string) => {
   const tileStyle = store.getTileStyle(projectId);
   return {
     ...tileStyle,
-    borderColor: "var(--card-border)",
     background: tileStyle.backgroundColor || "var(--card-bg)",
   };
 };

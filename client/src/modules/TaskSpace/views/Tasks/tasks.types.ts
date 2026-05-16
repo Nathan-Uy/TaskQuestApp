@@ -15,7 +15,7 @@ export interface Task {
   teamId: string;
   title: string;
   description?: string;
-  taskType?: TaskType | string;
+  taskType?: TaskType;
   status: TaskStatus;
   priority: TaskPriority;
   assignedTo?: string;
@@ -29,7 +29,7 @@ export interface Task {
 export interface CreateTaskDto {
   title: string;
   description?: string;
-  taskType?: TaskType | string;
+  taskType?: TaskType;
   priority?: TaskPriority;
   status?: TaskStatus;
   assignedTo?: string;
@@ -40,7 +40,7 @@ export interface CreateTaskDto {
 export interface UpdateTaskDto {
   title?: string;
   description?: string;
-  taskType?: TaskType | string;
+  taskType?: TaskType
   status?: TaskStatus;
   priority?: TaskPriority;
   assignedTo?: string;

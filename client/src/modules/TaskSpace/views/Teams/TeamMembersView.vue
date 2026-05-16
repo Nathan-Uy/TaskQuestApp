@@ -1,18 +1,39 @@
 <template>
   <div class="flex flex-col h-full gap-4">
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-bold">Team Members</h2>
+      <h2
+        style="
+          font-size: 1.75rem;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          color: var(--ink-primary);
+          margin: 0;
+        "
+      >
+        Team Members
+      </h2>
       <Button
+        label="+ Invite Member"
+        style="font-weight: 800"
         @click="showInviteModal = true"
-        label="Invite Member"
-        icon="pi pi-plus"
       />
     </div>
 
     <div v-if="teamLoading" class="flex justify-center py-8">
       <ProgressSpinner />
     </div>
-    <div v-else-if="teamError" class="text-red-500">Failed to load team.</div>
+    <div
+      v-else-if="teamError"
+      style="
+        color: var(--danger);
+        font-weight: 700;
+        padding: 1rem;
+        border: 2px solid var(--danger);
+        background: var(--danger-soft);
+      "
+    >
+      Failed to load team.
+    </div>
 
     <DataTable
       :value="team?.members || []"
@@ -24,29 +45,67 @@
       <Column field="email" header="Email" />
       <Column field="role" header="Role">
         <template #body="{ data }">
-          <Tag
-            :value="capitalizeRole(data.role)"
-            :severity="getRoleSeverity(data.role)"
-          />
+          <span
+            :style="{
+              fontSize: '0.65rem',
+              fontWeight: '800',
+              padding: '3px 8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              border: '1.5px solid currentColor',
+              color:
+                data.role === 'owner'
+                  ? 'var(--danger)'
+                  : data.role === 'admin'
+                    ? 'var(--warning)'
+                    : 'var(--xp)',
+              background:
+                data.role === 'owner'
+                  ? 'var(--danger-soft)'
+                  : data.role === 'admin'
+                    ? 'var(--warning-soft)'
+                    : 'var(--xp-soft)',
+            }"
+          >
+            {{ capitalizeRole(data.role) }}
+          </span>
         </template>
       </Column>
       <Column field="joinedAt" header="Joined">
-        <template #body="{ data }">{{ formatDate(data.joinedAt) }}</template>
+        <template #body="{ data }">
+          <span
+            style="
+              font-size: 0.8rem;
+              font-weight: 600;
+              color: var(--ink-secondary);
+            "
+          >
+            {{ formatDate(data.joinedAt) }}
+          </span>
+        </template>
       </Column>
       <Column field="inviteStatus" header="Status">
         <template #body="{ data }">
-          <Tag
-            v-if="data.inviteStatus === 'pending'"
-            value="Pending"
-            severity="warning"
-            icon="pi pi-clock"
-          />
-          <Tag
-            v-else
-            value="Active"
-            severity="success"
-            icon="pi pi-check-circle"
-          />
+          <span
+            :style="{
+              fontSize: '0.65rem',
+              fontWeight: '800',
+              padding: '3px 8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              border: '1.5px solid currentColor',
+              color:
+                data.inviteStatus === 'pending'
+                  ? 'var(--warning)'
+                  : 'var(--success)',
+              background:
+                data.inviteStatus === 'pending'
+                  ? 'var(--warning-soft)'
+                  : 'var(--success-soft)',
+            }"
+          >
+            {{ data.inviteStatus === "pending" ? "Pending" : "Active" }}
+          </span>
         </template>
       </Column>
       <Column header="Actions">
@@ -62,62 +121,104 @@
           />
           <span
             v-else-if="data.inviteStatus === 'pending'"
-            class="text-gray-400 text-sm"
-            >Waiting...</span
+            style="
+              font-size: 0.75rem;
+              color: var(--ink-muted);
+              font-weight: 600;
+            "
           >
+            Waiting...
+          </span>
         </template>
       </Column>
     </DataTable>
 
+    <!-- Invite Modal -->
     <Dialog
       v-model:visible="showInviteModal"
       header="Invite Member"
       :modal="true"
       class="w-full max-w-md"
     >
-      <form @submit.prevent="handleInvite">
-        <div class="space-y-4">
-          <div>
-            <label for="inviteEmail" class="block text-sm font-medium mb-1"
-              >Email Address *</label
-            >
-            <InputText
-              v-model="inviteEmail"
-              type="email"
-              class="w-full"
-              required
-            />
-          </div>
-          <div>
-            <label for="inviteRole" class="block text-sm font-medium mb-1"
-              >Role</label
-            >
-            <Select
-              v-model="inviteRole"
-              :options="roleOptions"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full"
-            />
-          </div>
-          <p v-if="inviteError" class="text-xs text-red-500">
-            {{ inviteError }}
-          </p>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label
+            for="email"
+            style="
+              font-size: 0.7rem;
+              font-weight: 800;
+              color: var(--ink-primary);
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            "
+          >
+            Email Address *
+          </label>
+          <InputText
+            v-model="inviteEmail"
+            type="email"
+            class="w-full"
+            placeholder="member@example.com"
+          />
         </div>
-        <div class="flex justify-end gap-2 mt-4">
+        <div class="flex flex-col gap-1.5">
+          <label
+            for="role"
+            style="
+              font-size: 0.7rem;
+              font-weight: 800;
+              color: var(--ink-primary);
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            "
+          >
+            Role
+          </label>
+          <Select
+            v-model="inviteRole"
+            :options="roleOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+        <p
+          v-if="inviteError"
+          style="
+            font-size: 0.75rem;
+            color: var(--danger);
+            font-weight: 700;
+            background: var(--danger-soft);
+            border: 1.5px solid var(--danger);
+            padding: 8px 12px;
+            margin: 0;
+          "
+        >
+          {{ inviteError }}
+        </p>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-top: 2px solid var(--surface-muted);
+            padding-top: 16px;
+          "
+        >
           <Button
             label="Cancel"
             severity="secondary"
+            text
             @click="showInviteModal = false"
           />
           <Button
-            type="submit"
             label="Send Invitation"
             :loading="inviting"
+            style="background: var(--accent); color: #fff; font-weight: 800"
             @click="handleInvite"
           />
         </div>
-      </form>
+      </div>
     </Dialog>
   </div>
 </template>
@@ -132,7 +233,6 @@ import { useAddMember } from "../Project/project.tanstack";
 import Button from "primevue/button";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import Tag from "primevue/tag";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
@@ -141,7 +241,6 @@ import ProgressSpinner from "primevue/progressspinner";
 const route = useRoute();
 const toast = useToast();
 const confirm = useConfirm();
-
 const teamId = route.params.teamId as string;
 
 const {
@@ -151,8 +250,6 @@ const {
   refetch,
 } = useTeam(teamId);
 const team = computed(() => teamData.value);
-
-// ✅ Pull projectId from team data, not from route params
 const projectId = computed(() => teamData.value?.projectId ?? "");
 
 const addMemberMutation = useAddMember();
@@ -171,8 +268,6 @@ const roleOptions = [
 
 const handleInvite = async () => {
   if (!inviteEmail.value.trim()) return;
-
-  // ✅ Guard against missing projectId
   if (!projectId.value) {
     toast.add({
       severity: "error",
@@ -182,12 +277,11 @@ const handleInvite = async () => {
     });
     return;
   }
-
   inviting.value = true;
   inviteError.value = "";
   try {
     await addMemberMutation.mutateAsync({
-      projectId: projectId.value, // ✅ use .value from computed
+      projectId: projectId.value,
       data: { email: inviteEmail.value.trim(), role: inviteRole.value },
     });
     toast.add({
@@ -240,7 +334,5 @@ const confirmRemoveMember = (member: any) => {
 
 const capitalizeRole = (role: string) =>
   role.charAt(0).toUpperCase() + role.slice(1);
-const getRoleSeverity = (role: string) =>
-  ({ owner: "danger", admin: "warning", member: "info" })[role] ?? "info";
 const formatDate = (date: Date | string) => new Date(date).toLocaleDateString();
 </script>

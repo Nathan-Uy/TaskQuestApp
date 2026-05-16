@@ -29,7 +29,7 @@ export const useGamificationStore = defineStore('gamification', () => {
     }
   }
 
-  function recordTaskComplete()   { profile.value.tasksCompleted++; awardXP(20) }
+  function recordTaskComplete()   { profile.value.tasksCompleted++; awardXP(25) }
   function recordPomodoro()       { profile.value.pomodorosDone++;  awardXP(25) }
   function recordStreakDay()       { profile.value.streakDays++ }
 

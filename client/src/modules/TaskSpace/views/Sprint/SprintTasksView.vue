@@ -3,141 +3,179 @@
     <div class="flex items-center justify-between">
       <div>
         <h1
-          class="font-serif text-3xl leading-tight"
-          style="color: var(--ink-primary)"
+          style="
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--ink-primary);
+            line-height: 1;
+            margin: 0;
+          "
         >
           {{ sprint?.name || "Sprint Tasks" }}
         </h1>
-        <p v-if="sprint" class="text-xs mt-1" style="color: var(--ink-muted)">
+        <p
+          v-if="sprint"
+          style="
+            font-size: 0.75rem;
+            margin-top: 6px;
+            color: var(--ink-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
+        >
           {{ formatDate(sprint.startDate) }} — {{ formatDate(sprint.endDate) }}
         </p>
       </div>
-      <Button
-        label="Add Row"
-        icon="pi pi-plus"
-        class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
-        @click="addRow"
-      />
+      <Button label="+ Add Row" style="font-weight: 800" @click="addRow" />
     </div>
 
-    <div v-if="isLoading" class="flex items-center justify-center py-20">
+    <div
+      v-if="isLoading"
+      style="display: flex; justify-content: center; padding: 5rem 0"
+    >
       <i
-        class="pi pi-spinner pi-spin text-2xl"
-        style="color: var(--ink-muted)"
+        class="pi pi-spinner pi-spin"
+        style="font-size: 1.5rem; color: var(--ink-muted)"
       />
     </div>
 
     <div
       v-else
-      class="rounded-2xl border overflow-hidden"
-      style="border-color: var(--card-border)"
+      style="
+        border: 2px solid var(--ink-primary);
+        box-shadow: 4px 4px 0 var(--ink-primary);
+        overflow: hidden;
+      "
     >
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table
+          style="width: 100%; border-collapse: collapse; font-size: 0.875rem"
+        >
           <thead>
-            <tr
-              style="
-                background: var(--surface-muted);
-                border-bottom: 1px solid var(--card-border);
-              "
-            >
+            <tr style="background: var(--ink-primary)">
               <th
-                class="w-8 px-3 py-2.5 text-left"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  width: 32px;
+                  padding: 10px 12px;
+                  text-align: left;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 #
               </th>
               <th
-                class="px-3 py-2.5 text-left min-w-64"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  min-width: 256px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Task
               </th>
               <th
-                class="px-3 py-2.5 text-left w-28"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 112px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Type
               </th>
               <th
-                class="px-3 py-2.5 text-left w-28"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 112px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Assigned
               </th>
               <th
-                class="px-3 py-2.5 text-left w-24"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 96px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
-                Est. Hours
+                Est. Hrs
               </th>
               <th
-                class="px-3 py-2.5 text-left w-28"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 112px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Target Date
               </th>
               <th
-                class="px-3 py-2.5 text-left w-28"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 112px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Status
               </th>
               <th
-                class="px-3 py-2.5 text-left w-20"
                 style="
-                  color: var(--ink-muted);
-                  font-size: 0.7rem;
-                  font-weight: 600;
+                  padding: 10px 12px;
+                  text-align: left;
+                  width: 80px;
+                  font-size: 0.65rem;
+                  font-weight: 800;
+                  color: #fff;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
+                  letter-spacing: 0.1em;
+                  border-right: 1px solid rgba(255, 255, 255, 0.1);
                 "
               >
                 Priority
               </th>
-              <th class="w-16 px-3 py-2.5" />
+              <th style="width: 64px; padding: 10px 12px" />
             </tr>
           </thead>
           <tbody>
@@ -156,10 +194,18 @@
             <tr v-if="rows.length === 0">
               <td
                 colspan="9"
-                class="px-4 py-12 text-center text-sm"
-                style="color: var(--ink-muted)"
+                style="
+                  padding: 3rem 1rem;
+                  text-align: center;
+                  font-size: 0.875rem;
+                  font-weight: 700;
+                  color: var(--ink-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  border-top: 2px dashed var(--ink-primary);
+                "
               >
-                No tasks yet. Click "Add Row" to get started.
+                No tasks yet. Click "+ Add Row" to get started.
               </td>
             </tr>
           </tbody>
@@ -168,16 +214,23 @@
 
       <div
         v-if="rows.length > 0"
-        class="flex items-center justify-between px-4 py-2.5 border-t text-xs"
         style="
-          border-color: var(--card-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 16px;
+          border-top: 2px solid var(--ink-primary);
           background: var(--surface-muted);
+          font-size: 0.7rem;
+          font-weight: 700;
           color: var(--ink-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         "
       >
         <span>{{ rows.length }} task{{ rows.length !== 1 ? "s" : "" }}</span>
         <span>
-          {{ rows.filter((t) => t.status === "done").length }} completed ·
+          {{ rows.filter((t) => t.status === "done").length }} done ·
           {{ rows.filter((t) => t.status === "in-progress").length }} in
           progress · {{ rows.filter((t) => t.status === "todo").length }} to do
         </span>
@@ -187,7 +240,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Button from "primevue/button";
 import { useSprint } from "./sprint.tanstack";
@@ -206,7 +259,7 @@ const sprint = computed(() => sprintData?.value);
 const { data: teamData } = useTeam(teamId);
 const teamMembers = computed(() => teamData?.value?.members ?? []);
 
-const { tasks, isLoading, error, saveInlineTask, deleteInlineTask } =
+const { tasks, isLoading, saveInlineTask, deleteInlineTask } =
   useTaskManager(sprintId);
 
 interface RowTask extends Partial<Task> {
@@ -233,9 +286,7 @@ const addRow = () => {
 };
 
 const handleUpdate = (task: RowTask, patch: Partial<Task>) => {
-  if (task._isNew) {
-    Object.assign(task, patch);
-  }
+  if (task._isNew) Object.assign(task, patch);
 };
 
 const handleSave = async (task: RowTask, patch: Partial<Task>) => {

@@ -1,5 +1,7 @@
 <template>
   <div class="flex flex-col pl-8">
+    <Toast position="bottom-right" />
+
     <div class="flex items-end justify-between mb-7">
       <div>
         <h1 class="text-3xl font-serif text-stone-800 leading-tight">
@@ -19,6 +21,7 @@
         :is-running="isRunning"
         :sessions-completed="sessionsCompleted"
         :settings="settings"
+        :linked-task-id="pomodoroStore.linkedTaskId"
         @toggle="toggle"
         @reset="reset"
         @skip="skip"
@@ -27,8 +30,10 @@
       />
 
       <div class="flex flex-col gap-4">
-        <!-- Focusing On -->
-        <Card class="rounded-2xl border border-stone-200 shadow-none">
+        <!-- Focusing On — accented border to signal priority -->
+        <Card
+          class="rounded-2xl border border-stone-300 shadow-none ring-1 ring-stone-200"
+        >
           <template #content>
             <p
               class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-3"
@@ -42,8 +47,24 @@
               option-label="label"
               option-value="value"
               placeholder="No task selected"
+              :filter="taskOptions.length > 5"
+              filter-placeholder="Search tasks..."
+              empty-filter-message="No matching tasks"
               class="w-full"
-            />
+            >
+              <template #empty>
+                <div class="flex flex-col items-center gap-1 py-3 text-center">
+                  <i class="pi pi-inbox text-stone-300 text-xl" />
+                  <p class="text-xs text-stone-400">No active tasks</p>
+                  <a
+                    href="/personal-tasks"
+                    class="text-xs text-orange-500 hover:underline"
+                  >
+                    Add a task →
+                  </a>
+                </div>
+              </template>
+            </Select>
           </template>
         </Card>
 
@@ -63,9 +84,9 @@
                 <span class="text-xl font-serif text-stone-800 leading-none">
                   {{ sessionsCompleted }}
                 </span>
-                <span class="text-[0.65rem] text-stone-400 font-medium">
-                  Sessions
-                </span>
+                <span class="text-[0.65rem] text-stone-400 font-medium"
+                  >Sessions</span
+                >
               </div>
 
               <div
@@ -74,89 +95,118 @@
                 <span class="text-xl font-serif text-stone-800 leading-none">
                   {{ todayFocusMinutes }}m
                 </span>
-                <span class="text-[0.65rem] text-stone-400 font-medium">
-                  Focused
-                </span>
+                <span class="text-[0.65rem] text-stone-400 font-medium"
+                  >Focused</span
+                >
               </div>
 
               <div
                 class="flex flex-col items-center text-center bg-violet-50 rounded-xl p-3 gap-1"
               >
-                <span class="text-xl font-serif text-violet-600 leading-none"
-                  >+{{ linkedSessionsXP }}</span
+                <span
+                  class="text-xl font-serif leading-none"
+                  :class="
+                    linkedSessionsXP > 0 ? 'text-violet-600' : 'text-stone-300'
+                  "
                 >
-                <span class="text-[0.65rem] text-violet-400 font-medium"
-                  >XP</span
+                  +{{ linkedSessionsXP }}
+                </span>
+                <span
+                  class="text-[0.65rem] font-medium"
+                  :class="
+                    linkedSessionsXP > 0 ? 'text-violet-400' : 'text-stone-300'
+                  "
                 >
+                  XP
+                </span>
               </div>
             </div>
           </template>
         </Card>
 
-        <!-- Settings -->
+        <!-- Settings — collapsible -->
         <Card class="rounded-2xl border border-stone-200 shadow-none">
           <template #content>
-            <p
-              class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
+            <button
+              class="w-full flex items-center justify-between group"
+              @click="settingsOpen = !settingsOpen"
             >
-              Settings
-            </p>
+              <p
+                class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400"
+              >
+                Settings
+              </p>
+              <i
+                :class="[
+                  'pi pi-chevron-down text-stone-300 text-xs transition-transform duration-200',
+                  settingsOpen ? 'rotate-180' : '',
+                ]"
+              />
+            </button>
 
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between">
-                <label class="text-sm text-stone-600">Focus</label>
-                <div class="flex items-center gap-2">
-                  <InputNumber
-                    :model-value="settings.workMins"
-                    :min="1"
-                    :max="60"
-                    :use-grouping="false"
-                    input-class="w-14 text-center text-sm"
-                    class="w-22.5"
-                    @update:model-value="
-                      updateSettings({ workMins: $event ?? 25 })
-                    "
-                  />
-                  <span class="text-xs text-stone-400">min</span>
+            <Transition name="settings-collapse">
+              <div v-if="settingsOpen" class="flex flex-col gap-4 mt-4">
+                <div class="flex items-center justify-between">
+                  <label for="workMins" class="text-sm text-stone-600"
+                    >Focus</label
+                  >
+                  <div class="flex items-center gap-2">
+                    <InputNumber
+                      :model-value="settings.workMins"
+                      :min="1"
+                      :max="60"
+                      :use-grouping="false"
+                      input-class="w-14 text-center text-sm"
+                      class="w-22.5"
+                      @update:model-value="
+                        updateSettings({ workMins: $event ?? 25 })
+                      "
+                    />
+                    <span class="text-xs text-stone-400">min</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <label for="shortBreakMins" class="text-sm text-stone-600"
+                    >Short break</label
+                  >
+                  <div class="flex items-center gap-2">
+                    <InputNumber
+                      :model-value="settings.shortBreakMins"
+                      :min="1"
+                      :max="30"
+                      :use-grouping="false"
+                      input-class="w-14 text-center text-sm"
+                      class="w-22.5"
+                      @update:model-value="
+                        updateSettings({ shortBreakMins: $event ?? 5 })
+                      "
+                    />
+                    <span class="text-xs text-stone-400">min</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <label for="longBreakMins" class="text-sm text-stone-600"
+                    >Long break</label
+                  >
+                  <div class="flex items-center gap-2">
+                    <InputNumber
+                      :model-value="settings.longBreakMins"
+                      :min="1"
+                      :max="60"
+                      :use-grouping="false"
+                      input-class="w-14 text-center text-sm"
+                      class="w-22.5"
+                      @update:model-value="
+                        updateSettings({ longBreakMins: $event ?? 15 })
+                      "
+                    />
+                    <span class="text-xs text-stone-400">min</span>
+                  </div>
                 </div>
               </div>
-
-              <div class="flex items-center justify-between">
-                <label class="text-sm text-stone-600">Short break</label>
-                <div class="flex items-center gap-2">
-                  <InputNumber
-                    :model-value="settings.shortBreakMins"
-                    :min="1"
-                    :max="30"
-                    :use-grouping="false"
-                    input-class="w-14 text-center text-sm"
-                    class="w-22.5"
-                    @update:model-value="
-                      updateSettings({ shortBreakMins: $event ?? 5 })
-                    "
-                  />
-                  <span class="text-xs text-stone-400">min</span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between">
-                <label class="text-sm text-stone-600">Long break</label>
-                <div class="flex items-center gap-2">
-                  <InputNumber
-                    :model-value="settings.longBreakMins"
-                    :min="1"
-                    :max="60"
-                    :use-grouping="false"
-                    input-class="w-14 text-center text-sm"
-                    class="w-22.5"
-                    @update:model-value="
-                      updateSettings({ longBreakMins: $event ?? 15 })
-                    "
-                  />
-                  <span class="text-xs text-stone-400">min</span>
-                </div>
-              </div>
-            </div>
+            </Transition>
           </template>
         </Card>
       </div>
@@ -165,15 +215,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
 import Card from "primevue/card";
 import Select from "primevue/select";
 import InputNumber from "primevue/inputnumber";
+import Toast from "primevue/toast";
 import PomodoroCard from "./PomodoroCard.vue";
 import { usePomodoroTimer } from "./pomodoro.composable";
 import { usePomodoroStore } from "./pomodoro.store";
-import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
-import { useCompleteTaskMutation } from "@/modules/Tasks/tasks.tanstack";
+import {
+  useTasksQuery,
+  useCompleteTaskMutation,
+} from "@/modules/Tasks/tasks.tanstack";
 
 const {
   phase,
@@ -192,7 +246,12 @@ const {
 } = usePomodoroTimer();
 
 const pomodoroStore = usePomodoroStore();
+const { linkedSessionsCompleted } = storeToRefs(pomodoroStore); // ← reactive ref
+
 const { data: tasks } = useTasksQuery();
+const { mutate: completeTask } = useCompleteTaskMutation();
+
+const settingsOpen = ref(false);
 
 const taskOptions = computed(() => [
   { label: "No task selected", value: null },
@@ -206,22 +265,30 @@ const linkedTaskIdModel = computed({
   set: (val) => linkTask(val),
 });
 
-const linkedSessionsXP = computed(() => {
-  const today = new Date().toDateString();
-  return (
-    pomodoroStore.history.filter(
-      (s) =>
-        s.phase === "work" &&
-        s.linkedTaskId !== null &&
-        new Date(s.completedAt).toDateString() === today,
-    ).length * 25
-  );
-});
-
-const { mutate: completeTask } = useCompleteTaskMutation();
+const linkedSessionsXP = computed(() => linkedSessionsCompleted.value * 25);
 
 const completeLinkedTask = () => {
   if (!pomodoroStore.linkedTaskId) return;
+  skip();
   completeTask(pomodoroStore.linkedTaskId);
+  linkTask(null);
 };
 </script>
+
+<style scoped>
+.settings-collapse-enter-active,
+.settings-collapse-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.settings-collapse-enter-from,
+.settings-collapse-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+.settings-collapse-enter-to,
+.settings-collapse-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+</style>

@@ -1,8 +1,10 @@
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { useCalendarStore } from "./calendar.store";
-import { useTasksQuery } from "@/modules/Tasks/tasks.tanstack";
-import { useCreateTaskMutation } from "@/modules/Tasks/tasks.tanstack";
-import type { Task } from "@/modules/Tasks/tasks.type";
+import {
+  useTasksQuery,
+  useCreateTaskMutation,
+} from "@/modules/Tasks/tasks.tanstack";
+import type { Task, TaskPriority } from "@/modules/Tasks/tasks.type";
 
 export const useCalendarFormatters = () => {
   const isToday = (d: Date | string) => {
@@ -83,16 +85,8 @@ export const useCalendar = () => {
     formatWeekDay,
     formatDueDate,
   } = useCalendarFormatters();
+
   const { getTasksForDay } = useCalendarTasks(() => tasks.value);
-
-  const newTaskTitle = ref("");
-  const newTaskPriority = ref<"low" | "medium" | "high">("medium");
-
-  const priorityOptions = [
-    { label: "Low", value: "low" },
-    { label: "Medium", value: "medium" },
-    { label: "High", value: "high" },
-  ];
 
   const views = [
     { key: "day", label: "Day" },
@@ -117,16 +111,26 @@ export const useCalendar = () => {
     });
   });
 
-  const addTask = () => {
-    if (!newTaskTitle.value.trim()) return;
+  // Accepts full form object from TaskForm
+  const addTask = (form: {
+    title: string;
+    priority: TaskPriority;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    notes: string;
+    dueDate: Date | null;
+  }) => {
+    if (!form.title.trim()) return;
+    const duration =
+      form.hours * 3600 + form.minutes * 60 + form.seconds || 1500;
     createTask({
-      title: newTaskTitle.value.trim(),
-      priority: newTaskPriority.value,
-      duration: 1500,
-      dueDate: new Date(calendarStore.cursor),
+      title: form.title.trim(),
+      priority: form.priority,
+      duration,
+      notes: form.notes || undefined,
+      dueDate: form.dueDate ?? new Date(calendarStore.cursor),
     });
-    newTaskTitle.value = "";
-    newTaskPriority.value = "medium";
   };
 
   return {
@@ -139,9 +143,6 @@ export const useCalendar = () => {
     setView: calendarStore.setView,
     setCursor: calendarStore.setCursor,
     views,
-    priorityOptions,
-    newTaskTitle,
-    newTaskPriority,
     tasksForCursor,
     headerSubtitle,
     isToday,

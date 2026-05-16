@@ -6,79 +6,207 @@
     class="w-full max-w-md"
     @hide="onHide"
   >
-    <div class="space-y-4">
-      <div>
-        <label for="background-color" class="block text-sm font-medium mb-2"
-          >Background Color</label
+    <div class="flex flex-col gap-4">
+      <!-- Background Color -->
+      <div class="flex flex-col gap-2">
+        <label
+          for="background-color"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
         >
-        <div class="grid grid-cols-5 gap-2 mb-3">
-          <div
+          Background Color
+        </label>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+          "
+        >
+          <button
             v-for="color in colorPalette"
             :key="color"
-            :style="{ backgroundColor: color }"
-            class="w-10 h-10 rounded-lg cursor-pointer border-2 hover:scale-105 transition-transform"
-            :class="
-              selectedColor === color
-                ? 'border-blue-500 shadow-lg'
-                : 'border-transparent'
-            "
+            :style="{
+              backgroundColor: color,
+              width: '40px',
+              height: '40px',
+              border:
+                selectedColor === color
+                  ? '3px solid #1a1714'
+                  : '2px solid #1a1714',
+              boxShadow:
+                selectedColor === color
+                  ? '3px 3px 0 #1a1714'
+                  : '2px 2px 0 #1a1714',
+              cursor: 'pointer',
+              transform:
+                selectedColor === color ? 'translate(-1px, -1px)' : 'none',
+              transition: 'all 80ms ease',
+            }"
             @click="selectedColor = color"
           />
         </div>
-        <div class="flex items-center gap-2">
-          <div class="flex-1">
-            <label for="custom-color" class="block text-xs text-gray-500 mb-1"
-              >Custom color</label
-            >
-            <ColorPicker v-model="selectedColor" inline class="w-full" />
-          </div>
+        <div>
+          <label
+            for="custom-color"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              color: var(--ink-muted);
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              display: block;
+              margin-bottom: 6px;
+            "
+          >
+            Custom color
+          </label>
+          <ColorPicker v-model="selectedColor" inline class="w-full" />
         </div>
       </div>
 
-      <div>
-        <label for="cover-image" class="block text-sm font-medium mb-2"
-          >Cover Image (optional)</label
+      <!-- Cover Image -->
+      <div class="flex flex-col gap-2">
+        <label
+          for="cover-image"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
         >
-
-        <!-- ✅ Plain file input instead of PrimeVue FileUpload -->
-        <input
-          type="file"
-          accept="image/*"
-          class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
-          @change="onFileChange"
-        />
-
-        <div v-if="isProcessing" class="mt-2 text-xs text-gray-500">
-          Processing image...
-        </div>
+          Cover Image
+          <span
+            style="
+              font-weight: 500;
+              text-transform: none;
+              letter-spacing: 0;
+              color: var(--ink-muted);
+            "
+            >(optional)</span
+          >
+        </label>
 
         <div
           v-if="coverPreview"
-          class="mt-2 relative w-full h-32 rounded overflow-hidden"
+          style="
+            position: relative;
+            width: 100%;
+            height: 120px;
+            overflow: hidden;
+            border: 2px solid #1a1714;
+            box-shadow: 3px 3px 0 #1a1714;
+            margin-bottom: 8px;
+          "
         >
-          <image :src="coverPreview" class="w-full h-full object-cover" />
+          <img
+            :src="coverPreview"
+            style="width: 100%; height: 100%; object-fit: cover"
+            alt="Cover preview"
+          />
           <Button
             icon="pi pi-times"
-            rounded
             text
             size="small"
-            class="absolute top-1 right-1 bg-white"
+            style="
+              position: absolute;
+              top: 6px;
+              right: 6px;
+              background: #fff;
+              border: 2px solid #1a1714;
+              width: 28px;
+              height: 28px;
+              box-shadow: none;
+            "
             @click="removeCover"
           />
         </div>
 
-        <p class="text-xs text-gray-500 mt-1">
-          Max size 1MB. Supported: JPG, PNG, GIF
+        <input
+          type="file"
+          accept="image/*"
+          style="
+            display: block;
+            width: 100%;
+            font-size: 0.8rem;
+            color: var(--ink-muted);
+            cursor: pointer;
+            border: 2px solid #1a1714;
+            padding: 8px;
+            background: #fff;
+            box-shadow: 2px 2px 0 #1a1714;
+          "
+          @change="onFileChange"
+        />
+
+        <p
+          v-if="isProcessing"
+          style="
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            font-weight: 600;
+            margin: 0;
+          "
+        >
+          Processing image...
         </p>
-        <p v-if="uploadError" class="text-xs text-red-500 mt-1">
+        <p
+          v-if="uploadError"
+          style="
+            font-size: 0.7rem;
+            color: var(--danger);
+            font-weight: 700;
+            margin: 0;
+            background: var(--danger-soft);
+            border: 1.5px solid var(--danger);
+            padding: 6px 10px;
+          "
+        >
           {{ uploadError }}
+        </p>
+        <p
+          style="
+            font-size: 0.65rem;
+            color: var(--ink-muted);
+            margin: 0;
+            font-weight: 600;
+          "
+        >
+          Max size 1MB. Supported: JPG, PNG, GIF
         </p>
       </div>
     </div>
 
-    <div class="flex justify-end gap-2 mt-4">
-      <Button label="Cancel" severity="secondary" @click="visible = false" />
-      <Button label="Save" :loading="saving" @click="save" />
+    <div
+      style="
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 2px solid var(--surface-muted);
+        padding-top: 16px;
+        margin-top: 16px;
+      "
+    >
+      <Button
+        label="Cancel"
+        severity="secondary"
+        text
+        @click="visible = false"
+      />
+      <Button
+        label="Save"
+        :loading="saving"
+        style="background: var(--accent); color: #fff; font-weight: 800"
+        @click="save"
+      />
     </div>
   </Dialog>
 </template>
@@ -126,26 +254,22 @@ watch(
 
 watch(visible, (val) => emit("update:modelValue", val));
 
-// ✅ Fires immediately when user picks a file
 const onFileChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (!file) return;
-
   if (file.size > 1_000_000) {
     uploadError.value = "File is too large. Max size is 1MB.";
     return;
   }
-
   uploadError.value = "";
   isProcessing.value = true;
-
   try {
     const thumbnail = await resizeToThumbnail(file);
     coverPreview.value = thumbnail;
-    coverData.value = thumbnail; // ✅ this is what gets saved
+    coverData.value = thumbnail;
   } catch {
-    uploadError.value = "Failed to process image. Please try another file.";
+    uploadError.value = "Failed to process image.";
   } finally {
     isProcessing.value = false;
   }

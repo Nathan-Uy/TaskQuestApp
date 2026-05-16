@@ -10,7 +10,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- View Switch -->
         <SelectButton
           :model-value="currentView"
           :options="viewOptions"
@@ -19,8 +18,6 @@
           class="calendar-view-switch"
           @update:model-value="setView"
         />
-
-        <!-- Navigation -->
         <div class="flex items-center gap-1">
           <Button
             icon="pi pi-chevron-left"
@@ -52,7 +49,7 @@
     <!-- DAY VIEW -->
     <div
       v-if="currentView === 'day'"
-      class="grid grid-cols-[1fr_280px] gap-5 items-start"
+      class="grid grid-cols-[1fr_300px] gap-5 items-start"
     >
       <!-- Tasks for Selected Day -->
       <Card
@@ -105,7 +102,6 @@
                         class="pi pi-check text-white text-[0.5rem]"
                       />
                     </div>
-
                     <div class="flex-1 min-w-0">
                       <p
                         :class="[
@@ -117,7 +113,6 @@
                       >
                         {{ task.title }}
                       </p>
-
                       <div class="flex items-center gap-2 mt-2 flex-wrap">
                         <Tag
                           :value="task.priority"
@@ -146,46 +141,27 @@
         </template>
       </Card>
 
-      <!-- Add Task -->
+      <!-- Add Task — uses TaskForm, shows selected date in header -->
       <Card class="rounded-2xl border border-stone-200 shadow-none">
         <template #content>
-          <p
-            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-4"
-          >
-            Add Task
-          </p>
-
-          <div class="flex flex-col gap-3">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500"
-                >Task name</label
-              >
-              <InputText
-                v-model="newTaskTitle"
-                placeholder="What needs to be done?"
-                class="w-full"
-                @keyup.enter="addTask"
-              />
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500">Priority</label>
-              <Select
-                v-model="newTaskPriority"
-                :options="priorityOptions"
-                option-label="label"
-                option-value="value"
-                class="w-full"
-              />
-            </div>
-
-            <Button
-              label="Add Task"
-              :disabled="!newTaskTitle.trim()"
-              class="w-full rounded-xl! text-sm! font-semibold! border-none! bg-(--accent)!"
-              @click="addTask"
-            />
+          <div class="flex items-center justify-between mb-4">
+            <p
+              class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400"
+            >
+              Add Task
+            </p>
+            <span class="text-xs text-stone-400 font-medium">
+              {{ formatShortDate(cursor) }}
+            </span>
           </div>
+
+          <TaskForm
+            v-model:form="taskForm"
+            submit-label="Add Task"
+            :loading="false"
+            @submit="handleAddTask"
+            @cancel="resetTaskForm"
+          />
         </template>
       </Card>
     </div>
@@ -196,32 +172,30 @@
         <div
           v-for="day in weekDays"
           :key="day.toISOString()"
-          class="text-center"
+          class="text-center group cursor-pointer rounded-xl px-1 py-2 transition-colors duration-150 hover:bg-stone-100"
+          @click="
+            setCursor(day);
+            setView('day');
+          "
         >
           <p
-            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-1"
+            class="text-[0.65rem] font-semibold uppercase tracking-widest text-stone-400 mb-1 group-hover:text-stone-600 transition-colors"
           >
             {{ formatWeekDay(day) }}
           </p>
-
-          <Button
-            :label="String(day.getDate())"
-            rounded
-            text
-            class="w-8! h-8! text-sm! font-medium!"
-            :class="
+          <div
+            :class="[
+              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mx-auto transition-all',
               isToday(day)
-                ? 'text-white!'
+                ? 'text-white'
                 : isSameDay(day, cursor)
-                  ? 'bg-stone-100! text-stone-800!'
-                  : 'text-stone-500!'
-            "
+                  ? 'bg-stone-100 text-stone-800'
+                  : 'text-stone-500 group-hover:text-stone-800',
+            ]"
             :style="isToday(day) ? { background: 'var(--accent)' } : {}"
-            @click="
-              setCursor(day);
-              setView('day');
-            "
-          />
+          >
+            {{ day.getDate() }}
+          </div>
         </div>
       </div>
 
@@ -245,7 +219,6 @@
             >
               No tasks
             </div>
-
             <div v-else class="flex flex-col gap-1.5">
               <div
                 v-for="task in getTasksForDay(day).slice(0, 3)"
@@ -262,7 +235,6 @@
               >
                 {{ task.title }}
               </div>
-
               <p
                 v-if="getTasksForDay(day).length > 3"
                 class="text-[0.6rem] text-stone-400 text-center"
@@ -288,74 +260,76 @@
       </div>
 
       <div class="grid grid-cols-7 gap-2">
-        <Card
-          v-for="(day, idx) in monthGrid"
-          :key="idx"
-          class="rounded-xl min-h-24 shadow-none transition-all duration-150"
-          :class="[
-            day
-              ? 'bg-white border cursor-pointer hover:border-stone-300 hover:shadow-sm'
-              : 'bg-transparent border-transparent shadow-none',
-            day && isSameDay(day, cursor)
-              ? 'border-stone-300'
-              : 'border-stone-200',
-          ]"
-          @click="day && (setCursor(day), setView('day'))"
-        >
-          <template v-if="day" #content>
-            <div
-              :class="[
-                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium mb-1.5',
-                isToday(day) ? 'text-white' : 'text-stone-600',
-              ]"
-              :style="isToday(day) ? { background: 'var(--accent)' } : {}"
-            >
-              {{ day.getDate() }}
-            </div>
+        <div v-for="(day, idx) in monthGrid" :key="idx">
+          <!-- Empty cell — muted, no border -->
+          <div v-if="!day" class="min-h-24 rounded-xl bg-stone-50/50" />
 
-            <div class="flex flex-col gap-1">
+          <!-- Day cell -->
+          <Card
+            v-else
+            class="rounded-xl min-h-24 shadow-none cursor-pointer transition-all duration-150 hover:border-stone-300 hover:shadow-sm"
+            :class="
+              isSameDay(day, cursor)
+                ? 'border-stone-300 border'
+                : 'border border-stone-200'
+            "
+            @click="
+              setCursor(day);
+              setView('day');
+            "
+          >
+            <template #content>
               <div
-                v-for="task in getTasksForDay(day).slice(0, 2)"
-                :key="task._id"
                 :class="[
-                  'text-[0.6rem] rounded px-1.5 py-0.5 font-medium truncate',
-                  task.priority === 'high'
-                    ? 'bg-red-50 text-red-500'
-                    : task.priority === 'medium'
-                      ? 'bg-amber-50 text-amber-500'
-                      : 'bg-emerald-50 text-emerald-500',
-                  task.status === 'completed' ? 'opacity-50' : '',
+                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium mb-1.5',
+                  isToday(day) ? 'text-white' : 'text-stone-600',
                 ]"
+                :style="isToday(day) ? { background: 'var(--accent)' } : {}"
               >
-                {{ task.title }}
+                {{ day.getDate() }}
               </div>
 
-              <p
-                v-if="getTasksForDay(day).length > 2"
-                class="text-[0.6rem] text-stone-400"
-              >
-                +{{ getTasksForDay(day).length - 2 }} more
-              </p>
-            </div>
-          </template>
-        </Card>
+              <div class="flex flex-col gap-1">
+                <div
+                  v-for="task in getTasksForDay(day).slice(0, 2)"
+                  :key="task._id"
+                  :class="[
+                    'text-[0.6rem] rounded px-1.5 py-0.5 font-medium truncate',
+                    task.priority === 'high'
+                      ? 'bg-red-50 text-red-500'
+                      : task.priority === 'medium'
+                        ? 'bg-amber-50 text-amber-500'
+                        : 'bg-emerald-50 text-emerald-500',
+                    task.status === 'completed' ? 'opacity-50' : '',
+                  ]"
+                >
+                  {{ task.title }}
+                </div>
+                <p
+                  v-if="getTasksForDay(day).length > 2"
+                  class="text-[0.6rem] text-stone-400"
+                >
+                  +{{ getTasksForDay(day).length - 2 }} more
+                </p>
+              </div>
+            </template>
+          </Card>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from "vue";
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
 import Tag from "primevue/tag";
 import Message from "primevue/message";
-
-import { computed } from "vue";
+import TaskForm from "@/modules/Tasks/TaskForm.vue";
 import { useCalendar } from "./calendar.composable";
-import type { CalendarView } from "./calendar.type";
+import type { TaskPriority } from "@/modules/Tasks/tasks.type";
 
 const {
   currentView,
@@ -367,9 +341,6 @@ const {
   setView,
   setCursor,
   views,
-  priorityOptions,
-  newTaskTitle,
-  newTaskPriority,
   tasksForCursor,
   headerSubtitle,
   isToday,
@@ -381,11 +352,42 @@ const {
 } = useCalendar();
 
 const viewOptions = computed(() =>
-  views.map((v) => ({
-    label: v.label,
-    value: v.key,
-  })),
+  views.map((v) => ({ label: v.label, value: v.key })),
 );
+
+const taskForm = ref({
+  title: "",
+  notes: "",
+  priority: "medium" as TaskPriority,
+  dueDate: null as Date | null,
+  hours: 0,
+  minutes: 25,
+  seconds: 0,
+});
+
+const resetTaskForm = () => {
+  taskForm.value = {
+    title: "",
+    notes: "",
+    priority: "medium",
+    dueDate: null,
+    hours: 0,
+    minutes: 25,
+    seconds: 0,
+  };
+};
+
+const formatShortDate = (d: Date) =>
+  d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+const handleAddTask = () => {
+  addTask(taskForm.value);
+  resetTaskForm();
+};
 </script>
 
 <style scoped>

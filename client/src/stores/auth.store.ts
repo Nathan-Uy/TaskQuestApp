@@ -22,7 +22,7 @@ export const useAuthStore = defineStore("auth", () => {
   const token = ref(sessionStorage.getItem("token") || "");
   const user = ref<AuthUser | null>(null);
   const initialized = ref(false);
-  const isAuthenticated = computed(() => !!token.value || !!user.value);
+  const isAuthenticated = computed(() => !!user.value);
   const isLoggingIn = ref(false);
 
   const syncGamification = async (userData: AuthUser) => {

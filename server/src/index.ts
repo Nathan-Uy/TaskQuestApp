@@ -4,8 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "node:path";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-import cookieParser from "cookie-parser";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import personalTaskRoutes from "./routes/personalTask.routes";
@@ -25,52 +24,68 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
 
 app.use(helmet());
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per IP per window
-  message: { error: "Too many requests, please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api/", limiter);
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === "production" ? 20 : 100,
-  message: { error: "Too many auth attempts, please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
+    // credentials: true ← removed, no cookies anymore
   }),
 );
-app.use(cookieParser());
+// cookieParser ← removed
 app.use(express.json());
+
+// ─── Rate limiters ────────────────────────────────────────────────────────────
+
+const isProd = process.env.NODE_ENV === "production";
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProd ? 500 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === "/health",
+  message: { error: "Too many requests, please try again later." },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProd ? 20 : 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many auth attempts, please try again later." },
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProd ? 20 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const auth = req.headers.authorization;
+    if (auth?.startsWith("Bearer ")) return auth.slice(7);
+    return ipKeyGenerator(req.ip ?? "Unknown");
+  },
+  message: { error: "AI rate limit reached, please wait a moment." },
+});
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
 
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 
-app.use("/api/", (req, res, next) => {
-  if (req.path.startsWith("/auth")) return next();
-  return limiter(req, res, next);
-});
-
 app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/tasks", taskRoutes);
-app.use("/api/goals", goalRoutes);
-app.use("/api/ai", aiRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/teams", teamRoutes);
-app.use("/api/sprints", sprintRoutes);
-app.use("/api/personal-tasks", personalTaskRoutes);
-app.use("/api/invitations", invitationRoutes);
-app.use("/api/workspace/teams", workspaceTeamRoutes);
-app.use("/api/workspace/sprints", workspaceSprintRoutes);
-app.use("/api/workspace/tasks", workspaceTaskRoutes);
-app.use("/api/workspace/chat", workspaceChatRoutes);
+app.use("/api/ai", apiLimiter, aiLimiter, aiRoutes);
+app.use("/api/tasks", apiLimiter, taskRoutes);
+app.use("/api/goals", apiLimiter, goalRoutes);
+app.use("/api/projects", apiLimiter, projectRoutes);
+app.use("/api/teams", apiLimiter, teamRoutes);
+app.use("/api/sprints", apiLimiter, sprintRoutes);
+app.use("/api/personal-tasks", apiLimiter, personalTaskRoutes);
+app.use("/api/invitations", apiLimiter, invitationRoutes);
+app.use("/api/workspace/teams", apiLimiter, workspaceTeamRoutes);
+app.use("/api/workspace/sprints", apiLimiter, workspaceSprintRoutes);
+app.use("/api/workspace/tasks", apiLimiter, workspaceTaskRoutes);
+app.use("/api/workspace/chat", apiLimiter, workspaceChatRoutes);
+
+// ─── DB + server ──────────────────────────────────────────────────────────────
 
 mongoose
   .connect(process.env.MONGO_URI!)

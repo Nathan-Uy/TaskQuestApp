@@ -14,14 +14,13 @@ export const protect = (
   next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
-  let token: string | undefined;
 
-  if (authHeader?.startsWith("Bearer ")) {
-    const parts = authHeader.split(" ");
-    token = parts[1] && parts[1].length > 0 ? parts[1] : undefined; // ← guard
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Not authorized" });
   }
+
+  const parts = authHeader.split(" ");
+  const token = parts[1] && parts[1].length > 0 ? parts[1] : undefined;
 
   if (!token) return res.status(401).json({ message: "Not authorized" });
 

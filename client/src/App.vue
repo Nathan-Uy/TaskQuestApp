@@ -1,26 +1,22 @@
 <template>
-  <!-- Show sidebar only for main app routes (not auth, not TaskSpace) -->
+  <!-- Main app routes -->
   <div
     v-if="!isAuthPage && !isTaskSpace"
     class="grid grid-cols-[224px_1fr] h-screen overflow-hidden"
-    style="background: var(--surface-bg)"
   >
     <AppSideBar />
-    <main
-      class="overflow-y-auto pl-10 pr-8 py-8"
-      style="background: var(--surface-bg)"
-    >
+    <main class="overflow-y-auto pl-10 pr-8 py-8">
       <RouterView />
     </main>
   </div>
 
-  <!-- For TaskSpace: only the router-view (TaskSpaceLayout will provide its own navigation) -->
-  <div v-else-if="isTaskSpace" style="background: var(--surface-bg)">
+  <!-- TaskSpace -->
+  <div v-else-if="isTaskSpace">
     <RouterView />
   </div>
 
-  <!-- For auth pages (login, landing): no sidebar, no TaskSpace layout -->
-  <div v-else style="background: var(--surface-bg)">
+  <!-- Auth pages — keep solid background so dots don't show on landing -->
+  <div v-else style="background: #f0eeea">
     <RouterView />
   </div>
 

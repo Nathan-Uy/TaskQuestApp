@@ -64,6 +64,102 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
       .reduce((sum, s) => sum + s.durationMins, 0),
   );
 
+  // ── Load persisted state first ─────────────────────────────────────────────
+  const loadDailyState = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const savedDate = new Date(parsed.date).toDateString();
+      const today = new Date().toDateString();
+      if (savedDate !== today) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  };
+
+  const daily = loadDailyState();
+
+  if (daily?.history) {
+    history.value = daily.history.map((s: PomodoroSession) => ({
+      ...s,
+      completedAt: new Date(s.completedAt),
+    }));
+  }
+
+  // ── Declare before completePhase so closures capture initialized refs ──────
+  const sessionsCompleted = ref(daily?.sessionsCompleted ?? 0);
+  const linkedSessionsCompleted = ref(daily?.linkedSessionsCompleted ?? 0);
+
+  // ── saveDailyState before completePhase too ────────────────────────────────
+  const saveDailyState = () => {
+    const today = new Date().toDateString();
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        date: new Date().toISOString(),
+        sessionsCompleted: sessionsCompleted.value,
+        linkedSessionsCompleted: linkedSessionsCompleted.value,
+        history: history.value.filter(
+          (s) => new Date(s.completedAt).toDateString() === today,
+        ),
+      }),
+    );
+  };
+
+  // ── Now completePhase can safely close over all refs ──────────────────────
+  const completePhase = () => {
+    status.value = "idle";
+
+    console.log(
+      "[completePhase] phase:",
+      phase.value,
+      "linkedTaskId:",
+      linkedTaskId.value,
+    );
+
+    history.value.push({
+      id: Date.now(),
+      phase: phase.value,
+      durationMins:
+        Math.round((totalSeconds.value - remainingSeconds.value) / 60) ||
+        settings.value.workMins,
+      completedAt: new Date(),
+      linkedTaskId: linkedTaskId.value,
+    });
+
+    if (phase.value === "work") {
+      sessionsCompleted.value++;
+
+      console.log(
+        "[completePhase] linkedTaskId before increment:",
+        linkedTaskId.value,
+      );
+      console.log(
+        "[completePhase] linkedSessionsCompleted before:",
+        linkedSessionsCompleted.value,
+      );
+
+      if (linkedTaskId.value) {
+        linkedSessionsCompleted.value++;
+        console.log(
+          "[completePhase] linkedSessionsCompleted after:",
+          linkedSessionsCompleted.value,
+        );
+        gamification.recordPomodoro();
+      }
+
+      const isLongBreak =
+        sessionsCompleted.value % settings.value.sessionsUntilLongBreak === 0;
+      phase.value = isLongBreak ? "long-break" : "short-break";
+    } else {
+      phase.value = "work";
+    }
+
+    remainingSeconds.value = totalSeconds.value;
+    saveDailyState();
+  };
   const start = () => {
     status.value = "running";
   };
@@ -90,38 +186,6 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     remainingSeconds.value--;
   };
 
-  const completePhase = () => {
-    status.value = "idle";
-
-    history.value.push({
-      id: Date.now(),
-      phase: phase.value,
-      durationMins:
-        Math.round((totalSeconds.value - remainingSeconds.value) / 60) ||
-        settings.value.workMins,
-      completedAt: new Date(),
-      linkedTaskId: linkedTaskId.value,
-    });
-
-    if (phase.value === "work") {
-      sessionsCompleted.value++;
-
-      if (linkedTaskId.value) {
-        linkedSessionsCompleted.value++;
-        gamification.recordPomodoro();
-      }
-
-      const isLongBreak =
-        sessionsCompleted.value % settings.value.sessionsUntilLongBreak === 0;
-      phase.value = isLongBreak ? "long-break" : "short-break";
-    } else {
-      phase.value = "work";
-    }
-
-    remainingSeconds.value = totalSeconds.value;
-    saveDailyState();
-  };
-
   const skip = () => completePhase();
 
   const switchPhase = (p: PomodoroPhase) => {
@@ -138,42 +202,6 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     settings.value = { ...settings.value, ...patch };
     reset();
   };
-
-  const loadDailyState = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      const savedDate = new Date(parsed.date).toDateString();
-      const today = new Date().toDateString();
-      if (savedDate !== today) return null;
-      return parsed;
-    } catch {
-      return null;
-    }
-  };
-
-  const saveDailyState = () => {
-    const today = new Date().toDateString();
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        date: new Date().toISOString(),
-        sessionsCompleted: sessionsCompleted.value,
-        linkedSessionsCompleted: linkedSessionsCompleted.value,
-        history: history.value.filter(
-          (s) => new Date(s.completedAt).toDateString() === today,
-        ),
-      }),
-    );
-  };
-  const daily = loadDailyState();
-  if (daily?.history) {
-    history.value = daily.history;
-  }
-
-  const sessionsCompleted = ref(daily?.sessionsCompleted ?? 0);
-  const linkedSessionsCompleted = ref(daily?.linkedSessionsCompleted ?? 0);
 
   const scheduleMidnightReset = () => {
     const now = new Date();
@@ -200,6 +228,7 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     phase,
     status,
     sessionsCompleted,
+    linkedSessionsCompleted,
     linkedTaskId,
     history,
     remainingSeconds,
@@ -221,7 +250,6 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     switchPhase,
     linkTask,
     updateSettings,
-    linkedSessionsCompleted,
     saveDailyState,
     loadDailyState,
   };

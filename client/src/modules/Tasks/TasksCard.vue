@@ -1,33 +1,40 @@
 <template>
   <div
     :class="[
-      'group relative flex flex-col rounded-2xl border transition-all duration-200',
-      task.status === 'completed' ? 'opacity-60' : 'hover:shadow-md',
-      isEditing ? 'shadow-md' : 'hover:-translate-y-0.5',
+      'group relative flex flex-col transition-all duration-100',
+      isEditing ? '' : 'hover:-translate-y-px',
     ]"
-    style="
-      padding: 14px 16px;
-      background: var(--card-bg);
-      border-color: var(--card-border);
-    "
+    :style="{
+      padding: '14px 16px',
+      background: task.status === 'completed' ? '#f5f3ef' : 'var(--card-bg)',
+      border: '2px solid var(--ink-primary)',
+      boxShadow:
+        task.status === 'completed' ? '2px 2px 0 #1a1714' : '4px 4px 0 #1a1714',
+      opacity: task.status === 'completed' ? '0.7' : '1',
+    }"
   >
+    <!-- Priority stripe — left border accent -->
     <div
-      class="absolute left-0 top-3 bottom-3 w-0.5 rounded-full"
+      class="absolute left-0 top-0 bottom-0 w-1"
       :style="{ background: priorityColor }"
     />
 
     <div class="flex items-start gap-4">
+      <!-- Complete button -->
       <button
         v-if="!readonly"
         :class="[
-          'mt-0.5 w-5 h-5 shrink-0 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
-          task.status === 'completed'
-            ? 'border-emerald-400 bg-emerald-400'
-            : 'border-stone-300 hover:border-emerald-400 hover:scale-110',
+          'mt-0.5 w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-100',
+          task.status === 'completed' ? '' : 'hover:scale-110',
         ]"
-        :style="
-          task.status !== 'completed' ? { background: 'var(--card-bg)' } : {}
-        "
+        :style="{
+          border:
+            '2px solid ' +
+            (task.status === 'completed' ? '#2d7a4f' : '#1a1714'),
+          background:
+            task.status === 'completed' ? '#2d7a4f' : 'var(--card-bg)',
+          borderRadius: '0',
+        }"
         @click="emit('complete', task._id)"
       >
         <i
@@ -37,7 +44,18 @@
       </button>
       <div
         v-else
-        class="mt-0.5 w-5 h-5 shrink-0 rounded-full border-2 border-emerald-400 bg-emerald-400 flex items-center justify-center"
+        style="
+          margin-top: 2px;
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
+          border: 2px solid #2d7a4f;
+          background: #2d7a4f;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 0;
+        "
       >
         <i class="pi pi-check text-white text-[0.5rem]" />
       </div>
@@ -45,8 +63,14 @@
       <div class="flex-1 min-w-0">
         <div v-if="isEditing">
           <p
-            class="font-semibold mb-3"
-            style="font-size: 0.85rem; color: var(--ink-primary)"
+            style="
+              font-size: 0.85rem;
+              font-weight: 800;
+              color: var(--ink-primary);
+              margin-bottom: 12px;
+              text-transform: uppercase;
+              letter-spacing: 0.03em;
+            "
           >
             Edit Task
           </p>
@@ -62,18 +86,17 @@
         <template v-else>
           <p
             :class="[
-              'text-sm font-semibold leading-snug',
+              'text-sm leading-snug',
               task.status === 'completed' ? 'line-through' : '',
-              !readonly
-                ? 'cursor-pointer hover:text-(--accent) transition-colors duration-150'
-                : '',
+              !readonly ? 'cursor-pointer' : '',
             ]"
             :style="{
+              fontWeight: '700',
               color:
                 task.status === 'completed'
                   ? 'var(--ink-muted)'
                   : 'var(--ink-primary)',
-              marginBottom: '4px',
+              marginBottom: '6px',
             }"
             @click="!readonly && startEdit()"
           >
@@ -84,9 +107,13 @@
             v-if="task.notes"
             :class="[
               'text-xs leading-relaxed',
-              !readonly ? 'cursor-pointer transition-colors duration-150' : '',
+              !readonly ? 'cursor-pointer' : '',
             ]"
-            :style="{ color: 'var(--ink-muted)', marginBottom: '8px' }"
+            :style="{
+              color: 'var(--ink-muted)',
+              marginBottom: '8px',
+              fontWeight: '400',
+            }"
             @click="!readonly && startEdit()"
           >
             {{ task.notes }}
@@ -97,25 +124,41 @@
             style="gap: 6px; margin-top: 6px"
           >
             <span
-              class="inline-flex items-center rounded-md text-xs font-semibold capitalize"
-              style="padding: 2px 8px"
+              style="
+                font-size: 0.65rem;
+                font-weight: 800;
+                padding: 2px 7px;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                border: 1.5px solid currentColor;
+              "
               :style="{ background: priorityBg, color: priorityColor }"
               >{{ task.priority }}</span
             >
 
             <span
               v-if="task.duration"
-              class="inline-flex items-center gap-1 text-xs"
-              style="color: var(--ink-muted)"
+              style="
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: var(--ink-muted);
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+              "
             >
-              <i class="pi pi-clock" style="font-size: 0.65rem" />
+              <i class="pi pi-clock" style="font-size: 0.6rem" />
               {{ formatDuration(task.duration) }}
             </span>
 
             <span
-              class="inline-flex items-center rounded-md text-xs font-semibold"
               style="
-                padding: 2px 8px;
+                font-size: 0.65rem;
+                font-weight: 800;
+                padding: 2px 7px;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                border: 1.5px solid var(--xp);
                 background: var(--xp-soft);
                 color: var(--xp);
               "
@@ -128,16 +171,33 @@
       <div v-if="!isEditing" class="flex items-center gap-1 shrink-0">
         <span
           v-if="task.dueDate"
-          :class="[
-            'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md',
-            isOverdue(task.dueDate)
-              ? 'bg-red-50 text-red-500'
+          :style="{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '0.7rem',
+            fontWeight: '700',
+            padding: '2px 7px',
+            border:
+              '1.5px solid ' +
+              (isOverdue(task.dueDate)
+                ? '#b53a2f'
+                : isToday(task.dueDate)
+                  ? '#1a1714'
+                  : '#1d4ed8'),
+            background: isOverdue(task.dueDate)
+              ? '#fbeae8'
               : isToday(task.dueDate)
-                ? 'bg-stone-50 text-stone-400'
-                : 'bg-blue-50 text-blue-500',
-          ]"
+                ? '#f5f3ef'
+                : '#dbeafe',
+            color: isOverdue(task.dueDate)
+              ? '#b53a2f'
+              : isToday(task.dueDate)
+                ? '#1a1714'
+                : '#1d4ed8',
+          }"
         >
-          <i class="pi pi-calendar text-[0.65rem]" />
+          <i class="pi pi-calendar" style="font-size: 0.6rem" />
           {{ formatDueDate(task.dueDate) }}
         </span>
 
@@ -147,19 +207,16 @@
           text
           rounded
           severity="secondary"
-          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-150"
-          title="Edit"
+          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-100"
           @click="startEdit"
         />
-
         <Button
           v-if="!readonly"
           icon="pi pi-times"
           text
           rounded
           severity="danger"
-          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-150"
-          title="Delete"
+          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-100"
           @click="emit('delete', task._id)"
         />
       </div>
