@@ -9,16 +9,22 @@
     <form @submit.prevent="handleSubmit">
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Sprint Name *</label>
+          <label for="name" class="block text-sm font-medium mb-1"
+            >Sprint Name *</label
+          >
           <InputText v-model="form.name" class="w-full" required autofocus />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
+          <label for="description" class="block text-sm font-medium mb-1"
+            >Description</label
+          >
           <Textarea v-model="form.description" rows="3" class="w-full" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-medium mb-1">Start Date *</label>
+            <label for="startDate" class="block text-sm font-medium mb-1"
+              >Start Date *</label
+            >
             <DatePicker
               v-model="form.startDate"
               dateFormat="yy-mm-dd"
@@ -26,7 +32,9 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">End Date *</label>
+            <label for="endDate" class="block text-sm font-medium mb-1"
+              >End Date *</label
+            >
             <DatePicker
               v-model="form.endDate"
               dateFormat="yy-mm-dd"
@@ -35,7 +43,9 @@
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Status</label>
+          <label for="status" class="block text-sm font-medium mb-1"
+            >Status</label
+          >
           <Select
             v-model="form.status"
             :options="statusOptions"

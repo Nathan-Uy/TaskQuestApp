@@ -1,72 +1,161 @@
 <template>
   <aside
-    class="w-56 h-screen flex flex-col overflow-y-auto px-5 py-7 border-r transition-colors duration-200"
-    style="background: var(--sidebar-bg); border-color: var(--sidebar-border)"
+    class="w-56 h-screen flex flex-col overflow-y-auto"
+    style="
+      background: var(--sidebar-bg);
+      border-right: 2px solid var(--ink-primary);
+    "
   >
     <!-- Logo -->
-    <div class="pb-5 mb-5 border-b" style="border-color: var(--sidebar-border)">
+    <div
+      style="
+        padding: 1.5rem 1.25rem 1rem;
+        border-bottom: 2px solid var(--ink-primary);
+      "
+    >
       <p
-        class="font-serif text-xl leading-none"
-        style="color: var(--ink-primary)"
+        style="
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: var(--ink-primary);
+          letter-spacing: -0.03em;
+          line-height: 1;
+          margin: 0;
+        "
       >
-        TaskQuest
+        Task<span style="color: var(--accent)">Quest</span>
       </p>
-      <p class="text-[0.7rem] mt-1" style="color: var(--ink-muted)">
+      <p
+        style="
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: var(--ink-muted);
+          margin: 4px 0 0;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        "
+      >
         Productivity
       </p>
     </div>
 
     <!-- User Profile -->
-    <div class="mb-6">
-      <div class="flex items-center gap-3 mb-3.5">
+    <div
+      style="padding: 1rem 1.25rem; border-bottom: 2px solid var(--ink-primary)"
+    >
+      <div class="flex items-center gap-3">
         <div
-          class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 text-white bg-(--accent)"
+          style="
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 800;
+            color: #fff;
+            background: var(--accent);
+            border: 2px solid var(--ink-primary);
+            box-shadow: 2px 2px 0 var(--ink-primary);
+          "
         >
           {{ profile.displayName.charAt(0) }}
         </div>
-        <div>
+        <div style="min-width: 0">
           <p
-            class="text-sm font-semibold leading-none mb-2"
-            style="color: var(--ink-primary)"
+            style="
+              font-size: 0.8rem;
+              font-weight: 700;
+              color: var(--ink-primary);
+              margin: 0;
+              line-height: 1.2;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            "
           >
             {{ profile.displayName }}
           </p>
-          <div class="relative group/badge">
+          <div class="relative group/badge" style="margin-top: 5px">
             <div
-              class="relative overflow-hidden rounded-md w-27.5 px-2.5 py-1.5 shadow-[0_2px_8px_rgba(194,98,42,0.2)]"
-              style="background: var(--accent-soft)"
+              style="
+                position: relative;
+                overflow: hidden;
+                padding: 4px 8px;
+                background: var(--accent-soft);
+                border: 1.5px solid var(--accent);
+              "
             >
               <div
-                class="absolute inset-0 rounded-md transition-[width] duration-700 ease-out bg-(--accent) opacity-15"
+                style="
+                  position: absolute;
+                  inset: 0;
+                  background: var(--accent);
+                  opacity: 0.15;
+                  transition: width 0.7s ease;
+                "
                 :style="{ width: mounted ? progressPct + '%' : '0%' }"
               />
-              <div class="relative flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1">
+              <div
+                style="
+                  position: relative;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 6px;
+                "
+              >
+                <div style="display: flex; align-items: center; gap: 4px">
                   <i
-                    class="pi pi-star-fill text-[0.55rem] text-(--accent)"
+                    class="pi pi-star-fill"
+                    style="font-size: 0.5rem; color: var(--accent)"
                     :class="xpPulse ? 'animate-ping' : ''"
                   />
-                  <span class="text-[0.7rem] font-semibold text-(--accent)"
+                  <span
+                    style="
+                      font-size: 0.65rem;
+                      font-weight: 800;
+                      color: var(--accent);
+                    "
                     >Lv {{ profile.level }}</span
                   >
                 </div>
                 <span
-                  class="text-[0.6rem] font-medium text-(--accent) opacity-70"
+                  style="
+                    font-size: 0.6rem;
+                    font-weight: 600;
+                    color: var(--accent);
+                    opacity: 0.7;
+                  "
                 >
                   {{ profile.currentXP }}/{{ profile.xpToNextLevel }}
                 </span>
               </div>
             </div>
             <div
-              class="absolute left-0 top-full mt-2 z-50 pointer-events-none opacity-0 group-hover/badge:opacity-100 transition-opacity duration-150 text-white text-[0.7rem] px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg"
-              style="background: var(--ink-primary)"
+              style="
+                position: absolute;
+                left: 0;
+                top: 100%;
+                margin-top: 6px;
+                z-index: 50;
+                pointer-events: none;
+                opacity: 0;
+                background: var(--ink-primary);
+                color: #fff;
+                font-size: 0.7rem;
+                font-weight: 600;
+                padding: 6px 10px;
+                white-space: nowrap;
+                border: 1.5px solid var(--ink-primary);
+                box-shadow: 2px 2px 0 var(--accent);
+                transition: opacity 0.15s ease;
+              "
+              class="group-hover/badge:opacity-100"
             >
               {{ profile.xpToNextLevel - profile.currentXP }} XP to Level
               {{ profile.level + 1 }}
-              <div
-                class="absolute -top-1 left-4 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px]"
-                style="border-bottom-color: var(--ink-primary)"
-              />
             </div>
           </div>
         </div>
@@ -74,69 +163,110 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 flex flex-col gap-0.5">
+    <nav style="flex: 1; padding: 0.75rem 0; overflow-y: auto">
       <div
         v-for="section in navSections"
         :key="section.title"
-        class="flex flex-col mb-2"
+        style="margin-bottom: 4px"
       >
         <button
-          class="flex items-center justify-between w-full rounded-lg transition-colors duration-150 px-2 py-1.5 mb-0.5"
-          style="color: var(--ink-muted)"
-          @mouseenter="
-            ($event.currentTarget as HTMLElement).style.background =
-              'var(--nav-hover)'
-          "
-          @mouseleave="
-            ($event.currentTarget as HTMLElement).style.background =
-              'transparent'
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 6px 1.25rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--ink-muted);
           "
           @click="toggle(section.title)"
         >
           <span
-            class="text-[0.68rem] font-semibold uppercase tracking-widest"
+            style="
+              font-size: 0.62rem;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.12em;
+            "
             >{{ section.title }}</span
           >
           <i
             :class="[
-              'pi pi-chevron-down transition-transform duration-200 text-[0.6rem]',
+              'pi pi-chevron-down',
               collapsed[section.title] ? '-rotate-90' : 'rotate-0',
             ]"
+            style="font-size: 0.55rem; transition: transform 0.15s ease"
           />
         </button>
+
         <div
-          class="flex flex-col overflow-hidden transition-all duration-200 gap-0.5"
-          :class="
+          style="
+            overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 0.5rem;
+          "
+          :style="
             collapsed[section.title]
-              ? 'max-h-0 opacity-0'
-              : 'max-h-75 opacity-100'
+              ? 'max-height: 0; opacity: 0;'
+              : 'max-height: 300px; opacity: 1;'
           "
         >
-          <!-- Regular items (use router-link) -->
+          <!-- Regular nav items -->
           <router-link
             v-for="item in section.items.filter((i) => i.name !== 'taskspace')"
             :key="item.name"
             :to="item.path"
-            class="flex items-center gap-2.5 rounded-lg text-sm font-medium no-underline transition-all duration-150 px-3 py-2"
-            :style="{ color: 'var(--ink-secondary)' }"
-            active-class="!bg-[var(--accent-soft)] !text-[var(--accent)]"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 7px 10px;
+              font-size: 0.8rem;
+              font-weight: 600;
+              color: var(--ink-secondary);
+              text-decoration: none;
+              border: 1.5px solid transparent;
+              transition: all 80ms ease;
+            "
+            active-class="nb-nav-active"
             @mouseenter="
               ($event.currentTarget as HTMLElement).style.background =
                 'var(--nav-hover)'
             "
             @mouseleave="
-              ($event.currentTarget as HTMLElement).style.cssText = ''
+              ($event.currentTarget as HTMLElement).style.background =
+                'transparent'
             "
           >
-            <span class="w-4 text-center text-[0.95rem]">{{ item.icon }}</span>
-            <span class="flex-1">{{ item.label }}</span>
+            <span style="width: 16px; text-align: center; font-size: 0.9rem">{{
+              item.icon
+            }}</span>
+            <span>{{ item.label }}</span>
           </router-link>
 
-          <!-- TaskSpace item – opens in new tab, no external icon -->
+          <!-- TaskSpace -->
           <button
             v-if="section.items.some((i) => i.name === 'taskspace')"
-            class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2"
-            :style="{ color: 'var(--ink-secondary)' }"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              width: 100%;
+              padding: 7px 10px;
+              font-size: 0.8rem;
+              font-weight: 600;
+              color: var(--ink-secondary);
+              background: transparent;
+              border: 1.5px solid transparent;
+              cursor: pointer;
+              text-align: left;
+              transition: all 80ms ease;
+            "
             @mouseenter="
               ($event.currentTarget as HTMLElement).style.background =
                 'var(--nav-hover)'
@@ -147,55 +277,133 @@
             "
             @click="openTaskSpace"
           >
-            <span class="w-4 text-center text-[0.95rem]">🗂</span>
-            <span class="flex-1">TaskSpace</span>
+            <span style="width: 16px; text-align: center; font-size: 0.9rem"
+              >🗂</span
+            >
+            <span>TaskSpace</span>
           </button>
         </div>
       </div>
     </nav>
 
     <!-- Streak Coach -->
-    <div class="mb-3">
+    <div
+      style="padding: 0.75rem 1rem; border-top: 2px solid var(--ink-primary)"
+    >
       <div
         v-if="streakCoach"
-        class="rounded-xl p-3"
-        style="background: var(--accent-soft)"
+        style="
+          background: var(--accent-soft);
+          border: 2px solid var(--ink-primary);
+          box-shadow: 3px 3px 0 var(--ink-primary);
+          padding: 10px 12px;
+        "
       >
-        <div class="flex items-center justify-between mb-1.5">
-          <div class="flex items-center gap-1.5">
-            <i class="pi pi-sparkles text-(--accent) text-xs" />
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 6px">
+            <i
+              class="pi pi-sparkles"
+              style="color: var(--accent); font-size: 0.75rem"
+            />
             <span
-              class="text-[0.65rem] font-semibold text-(--accent) uppercase tracking-wide"
+              style="
+                font-size: 0.6rem;
+                font-weight: 800;
+                color: var(--accent);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+              "
               >Weekly Habit</span
             >
           </div>
           <button
-            class="text-(--accent) opacity-50 hover:opacity-100 transition-opacity"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: var(--accent);
+              opacity: 0.6;
+            "
             @click="streakCoach = null"
           >
-            <i class="pi pi-times text-[0.6rem]" />
+            <i class="pi pi-times" style="font-size: 0.6rem" />
           </button>
         </div>
         <p
-          class="text-xs font-semibold leading-snug mb-1"
-          style="color: var(--ink-primary)"
+          style="
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--ink-primary);
+            margin: 0 0 4px;
+            line-height: 1.3;
+          "
         >
           {{ streakCoach.habit }}
         </p>
         <p
-          class="text-[0.65rem] leading-relaxed mb-1.5"
-          style="color: var(--ink-secondary)"
+          style="
+            font-size: 0.65rem;
+            color: var(--ink-secondary);
+            margin: 0 0 6px;
+            line-height: 1.4;
+          "
         >
           {{ streakCoach.why }}
         </p>
-        <p class="text-[0.65rem] font-medium text-(--accent)">
+        <p
+          style="
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0;
+          "
+        >
           ▶ {{ streakCoach.howToStart }}
         </p>
       </div>
+
       <button
         v-else
         :disabled="streakLoading"
-        class="w-full flex items-center justify-center gap-1.5 text-[0.7rem] font-semibold text-(--accent) bg-(--accent-soft) hover:bg-(--accent) hover:text-white rounded-xl py-2 transition-all duration-150 disabled:opacity-50"
+        style="
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: var(--accent);
+          background: var(--accent-soft);
+          border: 2px solid var(--ink-primary);
+          box-shadow: 2px 2px 0 var(--ink-primary);
+          padding: 8px;
+          cursor: pointer;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          transition: all 80ms ease;
+        "
+        @mouseenter="
+          ($event.currentTarget as HTMLElement).style.cssText +=
+            '; transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink-primary);'
+        "
+        @mouseleave="
+          ($event.currentTarget as HTMLElement).style.cssText = (
+            $event.currentTarget as HTMLElement
+          ).style.cssText
+            .replace('transform: translate(1px,1px);', '')
+            .replace(
+              'box-shadow: 1px 1px 0 var(--ink-primary);',
+              'box-shadow: 2px 2px 0 var(--ink-primary);',
+            )
+        "
         @click="fetchStreakCoach"
       >
         <i
@@ -209,33 +417,61 @@
     </div>
 
     <!-- Settings & Logout -->
-    <div class="pt-4 mt-2 border-t" style="border-color: var(--sidebar-border)">
-      <div class="flex flex-col gap-1">
-        <button
-          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2"
-          style="color: var(--ink-secondary)"
-          @mouseenter="
-            ($event.currentTarget as HTMLElement).style.background =
-              'var(--nav-hover)'
-          "
-          @mouseleave="
-            ($event.currentTarget as HTMLElement).style.background =
-              'transparent'
-          "
-          @click="router.push('/settings')"
-        >
-          <i class="pi pi-cog text-sm" />
-          <span>Settings</span>
-        </button>
-        <button
-          class="flex items-center gap-2.5 w-full rounded-lg text-sm font-medium transition-all duration-150 px-3 py-2 hover:bg-red-50 hover:text-red-500"
-          style="color: var(--ink-secondary)"
-          @click="handleLogout"
-        >
-          <i class="pi pi-sign-out text-sm" />
-          <span>Logout</span>
-        </button>
-      </div>
+    <div style="border-top: 2px solid var(--ink-primary); padding: 0.5rem">
+      <button
+        style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 8px 10px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--ink-secondary);
+          background: transparent;
+          border: 1.5px solid transparent;
+          cursor: pointer;
+          transition: all 80ms ease;
+        "
+        @mouseenter="
+          ($event.currentTarget as HTMLElement).style.background =
+            'var(--nav-hover)'
+        "
+        @mouseleave="
+          ($event.currentTarget as HTMLElement).style.background = 'transparent'
+        "
+        @click="router.push('/settings')"
+      >
+        <i class="pi pi-cog" style="font-size: 0.875rem" />
+        <span>Settings</span>
+      </button>
+      <button
+        style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 8px 10px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--danger);
+          background: transparent;
+          border: 1.5px solid transparent;
+          cursor: pointer;
+          transition: all 80ms ease;
+        "
+        @mouseenter="
+          ($event.currentTarget as HTMLElement).style.background =
+            'var(--danger-soft)'
+        "
+        @mouseleave="
+          ($event.currentTarget as HTMLElement).style.background = 'transparent'
+        "
+        @click="handleLogout"
+      >
+        <i class="pi pi-sign-out" style="font-size: 0.875rem" />
+        <span>Logout</span>
+      </button>
     </div>
   </aside>
 </template>
@@ -254,7 +490,6 @@ const { profile, progressPct } = storeToRefs(useGamificationStore());
 const router = useRouter();
 const auth = useAuthStore();
 
-// Only one TaskSpace entry under WORK
 const navSections: NavSection[] = [
   {
     title: "Work",
@@ -300,10 +535,7 @@ const fetchStreakCoach = async () => {
   }
 };
 
-// Opens TaskSpace in a new tab
-const openTaskSpace = () => {
-  window.open("/taskspace", "_blank");
-};
+const openTaskSpace = () => window.open("/taskspace", "_blank");
 
 onMounted(() => setTimeout(() => (mounted.value = true), 100));
 
@@ -315,3 +547,12 @@ watch(
   },
 );
 </script>
+
+<style scoped>
+.nb-nav-active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--ink-primary) !important;
+  box-shadow: 2px 2px 0 var(--ink-primary);
+}
+</style>

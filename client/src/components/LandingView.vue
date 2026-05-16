@@ -1,64 +1,118 @@
 <template>
   <div
-    class="relative min-h-screen overflow-hidden bg-[#f5f0e8] font-['DM_Sans',sans-serif]"
+    style="
+      min-height: 100vh;
+      background: #f5f3ef;
+    "
   >
-    <!-- Noise texture via pseudo-element workaround: use a dedicated component or move to global CSS -->
-    <!-- Background orbs -->
-    <div
-      class="pointer-events-none absolute -right-20 -top-28 z-0 h-120 w-120 rounded-full"
-      style="
-        background: radial-gradient(
-          circle,
-          rgba(210, 140, 80, 0.18) 0%,
-          transparent 70%
-        );
-      "
-    />
-    <div
-      class="pointer-events-none absolute -bottom-16 -left-24 z-0 h-90 w-90 rounded-full"
-      style="
-        background: radial-gradient(
-          circle,
-          rgba(180, 100, 60, 0.12) 0%,
-          transparent 70%
-        );
-      "
-    />
-
     <!-- Nav -->
-    <nav class="relative z-10 flex items-center justify-between px-12 py-6">
+    <nav
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 3rem;
+        border-bottom: 2px solid #1a1714;
+      "
+    >
       <p
-        class="m-0 font-['Fraunces',serif] text-[22px] font-bold tracking-tight text-[#2c1f0e]"
+        style="
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: #1a1714;
+          letter-spacing: -0.03em;
+        "
       >
-        Task<span class="text-[#c2622a]">Quest</span>
+        Task<span style="color: var(--accent)">Quest</span>
       </p>
+      <span
+        style="
+          font-size: 0.65rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--ink-muted);
+        "
+      >
+        Gamified Productivity
+      </span>
     </nav>
 
     <!-- Hero -->
     <div
-      class="relative z-10 mx-auto grid min-h-[calc(100vh-80px)] max-w-275 grid-cols-2 items-center gap-12 px-12 pb-12 pt-8 max-[768px]:grid-cols-1 max-[768px]:px-6"
+      style="
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 4rem 3rem;
+        align-items: start;
+      "
     >
       <!-- Left -->
-      <div class="flex flex-col">
-        <!-- Badge -->
+      <div>
+        <!-- Label -->
         <div
-          class="mb-6 inline-flex w-fit animate-[fadeUp_0.5s_0.05s_ease_both] items-center gap-1.5 rounded-full border border-[rgba(194,98,42,0.25)] bg-[rgba(194,98,42,0.1)] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-widest text-[#a04a18]"
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid #1a1714;
+            box-shadow: 3px 3px 0 #1a1714;
+            margin-bottom: 1.5rem;
+          "
         >
           <span
-            class="h-1.5 w-1.5 animate-[pulse_2s_ease-in-out_infinite] rounded-full bg-[#c2622a]"
+            style="
+              width: 6px;
+              height: 6px;
+              background: #fff;
+              display: inline-block;
+            "
           />
           Gamified productivity
         </div>
 
         <h1
-          class="m-0 mb-5 animate-[fadeUp_0.5s_0.12s_ease_both] font-['Fraunces',serif] text-[56px] font-light leading-tight tracking-[-1.5px] text-[#1c1008] max-[768px]:text-[40px]"
+          style="
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #1a1714;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin: 0 0 1.25rem;
+          "
         >
           Turn your tasks<br />
-          into <em class="italic text-[#c2622a]">achievements</em>
+          into
+          <span
+            style="
+              color: var(--accent);
+              text-decoration: underline;
+              text-decoration-thickness: 3px;
+            "
+            >achievements</span
+          >
         </h1>
 
         <p
-          class="mb-8 max-w-105 animate-[fadeUp_0.5s_0.18s_ease_both] text-[15px] leading-[1.7] text-[#6b5540]"
+          style="
+            font-size: 1rem;
+            line-height: 1.65;
+            color: var(--ink-secondary);
+            max-width: 420px;
+            margin: 0 0 2rem;
+            font-weight: 500;
+          "
         >
           TaskQuest transforms your daily work into an adventure. Complete
           tasks, earn XP, level up, and build streaks that keep you motivated
@@ -67,105 +121,231 @@
 
         <!-- Feature pills -->
         <div
-          class="mb-10 flex animate-[fadeUp_0.5s_0.25s_ease_both] flex-wrap gap-2"
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 2.5rem;
+          "
         >
           <span
             v-for="f in features"
             :key="f"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[rgba(180,140,90,0.25)] bg-white/70 px-3.5 py-1.5 text-xs font-medium text-[#5a3e22]"
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 5px 12px;
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: #1a1714;
+              background: #fff;
+              border: 2px solid #1a1714;
+              letter-spacing: 0.02em;
+            "
           >
-            <span class="text-[11px] text-[#c2622a]">✓</span> {{ f }}
+            <span
+              style="color: var(--accent); font-size: 0.65rem; font-weight: 900"
+              >✓</span
+            >
+            {{ f }}
           </span>
         </div>
 
         <!-- Stats -->
-        <div class="flex animate-[fadeUp_0.5s_0.32s_ease_both] items-center">
+        <div style="display: flex; align-items: center; gap: 0">
           <div
             v-for="(stat, i) in stats"
             :key="stat.label"
-            class="flex items-center"
+            :style="{
+              borderLeft: i > 0 ? '2px solid #1a1714' : 'none',
+              paddingLeft: i > 0 ? '1.5rem' : '0',
+              marginLeft: i > 0 ? '1.5rem' : '0',
+            }"
           >
-            <div
-              v-if="i > 0"
-              class="mr-6 h-9 w-px shrink-0 bg-[rgba(180,140,90,0.25)]"
-            />
-            <div class="pr-6">
-              <p
-                class="m-0 mb-1 font-['Fraunces',serif] text-[28px] font-bold leading-none text-[#1c1008]"
-              >
-                {{ stat.value }}
-              </p>
-              <p
-                class="m-0 text-[11px] font-medium uppercase tracking-widest text-[#9e7a52]"
-              >
-                {{ stat.label }}
-              </p>
-            </div>
+            <p
+              style="
+                margin: 0 0 2px;
+                font-size: 2rem;
+                font-weight: 900;
+                color: #1a1714;
+                letter-spacing: -0.03em;
+                line-height: 1;
+              "
+            >
+              {{ stat.value }}
+            </p>
+            <p
+              style="
+                margin: 0;
+                font-size: 0.6rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--ink-muted);
+              "
+            >
+              {{ stat.label }}
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- Right — Card -->
-      <div class="animate-[fadeUp_0.5s_0.2s_ease_both]">
-        <div
-          class="rounded-3xl border border-[rgba(180,140,90,0.2)] bg-white/92 p-10 shadow-[0_24px_64px_rgba(60,30,10,0.1),0_2px_8px_rgba(60,30,10,0.04)] backdrop-blur-lg"
+      <!-- Right — Login Card -->
+      <div
+        style="
+          background: #fff;
+          border: 2px solid #1a1714;
+          box-shadow: 6px 6px 0 #1a1714;
+          padding: 2.5rem;
+        "
+      >
+        <p
+          style="
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--ink-muted);
+            margin: 0 0 1.5rem;
+          "
         >
-          <p
-            class="mb-7 text-center text-[11px] font-medium uppercase tracking-widest text-[#9e7a52]"
+          Start your quest
+        </p>
+
+        <GoogleLogin
+          :callback="handleGoogleLogin"
+          :auto-login="false"
+          prompt
+        />
+
+        <p
+          v-if="loading"
+          style="
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+            margin: 8px 0;
+            font-weight: 600;
+          "
+        >
+          Signing in...
+        </p>
+        <p
+          v-if="error"
+          style="
+            background: var(--danger-soft);
+            border: 1.5px solid var(--danger);
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            color: var(--danger);
+            margin: 8px 0;
+            font-weight: 600;
+            text-align: center;
+          "
+        >
+          {{ error }}
+        </p>
+
+        <!-- Divider -->
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 1.5rem 0;
+          "
+        >
+          <div style="flex: 1; height: 2px; background: #1a1714" />
+          <span
+            style="
+              font-size: 0.6rem;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: var(--ink-muted);
+              white-space: nowrap;
+            "
+            >What you unlock</span
           >
-            Start your quest
-          </p>
+          <div style="flex: 1; height: 2px; background: #1a1714" />
+        </div>
 
-          <GoogleLogin
-            :callback="handleGoogleLogin"
-            :auto-login="false"
-            prompt
-            class="mb-2 w-full"
-          />
-
-          <p v-if="loading" class="my-1 text-center text-xs text-[#9e7a52]">
-            Signing in...
-          </p>
-          <p
-            v-if="error"
-            class="my-1 rounded-lg bg-[rgba(194,98,42,0.08)] px-3 py-2 text-center text-xs text-[#c2622a]"
+        <!-- Perks -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+          "
+        >
+          <div
+            v-for="perk in perks"
+            :key="perk.title"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              padding: 10px 12px;
+              background: #f5f3ef;
+              border: 2px solid #1a1714;
+            "
           >
-            {{ error }}
-          </p>
-
-          <!-- Divider -->
-          <div class="my-5 flex items-center gap-3">
-            <div class="h-px flex-1 bg-[rgba(180,140,90,0.2)]" />
-            <span
-              class="whitespace-nowrap text-[11px] font-medium uppercase tracking-widest text-[#b8976a]"
-            >
-              What you unlock
-            </span>
-            <div class="h-px flex-1 bg-[rgba(180,140,90,0.2)]" />
-          </div>
-
-          <!-- Perks -->
-          <div class="mb-7 flex flex-col gap-2.5">
             <div
-              v-for="perk in perks"
-              :key="perk.title"
-              class="flex items-center gap-3 rounded-[10px] border border-[rgba(180,140,90,0.12)] bg-[#faf7f2] px-3.5 py-3"
+              style="
+                width: 34px;
+                height: 34px;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                border: 2px solid #1a1714;
+                background: #fff;
+              "
             >
-              <div
-                class="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg text-base"
-                :class="perk.iconBg"
+              {{ perk.icon }}
+            </div>
+            <div>
+              <p
+                style="
+                  margin: 0 0 2px;
+                  font-size: 0.8rem;
+                  font-weight: 700;
+                  color: #1a1714;
+                "
               >
-                {{ perk.icon }}
-              </div>
-              <div>
-                <div class="mb-0.5 text-[13px] font-medium text-[#2c1f0e]">
-                  {{ perk.title }}
-                </div>
-                <div class="text-[11px] text-[#9e7a52]">{{ perk.sub }}</div>
-              </div>
+                {{ perk.title }}
+              </p>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 0.7rem;
+                  color: var(--ink-muted);
+                  font-weight: 500;
+                "
+              >
+                {{ perk.sub }}
+              </p>
             </div>
           </div>
         </div>
+
+        <p
+          style="
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--ink-muted);
+            margin: 0;
+            border-top: 2px solid #e8e4de;
+            padding-top: 1rem;
+          "
+        >
+          Free forever. No credit card required.
+        </p>
       </div>
     </div>
   </div>
@@ -201,19 +381,16 @@ const stats = [
 const perks = [
   {
     icon: "⚡",
-    iconBg: "bg-[rgba(194,98,42,0.1)]",
     title: "Earn XP for every task",
     sub: "Track progress and level up over time",
   },
   {
     icon: "🔥",
-    iconBg: "bg-[rgba(220,120,40,0.1)]",
     title: "Build daily streaks",
     sub: "Stay consistent and watch your streak grow",
   },
   {
     icon: "🏆",
-    iconBg: "bg-[rgba(160,80,20,0.1)]",
     title: "Unlock achievements",
     sub: "Reach milestones and earn badges",
   },
