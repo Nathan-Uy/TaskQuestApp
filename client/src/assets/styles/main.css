@@ -1,34 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens ──────────────────────────────────────────────────────────── */
 :root {
   /* Surfaces */
-  --surface-bg:      #f7f6f3;
+  --surface-bg: transparent;
   --surface-card:    #ffffff;
-  --surface-hover:   #f0ede8;
-  --surface-border:  #e8e4de;
-  --surface-muted:   #f2efe9;
+  --surface-hover:   #ede9e2;
+  --surface-border:  #1a1714;
+  --surface-muted:   #f0ede8;
 
   /* Ink */
   --ink-primary:     #1a1714;
-  --ink-secondary:   #6b6560;
-  --ink-muted:       #a09890;
+  --ink-secondary:   #4a4642;
+  --ink-muted:       #7a7570;
   --ink-inverse:     #ffffff;
 
   /* Cards */
   --card-bg:         #ffffff;
-  --card-border:     #e7e5e4;
+  --card-border:     #1a1714;
 
   /* Inputs */
   --input-bg:        #ffffff;
-  --input-border:    #d6d3d1;
+  --input-border:    #1a1714;
   --input-text:      #1a1714;
 
   /* Sidebar */
   --sidebar-bg:      #ffffff;
-  --sidebar-border:  #e7e5e4;
-  --nav-hover:       #f5f5f4;
+  --sidebar-border:  #1a1714;
+  --nav-hover:       #f0ede8;
 
   /* Accent */
   --accent:          #c2622a;
@@ -45,23 +45,22 @@
   --xp:              #7c5cbf;
   --xp-soft:         #f0ebfb;
 
-  /* Radii */
-  --radius-sm:       6px;
-  --radius-md:       12px;
-  --radius-lg:       18px;
-  --radius-xl:       24px;
+  /* Neo-brutalist — no radius, hard shadows */
+  --radius-sm:       0px;
+  --radius-md:       0px;
+  --radius-lg:       0px;
+  --radius-xl:       0px;
 
-  /* Shadows */
-  --shadow-xs:       0 1px 2px rgba(26,23,20,0.06);
-  --shadow-sm:       0 2px 8px rgba(26,23,20,0.08);
-  --shadow-md:       0 4px 20px rgba(26,23,20,0.10);
-  --shadow-lg:       0 8px 40px rgba(26,23,20,0.12);
+  --nb-border:       2px solid #1a1714;
+  --nb-shadow:       3px 3px 0 #1a1714;
+  --nb-shadow-lg:    5px 5px 0 #1a1714;
+  --nb-shadow-hover: 1px 1px 0 #1a1714;
 
-  /* Motion */
+  /* Motion — snappier for brutalism */
   --ease:            cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --duration-fast:   120ms;
-  --duration-normal: 220ms;
-  --duration-slow:   380ms;
+  --duration-fast:   80ms;
+  --duration-normal: 150ms;
+  --duration-slow:   250ms;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
@@ -71,42 +70,45 @@ html {
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
-  box-sizing: inherit;
-}
+*, *::before, *::after { box-sizing: inherit; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--surface-bg);
+  font-family: 'Space Grotesk', sans-serif;
   color: var(--ink-primary);
   line-height: 1.6;
-  transition: background 0.2s ease, color 0.2s ease;
+  background-color: #f0eeea;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect x='10' y='10' width='2.5' height='2.5' rx='0.5' fill='%231a1714' fill-opacity='0.18'/%3E%3C/svg%3E");
+  background-size: 24px 24px;
+  background-attachment: fixed;
 }
 
 h1, h2, h3, h4 {
-  font-family: 'DM Serif Display', serif;
-  font-weight: 400;
-  line-height: 1.2;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  line-height: 1.1;
   color: var(--ink-primary);
+  letter-spacing: -0.02em;
 }
 
-/* Subtle transitions on interactive elements */
 body, aside, main, nav, div, section, button, input, textarea, select, a {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background-color var(--duration-fast) var(--ease),
+              border-color var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease),
+              color var(--duration-fast) var(--ease);
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }
+::-webkit-scrollbar-thumb { background: var(--ink-primary); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ─── Utility Classes ────────────────────────────────────────────────────────── */
 .card {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
+  border: var(--nb-border);
+  box-shadow: var(--nb-shadow);
+  border-radius: 0;
 }
 
 .btn {
@@ -114,54 +116,65 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-family: 'DM Sans', sans-serif;
+  padding: 10px 18px;
+  border-radius: 0;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
-  font-weight: 500;
-  border: none;
+  font-weight: 700;
+  border: var(--nb-border);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease);
   white-space: nowrap;
+  box-shadow: var(--nb-shadow);
+  letter-spacing: 0.01em;
 }
 
-.btn-primary { background: var(--accent); color: var(--ink-inverse); }
-.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary {
+  background: var(--accent);
+  color: var(--ink-inverse);
+}
+.btn-primary:hover {
+  transform: translate(2px, 2px);
+  box-shadow: var(--nb-shadow-hover);
+}
+.btn-primary:active { transform: translate(3px, 3px); box-shadow: none; }
 
-.btn-ghost { background: transparent; color: var(--ink-secondary); border: 1px solid var(--surface-border); }
-.btn-ghost:hover { background: var(--surface-hover); color: var(--ink-primary); }
-
-.btn-icon { padding: 8px; border-radius: var(--radius-sm); }
+.btn-ghost {
+  background: var(--surface-card);
+  color: var(--ink-primary);
+}
+.btn-ghost:hover {
+  background: var(--surface-hover);
+  transform: translate(2px, 2px);
+  box-shadow: var(--nb-shadow-hover);
+}
 
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1.5px solid currentColor;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.badge-accent  { background: var(--accent-soft);  color: var(--accent);  }
-.badge-xp      { background: var(--xp-soft);       color: var(--xp);      }
-.badge-success { background: var(--success-soft);  color: var(--success); }
-.badge-warning { background: var(--warning-soft);  color: var(--warning); }
+.badge-accent  { background: var(--accent-soft);  color: var(--accent);  border-color: var(--accent); }
+.badge-xp      { background: var(--xp-soft);       color: var(--xp);      border-color: var(--xp); }
+.badge-success { background: var(--success-soft);  color: var(--success); border-color: var(--success); }
+.badge-warning { background: var(--warning-soft);  color: var(--warning); border-color: var(--warning); }
 
 /* ─── Page Transitions ───────────────────────────────────────────────────────── */
-.page-enter-active,
-.page-leave-active {
+.page-enter-active, .page-leave-active {
   transition: opacity var(--duration-normal) var(--ease), transform var(--duration-normal) var(--ease);
 }
-.page-enter-from { opacity: 0; transform: translateY(6px); }
+.page-enter-from { opacity: 0; transform: translateY(4px); }
 .page-leave-to   { opacity: 0; transform: translateY(-4px); }
 
 /* ─── Landing ────────────────────────────────────────────────────────────────── */
-.landing-bg {
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(194, 98, 42, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(194, 98, 42, 0.05) 0%, transparent 50%);
-}
+.landing-bg { background: var(--surface-bg); }
 
 /* ─── Empty State ────────────────────────────────────────────────────────────── */
 .report-empty-state {
@@ -174,97 +187,108 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   PrimeVue Overrides
+   PrimeVue Overrides — Neo-Brutalist
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Base Component ─────────────────────────────────────────────────────────── */
 .p-component {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   color: var(--ink-primary);
 }
 
 /* ─── Button ─────────────────────────────────────────────────────────────────── */
 .p-button {
-  border-radius: var(--radius-md) !important;
-  font-weight: 600 !important;
+  border-radius: 0 !important;
+  font-weight: 700 !important;
   font-size: 0.875rem !important;
-  box-shadow: none !important;
+  border: var(--nb-border) !important;
+  box-shadow: var(--nb-shadow) !important;
   transition: all var(--duration-fast) var(--ease) !important;
+  letter-spacing: 0.01em;
+}
+
+.p-button:hover {
+  transform: translate(2px, 2px) !important;
+  box-shadow: var(--nb-shadow-hover) !important;
+}
+
+.p-button:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: none !important;
 }
 
 .p-button:focus {
-  box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.15) !important;
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: var(--nb-shadow) !important;
 }
 
 /* Primary */
 .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary) {
   background: var(--accent) !important;
-  border-color: var(--accent) !important;
+  border-color: var(--ink-primary) !important;
   color: var(--ink-inverse) !important;
-}
-.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):hover {
-  background: var(--accent-hover) !important;
-  border-color: var(--accent-hover) !important;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm) !important;
 }
 
 /* Secondary / Outlined */
 .p-button.p-button-secondary,
 .p-button.p-button-outlined {
   background: var(--surface-card) !important;
-  border: 1px solid var(--surface-border) !important;
-  color: var(--ink-secondary) !important;
+  border: var(--nb-border) !important;
+  color: var(--ink-primary) !important;
 }
 .p-button.p-button-secondary:hover,
 .p-button.p-button-outlined:hover {
   background: var(--surface-hover) !important;
-  color: var(--ink-primary) !important;
 }
 
-/* Text */
+/* Text — minimal style, no shadow */
 .p-button.p-button-text {
   background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
   color: var(--ink-secondary) !important;
 }
 .p-button.p-button-text:hover {
   background: var(--surface-hover) !important;
-  color: var(--ink-primary) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.p-button.p-button-text:active {
+  transform: none !important;
 }
 
-/* Icon only */
 .p-button.p-button-icon-only {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
-/* ─── Inputs (Text, Number, Textarea) ────────────────────────────────────────── */
+/* ─── Inputs ─────────────────────────────────────────────────────────────────── */
 .p-inputtext,
 .p-inputnumber-input,
 .p-textarea {
   background: var(--input-bg) !important;
-  border: 1px solid var(--input-border) !important;
+  border: var(--nb-border) !important;
   color: var(--input-text) !important;
-  border-radius: var(--radius-md) !important;
+  border-radius: 0 !important;
   font-size: 0.875rem !important;
+  font-weight: 500 !important;
   padding: 0.75rem 0.875rem !important;
-  box-shadow: none !important;
-  transition: border-color var(--duration-fast) var(--ease),
-              box-shadow var(--duration-fast) var(--ease) !important;
+  box-shadow: var(--nb-shadow) !important;
+  transition: all var(--duration-fast) var(--ease) !important;
 }
 
 .p-inputtext:enabled:hover,
 .p-inputnumber-input:enabled:hover,
 .p-textarea:enabled:hover {
-  border-color: var(--ink-muted) !important;
+  border-color: var(--ink-primary) !important;
+  box-shadow: var(--nb-shadow-lg) !important;
 }
 
 .p-inputtext:enabled:focus,
 .p-inputnumber-input:enabled:focus,
 .p-textarea:enabled:focus {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px rgba(194, 98, 42, 0.12) !important;
+  box-shadow: var(--nb-shadow-lg) !important;
   outline: none !important;
 }
 
@@ -272,33 +296,29 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 .p-inputnumber-input::placeholder,
 .p-textarea::placeholder {
   color: var(--ink-muted) !important;
+  font-weight: 400 !important;
 }
 
-.p-textarea {
-  resize: vertical;
-  min-height: 90px;
-}
+.p-textarea { resize: vertical; min-height: 90px; }
 
-/* ─── Select / Multiselect / Datepicker (wrapper) ────────────────────────────── */
+/* ─── Select / Multiselect / Datepicker ──────────────────────────────────────── */
 .p-select,
 .p-multiselect,
 .p-datepicker {
   width: 100%;
   min-height: 44px;
   background: var(--input-bg) !important;
-  border: 1px solid var(--input-border) !important;
-  border-radius: var(--radius-md) !important;
-  box-shadow: none !important;
-  transition: border-color var(--duration-fast) var(--ease) !important;
+  border: var(--nb-border) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--nb-shadow) !important;
 }
 
 .p-select:not(.p-disabled):hover,
 .p-multiselect:not(.p-disabled):hover,
 .p-datepicker:not(.p-disabled):hover {
-  border-color: var(--ink-muted) !important;
+  box-shadow: var(--nb-shadow-lg) !important;
 }
 
-/* Remove all focus rings on select wrapper — we style only the border */
 .p-select:focus,
 .p-select:focus-within,
 .p-select.p-focus,
@@ -312,11 +332,10 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 .p-inputwrapper:focus-within,
 .p-inputwrapper.p-focus {
   outline: none !important;
-  box-shadow: none !important;
-  border-color: var(--input-border) !important;
+  box-shadow: var(--nb-shadow) !important;
+  border-color: var(--ink-primary) !important;
 }
 
-/* Label inside select */
 .p-select-label,
 .p-multiselect-label,
 .p-datepicker-input {
@@ -324,18 +343,18 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
   border: none !important;
   color: var(--input-text) !important;
   font-size: 0.875rem !important;
+  font-weight: 500 !important;
   padding: 0.75rem 0.875rem !important;
   box-shadow: none !important;
 }
 
-/* Dropdown icon */
 .p-select-dropdown,
 .p-multiselect-dropdown,
 .p-datepicker-trigger {
-  color: var(--ink-muted) !important;
+  color: var(--ink-primary) !important;
 }
 
-/* ─── Select / Multiselect Overlay (dropdown panel) ──────────────────────────── */
+/* Overlay panels */
 .p-select-overlay,
 .p-multiselect-overlay,
 .p-datepicker-panel,
@@ -345,13 +364,12 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 .p-tieredmenu,
 .p-overlaypanel {
   background: var(--surface-card) !important;
-  border: 1px solid var(--surface-border) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-md) !important;
+  border: var(--nb-border) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--nb-shadow-lg) !important;
   overflow: hidden;
 }
 
-/* List container */
 .p-select-list,
 .p-multiselect-list {
   padding: 4px !important;
@@ -360,13 +378,13 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
   gap: 2px;
 }
 
-/* Options */
 .p-select-option,
 .p-multiselect-option {
   padding: 0.75rem 0.875rem !important;
   font-size: 0.875rem !important;
+  font-weight: 500 !important;
   color: var(--ink-primary) !important;
-  border-radius: var(--radius-md) !important;
+  border-radius: 0 !important;
   transition: background var(--duration-fast) var(--ease) !important;
 }
 
@@ -377,106 +395,20 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 
 .p-select-option.p-select-option-selected,
 .p-multiselect-option.p-multiselect-option-selected {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  font-weight: 600;
+  background: var(--accent) !important;
+  color: var(--ink-inverse) !important;
+  font-weight: 700 !important;
 }
 
 /* ─── Card ───────────────────────────────────────────────────────────────────── */
 .p-card {
   background: var(--card-bg) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-xs) !important;
+  border: var(--nb-border) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--nb-shadow) !important;
 }
 
-.p-card .p-card-body {
-  padding: 1.25rem !important;
-}
-
-/* ─── Tab Menu ───────────────────────────────────────────────────────────────── */
-.p-tabmenu {
-  background: transparent !important;
-  border: none !important;
-}
-
-.p-tabmenu .p-tabmenu-nav {
-  background: var(--surface-muted) !important;
-  border: none !important;
-  border-radius: 12px !important;
-  padding: 4px !important;
-  gap: 4px;
-}
-
-.p-tabmenu .p-tabmenuitem .p-menuitem-link {
-  border-radius: 10px !important;
-  padding: 0.5rem 0.9rem !important;
-  border: none !important;
-  background: transparent !important;
-  color: var(--ink-muted) !important;
-  transition: all var(--duration-fast) var(--ease) !important;
-}
-
-.p-tabmenu .p-tabmenuitem.p-highlight .p-menuitem-link {
-  background: var(--surface-card) !important;
-  color: var(--ink-primary) !important;
-  box-shadow: var(--shadow-xs) !important;
-}
-
-.p-tabmenu .p-tabmenuitem:not(.p-highlight) .p-menuitem-link:hover {
-  color: var(--ink-secondary) !important;
-}
-
-/* ─── Progress Bar ───────────────────────────────────────────────────────────── */
-.p-progressbar {
-  background: var(--surface-muted) !important;
-  border-radius: 999px !important;
-  overflow: hidden !important;
-  height: 8px !important;
-}
-
-.p-progressbar .p-progressbar-value {
-  background: var(--accent) !important;
-}
-
-/* ─── Tag ────────────────────────────────────────────────────────────────────── */
-.p-tag {
-  border-radius: 10px !important;
-  font-size: 0.72rem !important;
-  font-weight: 600 !important;
-  padding: 0.2rem 0.55rem !important;
-}
-
-/* ─── Checkbox / Radio ───────────────────────────────────────────────────────── */
-.p-checkbox .p-checkbox-box,
-.p-radiobutton .p-radiobutton-box {
-  border-radius: 8px !important;
-  border-color: var(--input-border) !important;
-}
-
-.p-checkbox .p-checkbox-box.p-highlight,
-.p-radiobutton .p-radiobutton-box.p-highlight {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-
-/* ─── Divider ────────────────────────────────────────────────────────────────── */
-.p-divider.p-divider-horizontal:before {
-  border-top: 1px solid var(--surface-border) !important;
-}
-
-/* ─── Skeleton ───────────────────────────────────────────────────────────────── */
-.p-skeleton {
-  background: var(--surface-muted) !important;
-}
-
-/* ─── Message / Panel / Fieldset ─────────────────────────────────────────────── */
-.p-message,
-.p-panel,
-.p-fieldset {
-  border-radius: var(--radius-lg) !important;
-  border-color: var(--surface-border) !important;
-}
+.p-card .p-card-body { padding: 1.25rem !important; }
 
 /* ─── Dialog ─────────────────────────────────────────────────────────────────── */
 .p-dialog .p-dialog-header,
@@ -487,25 +419,100 @@ body, aside, main, nav, div, section, button, input, textarea, select, a {
 }
 
 .p-dialog .p-dialog-header {
-  border-bottom: 1px solid var(--surface-border) !important;
+  border-bottom: var(--nb-border) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em ;
 }
 
 .p-dialog .p-dialog-footer {
-  border-top: 1px solid var(--surface-border) !important;
+  border-top: var(--nb-border) !important;
 }
 
-/* ─── DataTable ──────────────────────────────────────────────────────────────── */
-.p-datatable {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+/* ─── Tab Menu ───────────────────────────────────────────────────────────────── */
+.p-tabmenu { background: transparent !important; border: none !important; }
+
+.p-tabmenu .p-tabmenu-nav {
+  background: var(--surface-card) !important;
+  border: var(--nb-border) !important;
+  border-radius: 0 !important;
+  padding: 4px !important;
+  gap: 4px;
+  box-shadow: var(--nb-shadow) !important;
 }
+
+.p-tabmenu .p-tabmenuitem .p-menuitem-link {
+  border-radius: 0 !important;
+  padding: 0.5rem 0.9rem !important;
+  border: 2px solid transparent !important;
+  background: transparent !important;
+  color: var(--ink-muted) !important;
+  font-weight: 600 !important;
+  transition: all var(--duration-fast) var(--ease) !important;
+}
+
+.p-tabmenu .p-tabmenuitem.p-highlight .p-menuitem-link {
+  background: var(--accent) !important;
+  color: var(--ink-inverse) !important;
+  border-color: var(--ink-primary) !important;
+  box-shadow: var(--nb-shadow) !important;
+}
+
+/* ─── Progress Bar ───────────────────────────────────────────────────────────── */
+.p-progressbar {
+  background: var(--surface-muted) !important;
+  border-radius: 0 !important;
+  border: 1.5px solid var(--ink-primary) !important;
+  overflow: hidden !important;
+  height: 10px !important;
+}
+
+.p-progressbar .p-progressbar-value { background: var(--accent) !important; }
+
+/* ─── Tag ────────────────────────────────────────────────────────────────────── */
+.p-tag {
+  border-radius: 0 !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  padding: 0.2rem 0.5rem !important;
+  border: 1.5px solid currentColor !important;
+  letter-spacing: 0.03em;
+  text-transform: uppercase !important;
+}
+
+/* ─── Checkbox / Radio ───────────────────────────────────────────────────────── */
+.p-checkbox .p-checkbox-box,
+.p-radiobutton .p-radiobutton-box {
+  border-radius: 0 !important;
+  border: var(--nb-border) !important;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight,
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background: var(--accent) !important;
+  border-color: var(--ink-primary) !important;
+}
+
+/* ─── Misc ───────────────────────────────────────────────────────────────────── */
+.p-divider.p-divider-horizontal:before {
+  border-top: 2px solid var(--ink-primary) !important;
+}
+
+.p-skeleton { background: var(--surface-muted) !important; border-radius: 0 !important; }
+
+.p-message, .p-panel, .p-fieldset {
+  border-radius: 0 !important;
+  border: var(--nb-border) !important;
+  box-shadow: var(--nb-shadow) !important;
+}
+
+.p-datatable { border-radius: 0; overflow: hidden; border: var(--nb-border); }
 
 .p-datatable .p-datatable-header,
 .p-datatable .p-datatable-thead > tr > th,
 .p-datatable .p-datatable-tbody > tr > td {
   background: var(--surface-card) !important;
   color: var(--ink-primary) !important;
-  border-color: var(--surface-border) !important;
+  border-color: var(--ink-primary) !important;
 }
 
 .p-datatable .p-datatable-tbody > tr:hover {

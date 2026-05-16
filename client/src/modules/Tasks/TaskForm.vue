@@ -3,8 +3,13 @@
     <div class="flex flex-col gap-1.5">
       <label
         for="title"
-        class="text-stone-500 font-medium"
-        style="font-size: 0.75rem"
+        style="
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: var(--ink-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        "
       >
         Task name
       </label>
@@ -24,8 +29,13 @@
       <div class="flex flex-col gap-1.5">
         <label
           for="priority"
-          class="text-stone-500 font-medium"
-          style="font-size: 0.75rem"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
         >
           Priority
         </label>
@@ -35,18 +45,19 @@
           option-label="label"
           option-value="value"
           class="w-full"
-          :pt="{
-            listContainer: { class: 'p-1' },
-            list: { class: 'flex flex-col gap-0.5' },
-          }"
         />
       </div>
 
       <div class="flex flex-col gap-1.5">
         <label
           for="duration"
-          class="text-stone-500 font-medium"
-          style="font-size: 0.75rem"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
         >
           Duration
         </label>
@@ -55,24 +66,42 @@
             v-for="preset in durationPresets"
             :key="preset.value"
             type="button"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150',
-              selectedDuration === preset.value
-                ? 'bg-(--accent) text-white border-transparent'
-                : 'bg-stone-50 text-stone-500 border-stone-200 hover:border-stone-300',
-            ]"
+            :style="{
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: '800',
+              border: '2px solid var(--ink-primary)',
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+              background:
+                selectedDuration === preset.value ? 'var(--accent)' : '#fff',
+              color:
+                selectedDuration === preset.value
+                  ? '#fff'
+                  : 'var(--ink-primary)',
+              boxShadow:
+                selectedDuration === preset.value
+                  ? '2px 2px 0 var(--ink-primary)'
+                  : '2px 2px 0 var(--ink-primary)',
+              transition: 'all 80ms ease',
+            }"
             @click="selectDuration(preset.value)"
           >
             {{ preset.label }}
           </button>
           <button
             type="button"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150',
-              showCustom
-                ? 'bg-(--accent) text-white border-transparent'
-                : 'bg-stone-50 text-stone-500 border-stone-200 hover:border-stone-300',
-            ]"
+            :style="{
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: '800',
+              border: '2px solid var(--ink-primary)',
+              cursor: 'pointer',
+              background: showCustom ? 'var(--ink-primary)' : '#fff',
+              color: showCustom ? '#fff' : 'var(--ink-primary)',
+              boxShadow: '2px 2px 0 var(--ink-primary)',
+              transition: 'all 80ms ease',
+            }"
             @click="showCustom = !showCustom"
           >
             Custom
@@ -87,7 +116,15 @@
             class="w-full"
             input-class="w-full text-center text-sm"
           />
-          <span class="text-stone-400 text-xs shrink-0">h</span>
+          <span
+            style="
+              color: var(--ink-muted);
+              font-size: 0.75rem;
+              font-weight: 700;
+              flex-shrink: 0;
+            "
+            >h</span
+          >
           <InputNumber
             v-model="form.minutes"
             :min="0"
@@ -97,18 +134,40 @@
             class="w-full"
             input-class="w-full text-center text-sm"
           />
-          <span class="text-stone-400 text-xs shrink-0">m</span>
+          <span
+            style="
+              color: var(--ink-muted);
+              font-size: 0.75rem;
+              font-weight: 700;
+              flex-shrink: 0;
+            "
+            >m</span
+          >
         </div>
       </div>
     </div>
 
     <div class="flex flex-col gap-1.5">
       <label
-        for="dueDate"
-        class="text-stone-500 font-medium"
-        style="font-size: 0.75rem"
+        for="due_date"
+        style="
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: var(--ink-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        "
       >
-        Due date <span class="font-normal text-stone-400">(optional)</span>
+        Due date
+        <span
+          style="
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--ink-muted);
+          "
+          >(optional)</span
+        >
       </label>
       <DatePicker
         v-model="form.dueDate"
@@ -123,10 +182,24 @@
     <div class="flex flex-col gap-1.5">
       <label
         for="notes"
-        class="text-stone-500 font-medium"
-        style="font-size: 0.75rem"
+        style="
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: var(--ink-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        "
       >
-        Notes <span class="font-normal text-stone-400">(optional)</span>
+        Notes
+        <span
+          style="
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--ink-muted);
+          "
+          >(optional)</span
+        >
       </label>
       <Textarea
         v-model="form.notes"
@@ -136,7 +209,15 @@
       />
     </div>
 
-    <div class="flex justify-end" style="gap: 8px">
+    <div
+      class="flex justify-end"
+      style="
+        gap: 8px;
+        border-top: 2px solid var(--surface-muted);
+        padding-top: 16px;
+        margin-top: 4px;
+      "
+    >
       <Button
         label="Cancel"
         severity="secondary"
@@ -146,7 +227,7 @@
       <Button
         :label="submitLabel"
         :disabled="!form.title.trim() || loading"
-        class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+        style="background: var(--accent); color: #fff; font-weight: 800"
         @click="emit('submit')"
       />
     </div>

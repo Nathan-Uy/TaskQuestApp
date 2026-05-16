@@ -4,20 +4,33 @@
     <div class="flex items-center justify-between">
       <div>
         <h1
-          class="font-serif text-3xl leading-tight"
-          style="color: var(--ink-primary)"
+          style="
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--ink-primary);
+            line-height: 1;
+            margin: 0;
+          "
         >
           {{ project?.name || "Project" }} Teams
         </h1>
-        <p class="text-xs mt-1" style="color: var(--ink-muted)">
+        <p
+          style="
+            font-size: 0.75rem;
+            margin-top: 6px;
+            color: var(--ink-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
+        >
           Organize your team members and manage collaboration
         </p>
       </div>
-
       <Button
-        label="Create Team"
-        icon="pi pi-plus"
-        class="bg-(--accent)! border-none! rounded-[10px]! text-sm! font-semibold! shadow-sm! hover:shadow-md! hover:-translate-y-px! transition-all! duration-150!"
+        label="+ Create Team"
+        style="font-weight: 800"
         @click="openCreateDialog()"
       />
     </div>
@@ -25,31 +38,52 @@
     <!-- Loading -->
     <div
       v-if="isLoading || isProjectLoading"
-      class="flex items-center justify-center py-20"
+      style="display: flex; justify-content: center; padding: 5rem 0"
     >
       <i
-        class="pi pi-spinner pi-spin text-2xl"
-        style="color: var(--ink-muted)"
+        class="pi pi-spinner pi-spin"
+        style="font-size: 1.5rem; color: var(--ink-muted)"
       />
     </div>
 
-    <!-- Empty State -->
+    <!-- Empty -->
     <div
       v-else-if="!teams?.length"
-      class="rounded-2xl border border-dashed flex flex-col items-center justify-center py-20 gap-3"
-      style="border-color: var(--card-border)"
+      style="
+        border: 2px dashed var(--ink-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5rem 2rem;
+        gap: 12px;
+        text-align: center;
+      "
     >
-      <i class="pi pi-users text-3xl" style="color: var(--ink-muted)" />
-      <p class="text-sm font-medium" style="color: var(--ink-secondary)">
+      <i class="pi pi-users" style="font-size: 2rem; color: var(--ink-muted)" />
+      <p
+        style="
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: var(--ink-secondary);
+          margin: 0;
+        "
+      >
         No teams yet
       </p>
-      <p class="text-xs" style="color: var(--ink-muted)">
+      <p
+        style="
+          font-size: 0.75rem;
+          color: var(--ink-muted);
+          margin: 0;
+          font-weight: 500;
+        "
+      >
         Create a team to start organizing members and tasks
       </p>
       <Button
-        label="Create your first team"
-        icon="pi pi-plus"
-        class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold! mt-2!"
+        label="+ Create your first team"
+        style="font-weight: 800; margin-top: 8px"
         @click="openCreateDialog()"
       />
     </div>
@@ -62,41 +96,101 @@
       <div
         v-for="team in teams"
         :key="team._id"
-        class="group relative rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
-        :class="{
-          'ring-2 ring-(--accent) shadow-md': selectedTeamId === team._id,
+        class="group relative overflow-hidden cursor-pointer transition-all duration-100"
+        :style="{
+          ...getTeamCardStyle(team._id),
+          border:
+            selectedTeamId === team._id
+              ? '3px solid var(--accent)'
+              : '2px solid var(--ink-primary)',
+          boxShadow:
+            selectedTeamId === team._id
+              ? '5px 5px 0 var(--accent)'
+              : '4px 4px 0 var(--ink-primary)',
+          background: getTeamCardStyle(team._id).background || 'var(--card-bg)',
         }"
-        :style="getTeamCardStyle(team._id)"
+        @mouseenter="
+          ($event.currentTarget as HTMLElement).style.transform =
+            'translate(-2px,-2px)';
+          ($event.currentTarget as HTMLElement).style.boxShadow =
+            selectedTeamId === team._id
+              ? '7px 7px 0 var(--accent)'
+              : '6px 6px 0 var(--ink-primary)';
+        "
+        @mouseleave="
+          ($event.currentTarget as HTMLElement).style.transform = 'none';
+          ($event.currentTarget as HTMLElement).style.boxShadow =
+            selectedTeamId === team._id
+              ? '5px 5px 0 var(--accent)'
+              : '4px 4px 0 var(--ink-primary)';
+        "
         @click="selectTeam(team._id)"
       >
         <!-- Cover -->
-        <div v-if="getTeamCover(team._id)" class="h-24 overflow-hidden">
+        <div
+          v-if="getTeamCover(team._id)"
+          style="
+            height: 96px;
+            overflow: hidden;
+            border-bottom: 2px solid var(--ink-primary);
+          "
+        >
           <img
             :src="getTeamCover(team._id)!"
-            class="w-full h-full object-cover"
+            style="width: 100%; height: 100%; object-fit: cover"
+            :alt="team.name"
           />
         </div>
 
         <!-- Content -->
-        <div class="p-4">
+        <div style="padding: 14px 16px">
           <p
-            class="font-semibold text-sm leading-snug mb-1 truncate"
-            style="color: var(--ink-primary)"
+            style="
+              font-size: 0.875rem;
+              font-weight: 800;
+              color: var(--ink-primary);
+              margin: 0 0 4px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              letter-spacing: -0.01em;
+            "
           >
             {{ team.name }}
           </p>
-
           <p
             v-if="team.description"
-            class="text-xs truncate"
-            style="color: var(--ink-muted)"
+            style="
+              font-size: 0.75rem;
+              color: var(--ink-muted);
+              margin: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-weight: 500;
+            "
           >
             {{ team.description }}
           </p>
-
-          <div class="flex items-center gap-1 mt-3">
-            <i class="pi pi-users text-xs" style="color: var(--ink-muted)" />
-            <span class="text-xs" style="color: var(--ink-muted)">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              margin-top: 10px;
+            "
+          >
+            <i
+              class="pi pi-users"
+              style="font-size: 0.65rem; color: var(--ink-muted)"
+            />
+            <span
+              style="
+                font-size: 0.7rem;
+                color: var(--ink-muted);
+                font-weight: 700;
+              "
+            >
               {{ team.members?.length ?? 0 }} member{{
                 (team.members?.length ?? 0) !== 1 ? "s" : ""
               }}
@@ -104,31 +198,88 @@
           </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Action buttons — always visible, no opacity trick -->
         <div
-          class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex gap-1"
+          style="
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 80ms ease;
+          "
+          class="group-hover:opacity-100"
         >
-          <Button
-            icon="pi pi-palette"
-            text
-            rounded
-            class="w-7! h-7! bg-white/80!"
+          <button
+            style="
+              width: 28px;
+              height: 28px;
+              background: #fff;
+              border: 2px solid var(--ink-primary);
+              box-shadow: 2px 2px 0 var(--ink-primary);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 80ms ease;
+            "
+            title="Customize appearance"
+            @mouseenter="
+              ($event.currentTarget as HTMLElement).style.transform =
+                'translate(1px,1px)';
+              ($event.currentTarget as HTMLElement).style.boxShadow =
+                '1px 1px 0 var(--ink-primary)';
+            "
+            @mouseleave="
+              ($event.currentTarget as HTMLElement).style.transform = 'none';
+              ($event.currentTarget as HTMLElement).style.boxShadow =
+                '2px 2px 0 var(--ink-primary)';
+            "
             @click.stop="openCustomizeDialog(team)"
-          />
-          <Button
-            icon="pi pi-arrow-right"
-            text
-            rounded
-            class="w-7! h-7! bg-white/80!"
+          >
+            <i
+              class="pi pi-palette"
+              style="font-size: 0.75rem; color: var(--ink-primary)"
+            />
+          </button>
+          <button
+            style="
+              width: 28px;
+              height: 28px;
+              background: var(--accent);
+              border: 2px solid var(--ink-primary);
+              box-shadow: 2px 2px 0 var(--ink-primary);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 80ms ease;
+            "
+            title="Open team"
+            @mouseenter="
+              ($event.currentTarget as HTMLElement).style.transform =
+                'translate(1px,1px)';
+              ($event.currentTarget as HTMLElement).style.boxShadow =
+                '1px 1px 0 var(--ink-primary)';
+            "
+            @mouseleave="
+              ($event.currentTarget as HTMLElement).style.transform = 'none';
+              ($event.currentTarget as HTMLElement).style.boxShadow =
+                '2px 2px 0 var(--ink-primary)';
+            "
             @click.stop="selectTeam(team._id)"
-          />
+          >
+            <i
+              class="pi pi-arrow-right"
+              style="font-size: 0.75rem; color: #fff"
+            />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Dialogs -->
     <CreateTeamDialog v-model="showCreateDialog" @create="handleCreateTeam" />
-
     <CustomizeAppearanceDialog
       v-model="showCustomizeDialog"
       :team="customizingTeam"
@@ -170,26 +321,15 @@ const {
   selectedTeamId,
 } = useTeamView();
 
-// Fetch current project info
 const { data: project, isLoading: isProjectLoading } = useProject(projectId);
 
-/**
- * Card style helper
- */
 const getTeamCardStyle = (teamId: string) => {
   const tileStyle = getTileStyle(teamId);
-
   return {
     ...tileStyle,
-    borderColor: "var(--card-border)",
     background: tileStyle.backgroundColor || "var(--card-bg)",
   };
 };
 
-/**
- * Cover helper
- */
-const getTeamCover = (teamId: string) => {
-  return getCoverImage(teamId);
-};
+const getTeamCover = (teamId: string) => getCoverImage(teamId);
 </script>

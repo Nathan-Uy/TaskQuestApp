@@ -7,11 +7,20 @@
     class="w-full max-w-md"
     @hide="resetForm"
   >
-    <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
+    <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-medium" style="color: var(--ink-secondary)"
-          >Project name</label
+        <label
+          for="project-name"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
         >
+          Project name
+        </label>
         <InputText
           v-model="name"
           placeholder="e.g. Mobile App, Website Redesign"
@@ -19,10 +28,26 @@
           autofocus
         />
       </div>
+
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-medium" style="color: var(--ink-secondary)">
+        <label
+          for="project-description"
+          style="
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          "
+        >
           Description
-          <span style="color: var(--ink-muted)" class="font-normal"
+          <span
+            style="
+              font-weight: 500;
+              text-transform: none;
+              letter-spacing: 0;
+              color: var(--ink-muted);
+            "
             >(optional)</span
           >
         </label>
@@ -33,28 +58,45 @@
           class="w-full resize-none"
         />
       </div>
+
       <div
         v-if="error"
-        class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2"
+        style="
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--danger);
+          background: var(--danger-soft);
+          border: 2px solid var(--danger);
+          padding: 8px 12px;
+        "
       >
         {{ error }}
       </div>
-      <div class="flex justify-end gap-2 pt-1">
+
+      <div
+        style="
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+          border-top: 2px solid var(--surface-muted);
+          padding-top: 16px;
+          margin-top: 4px;
+        "
+      >
         <Button
           label="Cancel"
           severity="secondary"
           text
-          class="rounded-xl! text-sm!"
           @click="visible = false"
         />
         <Button
           label="Create Project"
-          type="submit"
           :disabled="!name.trim()"
-          class="bg-(--accent)! border-none! rounded-xl! text-sm! font-semibold!"
+          style="background: var(--accent); color: #fff; font-weight: 800"
+          @click="handleSubmit"
         />
       </div>
-    </form>
+    </div>
   </Dialog>
 </template>
 
