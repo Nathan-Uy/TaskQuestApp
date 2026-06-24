@@ -7,8 +7,7 @@ export type TaskType =
   | "Integration"
   | "Research and Development"
   | "Design"
-  | "DevOps"
-  | string;
+  | "DevOps";
 
 export interface Task {
   _id: string;

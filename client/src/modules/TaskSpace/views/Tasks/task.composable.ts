@@ -36,7 +36,7 @@ export function useTaskManager(sprintId: string) {
   const form = ref<{
     title: string;
     description: string;
-    taskType: TaskType | string;
+    taskType: TaskType;
     priority: TaskPriority;
     duration: number | null;
     assignedTo: string | null;
@@ -45,7 +45,7 @@ export function useTaskManager(sprintId: string) {
   }>({
     title: "",
     description: "",
-    taskType: "",
+    taskType: "Frontend",
     priority: "medium",
     duration: null,
     assignedTo: null,
@@ -59,7 +59,7 @@ export function useTaskManager(sprintId: string) {
     form.value = {
       title: "",
       description: "",
-      taskType: "",
+      taskType: "Frontend",
       priority: "medium",
       duration: null,
       assignedTo: null,
@@ -75,14 +75,14 @@ export function useTaskManager(sprintId: string) {
     form.value = {
       title: task.title,
       description: task.description ?? "",
-      taskType: task.taskType ?? "",
+      taskType: task.taskType ?? "Frontend",
       priority: task.priority,
       duration: task.duration ?? null,
       assignedTo: task.assignedTo ?? null,
       dueDate:
-        task.dueDate != null
-          ? (new Date(task.dueDate).toISOString().split("T")[0] ?? null)
-          : null,
+        task.dueDate == null
+          ? null
+          : (new Date(task.dueDate).toISOString().split("T")[0] ?? null),
       status: task.status,
     };
     dialogHeader.value = "Edit Task";
@@ -107,7 +107,7 @@ export function useTaskManager(sprintId: string) {
       if (editingTask.value) {
         await updateMutation.mutateAsync({
           taskId: editingTask.value._id,
-          data: dto as UpdateTaskDto,
+          data: dto,
         });
         toast.add({ severity: "success", summary: "Task updated", life: 3000 });
       } else {

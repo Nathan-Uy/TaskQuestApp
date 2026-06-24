@@ -1,11 +1,11 @@
 import { ref, computed } from "vue";
 import { useCalendar } from "@/modules/Calendar/calendar.composable";
-import type { Task, TaskPriority } from "./tasks.type";
+import type { Task } from "./tasks.type";
 
 export const useTaskForm = () => {
   const form = ref({
     title: "",
-    priority: "medium" as TaskPriority,
+    priority: "medium",
     hours: 0,
     minutes: 25,
     seconds: 0,
