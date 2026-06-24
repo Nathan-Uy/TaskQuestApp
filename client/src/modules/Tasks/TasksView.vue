@@ -176,9 +176,10 @@
       @hide="resetForm"
     >
       <TaskForm
-        v-model:form="castedForm"
+        :form="form as any"
         submit-label="Add Task"
         :loading="isCreating"
+        @update:form="Object.assign(form, $event)"
         @submit="submitTask"
         @cancel="closeAddTask"
       >
@@ -189,7 +190,7 @@
           <Button
             :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
             :label="descLoading ? 'Thinking...' : 'AI Fill'"
-            :disabled="!castedForm.title.trim() || descLoading"
+            :disabled="!form.title.trim() || descLoading"
             class="bg-(--accent-soft)! text-(--accent)! text-xs! font-bold!"
             @click="generateDescription"
           />
@@ -491,7 +492,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Ref } from "vue";
+import { ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -530,16 +531,6 @@ const { openAddTask, closeAddTask } = tasksStore;
 const toast = useToast();
 
 const { form, resetForm, getDuration } = useTaskForm();
-
-const castedForm = form as Ref<{
-  title: string;
-  notes: string;
-  priority: TaskPriority;
-  dueDate: Date | null;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}>;
 
 const {
   activeTasks,
@@ -611,14 +602,14 @@ const triageLoading = ref(false);
 const triageResult = ref<TriagedTask[]>([]);
 
 const submitTask = () => {
-  if (!castedForm.value.title.trim()) return;
+  if (!form.value.title.trim()) return;
   
   createTask({
-    title: castedForm.value.title.trim(),
-    priority: castedForm.value.priority,
+    title: form.value.title.trim(),
+    priority: form.value.priority as TaskPriority,
     duration: getDuration(),
-    notes: castedForm.value.notes || undefined,
-    dueDate: castedForm.value.dueDate ?? undefined,
+    notes: form.value.notes || undefined,
+    dueDate: form.value.dueDate ?? undefined,
   });
   closeAddTask();
   resetForm();
@@ -630,16 +621,16 @@ const cancelAdd = () => {
 };
 
 const generateDescription = async () => {
-  if (!castedForm.value.title.trim()) return;
+  if (!form.value.title.trim()) return;
   descLoading.value = true;
   descError.value = "";
   try {
-    const result = await aiApi.generateTaskDescription(castedForm.value.title);
-    castedForm.value.notes = result.notes;
+    const result = await aiApi.generateTaskDescription(form.value.title);
+    form.value.notes = result.notes;
     const totalSeconds = result.duration;
-    castedForm.value.hours = Math.floor(totalSeconds / 3600);
-    castedForm.value.minutes = Math.floor((totalSeconds % 3600) / 60);
-    castedForm.value.seconds = totalSeconds % 60;
+    form.value.hours = Math.floor(totalSeconds / 3600);
+    form.value.minutes = Math.floor((totalSeconds % 3600) / 60);
+    form.value.seconds = totalSeconds % 60;
   } catch {
     descError.value = "Failed to generate description. Try again.";
   } finally {
