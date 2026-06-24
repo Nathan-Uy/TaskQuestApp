@@ -2,7 +2,6 @@
   <div class="flex flex-col pl-8">
     <Toast position="bottom-right" />
 
-    <!-- Header -->
     <div class="flex items-center justify-between" style="margin-bottom: 28px">
       <div>
         <h1
@@ -38,7 +37,6 @@
       />
     </div>
 
-    <!-- Stats row -->
     <div class="grid grid-cols-4 gap-3" style="margin-bottom: 28px">
       <div
         style="
@@ -169,7 +167,6 @@
       </div>
     </div>
 
-    <!-- New Task Dialog -->
     <Dialog
       v-model:visible="showAddTask"
       modal
@@ -179,17 +176,20 @@
       @hide="resetForm"
     >
       <TaskForm
-        v-model:form="form"
+        v-model:form="castedForm"
         submit-label="Add Task"
         :loading="isCreating"
         @submit="submitTask"
         @cancel="closeAddTask"
       >
+        <template #default>
+          </template>
+
         <template #ai-button>
           <Button
             :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
             :label="descLoading ? 'Thinking...' : 'AI Fill'"
-            :disabled="!form.title.trim() || descLoading"
+            :disabled="!castedForm.title.trim() || descLoading"
             class="bg-(--accent-soft)! text-(--accent)! text-xs! font-bold!"
             @click="generateDescription"
           />
@@ -197,7 +197,6 @@
       </TaskForm>
     </Dialog>
 
-    <!-- Triage results -->
     <Transition
       enter-active-class="transition-all duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -316,7 +315,6 @@
       </div>
     </Transition>
 
-    <!-- Active tasks -->
     <section style="margin-bottom: 32px">
       <div
         class="flex items-center justify-between"
@@ -413,7 +411,6 @@
       </div>
     </section>
 
-    <!-- Completed -->
     <section v-if="allCompleted.length > 0" style="margin-bottom: 32px">
       <div
         class="flex items-center justify-between"
@@ -494,7 +491,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -513,6 +510,7 @@ import TaskCard from "@/modules/Tasks/TasksCard.vue";
 import TaskForm from "@/modules/Tasks/TaskForm.vue";
 import { aiApi } from "@/api/ai.api";
 import type { TriagedTask } from "@/types/ai.types";
+import type { TaskPriority } from "@/modules/Tasks/tasks.type";
 import {
   useTasksQuery,
   useCreateTaskMutation,
@@ -532,6 +530,17 @@ const { openAddTask, closeAddTask } = tasksStore;
 const toast = useToast();
 
 const { form, resetForm, getDuration } = useTaskForm();
+
+const castedForm = form as Ref<{
+  title: string;
+  notes: string;
+  priority: TaskPriority;
+  dueDate: Date | null;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}>;
+
 const {
   activeTasks,
   completedToday,
@@ -576,7 +585,7 @@ const handleDelete = (id: string) => {
   const timer = setTimeout(() => {
     deleteTask(id);
     pendingDeleteIds.value = new Set(
-      [...pendingDeleteIds.value].filter((x) => x !== id),
+      ...[...pendingDeleteIds.value].filter((x) => x !== id),
     );
     pendingDeletes.delete(id);
   }, 5000);
@@ -590,7 +599,7 @@ const undoDelete = (id: string) => {
     clearTimeout(timer);
     pendingDeletes.delete(id);
     pendingDeleteIds.value = new Set(
-      [...pendingDeleteIds.value].filter((x) => x !== id),
+      ...[...pendingDeleteIds.value].filter((x) => x !== id),
     );
   }
 };
@@ -602,13 +611,14 @@ const triageLoading = ref(false);
 const triageResult = ref<TriagedTask[]>([]);
 
 const submitTask = () => {
-  if (!form.value.title.trim()) return;
+  if (!castedForm.value.title.trim()) return;
+  
   createTask({
-    title: form.value.title.trim(),
-    priority: form.value.priority,
+    title: castedForm.value.title.trim(),
+    priority: castedForm.value.priority,
     duration: getDuration(),
-    notes: form.value.notes || undefined,
-    dueDate: form.value.dueDate ?? undefined,
+    notes: castedForm.value.notes || undefined,
+    dueDate: castedForm.value.dueDate ?? undefined,
   });
   closeAddTask();
   resetForm();
@@ -620,16 +630,16 @@ const cancelAdd = () => {
 };
 
 const generateDescription = async () => {
-  if (!form.value.title.trim()) return;
+  if (!castedForm.value.title.trim()) return;
   descLoading.value = true;
   descError.value = "";
   try {
-    const result = await aiApi.generateTaskDescription(form.value.title);
-    form.value.notes = result.notes;
+    const result = await aiApi.generateTaskDescription(castedForm.value.title);
+    castedForm.value.notes = result.notes;
     const totalSeconds = result.duration;
-    form.value.hours = Math.floor(totalSeconds / 3600);
-    form.value.minutes = Math.floor((totalSeconds % 3600) / 60);
-    form.value.seconds = totalSeconds % 60;
+    castedForm.value.hours = Math.floor(totalSeconds / 3600);
+    castedForm.value.minutes = Math.floor((totalSeconds % 3600) / 60);
+    castedForm.value.seconds = totalSeconds % 60;
   } catch {
     descError.value = "Failed to generate description. Try again.";
   } finally {
