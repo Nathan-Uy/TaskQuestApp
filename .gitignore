@@ -7,41 +7,38 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
+# Dependency and Build Directories (Applies to root, client, and server)
+node_modules/
+dist/
+dist-ssr/
+coverage/
 *.local
+*.tsbuildinfo
+.eslintcache
+
+# OS / System Files
+.DS_Store
 
 # Editor directories and files
 .vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-*.tsbuildinfo
-
-.eslintcache
-
-# Cypress
+# Testing Frameworks
 /cypress/videos/
 /cypress/screenshots/
-
-# Vitest
 __screenshots__/
 
-# rollup.js default build output
-dist/
+# Vercel local environment cache
+.vercel
 
-# Ignore environment file
+# CRITICAL: Ignore ALL environment files across root and all subdirectories
 .env
-.env.local
-.env.development
-.env.test
-.env.production
-.env.server
+.env.*
+**/.env
+**/.env.*

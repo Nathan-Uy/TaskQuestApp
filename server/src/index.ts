@@ -27,10 +27,8 @@ app.use(helmet());
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    // credentials: true ← removed, no cookies anymore
   }),
 );
-// cookieParser ← removed
 app.use(express.json());
 
 // ─── Rate limiters ────────────────────────────────────────────────────────────
@@ -67,6 +65,33 @@ const aiLimiter = rateLimit({
   message: { error: "AI rate limit reached, please wait a moment." },
 });
 
+// ─── DB Connection helper (Cached for Serverless) ───────────────────────────
+
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is not defined in environment variables");
+    }
+    await mongoose.connect(process.env.MONGO_URI);
+    isConnected = true;
+    console.log("Connected to MongoDB successfully");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1);
+    }
+  }
+}
+
+// Intercept incoming requests to ensure database connectivity
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
@@ -85,15 +110,14 @@ app.use("/api/workspace/sprints", apiLimiter, workspaceSprintRoutes);
 app.use("/api/workspace/tasks", apiLimiter, workspaceTaskRoutes);
 app.use("/api/workspace/chat", apiLimiter, workspaceChatRoutes);
 
-// ─── DB + server ──────────────────────────────────────────────────────────────
+// ─── DB + local server development ───────────────────────────────────────────
 
-mongoose
-  .connect(process.env.MONGO_URI!)
-  .then(() => {
-    app.listen(process.env.PORT, () =>
-      console.log(`Server running on http://localhost:${process.env.PORT}`),
-    );
-  })
-  .catch(() => {
-    process.exit(1);
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
+}
+
+// Export the application instance for Vercel
+export default app;
