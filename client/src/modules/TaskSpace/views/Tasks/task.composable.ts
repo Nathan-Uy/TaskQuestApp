@@ -96,7 +96,7 @@ export function useTaskManager(sprintId: string) {
       const dto: CreateTaskDto = {
         title: form.value.title.trim(),
         description: form.value.description || undefined,
-        taskType: form.value.taskType || undefined,
+        taskType: form.value.taskType || "Frontend",
         priority: form.value.priority,
         duration: form.value.duration ?? undefined,
         assignedTo: form.value.assignedTo ?? undefined,
@@ -148,7 +148,7 @@ export function useTaskManager(sprintId: string) {
         const dto: CreateTaskDto = {
           title: patch.title ?? "",
           description: patch.description,
-          taskType: patch.taskType || undefined,
+          taskType: patch.taskType || "Frontend",
           priority: patch.priority || "medium",
           status: patch.status || "todo",
           assignedTo: patch.assignedTo || undefined,
