@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { User } from "../models/User";
 import { AuthRequest } from "../middleware/auth";
 import { sendResetEmail } from "../lib/mailer";
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const signToken = (id: string) =>
   jwt.sign({ id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
@@ -36,43 +33,75 @@ const setTokenCookie = (res: Response, token: string) => {
   });
 };
 
-export const googleAuth = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   try {
-    const { credential } = req.body;
-    if (!credential)
-      return res.status(400).json({ message: "No credential provided" });
+    const { displayName, email, password } = req.body;
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    if (!displayName || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Display name, email, and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "An account with that email already exists" });
+    }
+
+    const bcrypt = await import("bcryptjs");
+    const hashedPassword = await bcrypt.default.hash(password, 12);
+
+    const user = await User.create({
+      displayName: String(displayName).trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+      avatar: "",
     });
 
-    const payload = ticket.getPayload();
-    if (!payload?.email)
-      return res.status(400).json({ message: "Invalid Google token" });
+    const token = signToken(user._id.toString());
+    res.status(201).json({ token, user: sanitizeUser(user) });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ message: "Registration failed" });
+  }
+};
 
-    const { email, name, picture, sub: googleId } = payload;
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
 
-    let user = await User.findOne({ email });
-    if (user) {
-      if (!user.googleId) user.googleId = googleId;
-      if (picture) user.avatar = picture;
-      await user.save();
-    } else {
-      user = await User.create({
-        displayName: name ?? email.split("@")[0],
-        email,
-        password: crypto.randomBytes(32).toString("hex"),
-        googleId,
-        avatar: picture ?? "",
-      });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || !user?.password) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const bcrypt = await import("bcryptjs");
+    const isMatch = await bcrypt.default.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const token = signToken(user._id.toString());
-    res.json({ token, user: sanitizeUser(user) }); // token only in body
+    res.json({ token, user: sanitizeUser(user) });
   } catch (err) {
-    console.error("Google auth error:", err);
-    res.status(401).json({ message: "Google authentication failed" });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Login failed" });
   }
 };
 

@@ -214,11 +214,120 @@
           Start your quest
         </p>
 
-        <GoogleLogin
-          :callback="handleGoogleLogin"
-          :auto-login="false"
-          prompt
-        />
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div v-if="mode === 'register'" style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label
+              for="displayName"
+              style="font-size: 0.7rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em;"
+            >
+              Display name
+            </label>
+            <input
+              id="displayName"
+              v-model="form.displayName"
+              type="text"
+              placeholder="Alex"
+              style="padding: 0.8rem 0.9rem; border: 2px solid #1a1714; border-radius: 0; font-size: 0.95rem; background: #fff;"
+            />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label
+              for="email"
+              style="font-size: 0.7rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em;"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              style="padding: 0.8rem 0.9rem; border: 2px solid #1a1714; border-radius: 0; font-size: 0.95rem; background: #fff;"
+            />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label
+              for="password"
+              style="font-size: 0.7rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em;"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              v-model="form.password"
+              type="password"
+              placeholder="••••••••"
+              style="padding: 0.8rem 0.9rem; border: 2px solid #1a1714; border-radius: 0; font-size: 0.95rem; background: #fff;"
+            />
+          </div>
+
+          <div v-if="mode === 'register'" style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label
+              for="confirmPassword"
+              style="font-size: 0.7rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em;"
+            >
+              Confirm password
+            </label>
+            <input
+              id="confirmPassword"
+              v-model="form.confirmPassword"
+              type="password"
+              placeholder="Repeat password"
+              style="padding: 0.8rem 0.9rem; border: 2px solid #1a1714; border-radius: 0; font-size: 0.95rem; background: #fff;"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          :disabled="loading"
+          @click="submitAuth"
+          style="
+            width: 100%;
+            background: var(--accent);
+            color: #fff;
+            border: 2px solid #1a1714;
+            box-shadow: 3px 3px 0 #1a1714;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+          "
+        >
+          {{ loading ? "Please wait..." : mode === "register" ? "Create account" : "Log in" }}
+        </button>
+
+        <button
+          type="button"
+          @click="toggleMode"
+          style="
+            width: 100%;
+            margin-top: 0.8rem;
+            background: transparent;
+            color: var(--ink-muted);
+            border: 2px solid #1a1714;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+          "
+        >
+          {{ mode === "login" ? "Need an account? Register" : "Already have an account? Log in" }}
+        </button>
 
         <p
           v-if="loading"
@@ -230,7 +339,7 @@
             font-weight: 600;
           "
         >
-          Signing in...
+          {{ mode === "register" ? "Creating account..." : "Signing in..." }}
         </p>
         <p
           v-if="error"
@@ -355,13 +464,19 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
-import { GoogleLogin } from "vue3-google-login";
 
 const router = useRouter();
 const auth = useAuthStore();
 
 const loading = ref(false);
 const error = ref("");
+const mode = ref<"login" | "register">("login");
+const form = ref({
+  displayName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+});
 
 const features = [
   "Task management",
@@ -396,23 +511,51 @@ const perks = [
   },
 ];
 
-const handleGoogleLogin = async (response: any) => {
-  const credential = response?.credential ?? response?.access_token;
-  if (!credential) {
-    error.value = "No credential received from Google. Please try again.";
+const toggleMode = () => {
+  mode.value = mode.value === "login" ? "register" : "login";
+  error.value = "";
+};
+
+const submitAuth = async () => {
+  const email = form.value.email.trim();
+  const password = form.value.password;
+
+  if (!email || !password) {
+    error.value = "Email and password are required.";
     return;
+  }
+
+  if (mode.value === "register") {
+    const displayName = form.value.displayName.trim();
+    if (!displayName) {
+      error.value = "Display name is required.";
+      return;
+    }
+    if (password.length < 6) {
+      error.value = "Password must be at least 6 characters long.";
+      return;
+    }
+    if (password !== form.value.confirmPassword) {
+      error.value = "Passwords do not match.";
+      return;
+    }
   }
 
   loading.value = true;
   error.value = "";
+
   try {
-    await auth.googleLogin(credential);
+    if (mode.value === "register") {
+      await auth.register(form.value.displayName.trim(), email, password);
+    } else {
+      await auth.login(email, password);
+    }
+
     await router.push("/personal-tasks");
     await auth.syncStores();
   } catch (e: any) {
     if (e?.name?.includes("Navigation")) return;
-    error.value =
-      e.response?.data?.message ?? "Google sign-in failed. Please try again.";
+    error.value = e.response?.data?.message ?? "Authentication failed. Please try again.";
   } finally {
     loading.value = false;
   }
