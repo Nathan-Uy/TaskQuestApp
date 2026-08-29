@@ -18,15 +18,25 @@ export interface AuthUser {
   settings: AppSettings;
 }
 
+const hashPasswordSha256 = async (password: string) => {
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref(sessionStorage.getItem("token") || "");
+  const token = ref("");
   const user = ref<AuthUser | null>(null);
   const initialized = ref(false);
   const isAuthenticated = computed(() => !!user.value);
   const isLoggingIn = ref(false);
 
   const syncGamification = async (userData: AuthUser) => {
-    const { useGamificationStore } = await import("@/components/sidebar.store");
+    const { useGamificationStore } = await import(
+      /* @vite-ignore */ "@/components/sidebar.store"
+    );
     const gamification = useGamificationStore();
     gamification.profile.displayName = userData.displayName;
     gamification.profile.level = userData.level;
@@ -38,8 +48,9 @@ export const useAuthStore = defineStore("auth", () => {
     gamification.profile.pomodorosDone = userData.pomodorosDone;
 
     if (userData.settings) {
-      const { useSettingsStore } =
-        await import("@/modules/Settings/settings.store");
+      const { useSettingsStore } = await import(
+        /* @vite-ignore */ "@/modules/Settings/settings.store"
+      );
       useSettingsStore().loadSettings(userData.settings);
     }
   };
@@ -51,32 +62,51 @@ export const useAuthStore = defineStore("auth", () => {
     queryClient.removeQueries({ queryKey: ["goals"] });
   };
 
+  const fetchCsrfToken = async () => {
+    const { data } = await api.get("/auth/csrf-token");
+    return data.csrfToken as string;
+  };
+
   const login = async (email: string, password: string) => {
     isLoggingIn.value = true;
     try {
-      const { data } = await api.post("/auth/login", { email, password });
+      const csrfToken = await fetchCsrfToken();
+      const passwordHash = await hashPasswordSha256(password);
+      const { data } = await api.post(
+        "/auth/login",
+        { email, password: passwordHash },
+        { headers: { "X-CSRF-Token": csrfToken } },
+      );
       token.value = data.token;
       user.value = data.user;
       initialized.value = true;
-      sessionStorage.setItem("token", data.token);
       await syncGamification(data.user);
     } finally {
       isLoggingIn.value = false;
     }
   };
 
-  const register = async (displayName: string, email: string, password: string) => {
+  const register = async (
+    displayName: string,
+    email: string,
+    password: string,
+  ) => {
     isLoggingIn.value = true;
     try {
-      const { data } = await api.post("/auth/register", {
-        displayName,
-        email,
-        password,
-      });
+      const csrfToken = await fetchCsrfToken();
+      const passwordHash = await hashPasswordSha256(password);
+      const { data } = await api.post(
+        "/auth/register",
+        {
+          displayName,
+          email,
+          password: passwordHash,
+        },
+        { headers: { "X-CSRF-Token": csrfToken } },
+      );
       token.value = data.token;
       user.value = data.user;
       initialized.value = true;
-      sessionStorage.setItem("token", data.token);
       await syncGamification(data.user);
     } finally {
       isLoggingIn.value = false;
@@ -90,11 +120,9 @@ export const useAuthStore = defineStore("auth", () => {
       });
       user.value = data;
       await syncGamification(data);
-    } catch (err: any) {
-      if (err.response?.status !== 401) console.error("fetchMe:", err);
+    } catch {
       token.value = "";
       user.value = null;
-      sessionStorage.removeItem("token");
     } finally {
       initialized.value = true;
     }
@@ -102,14 +130,19 @@ export const useAuthStore = defineStore("auth", () => {
 
   const logout = async () => {
     try {
-      await api.post("/auth/logout");
+      const csrfToken = await fetchCsrfToken();
+      await api.post("/auth/logout", undefined, {
+        headers: { "X-CSRF-Token": csrfToken },
+      });
     } catch {}
+
     token.value = "";
     user.value = null;
     initialized.value = false;
-    sessionStorage.removeItem("token");
 
-    const { default: router } = await import("@/router/router");
+    const { default: router } = await import(
+      /* @vite-ignore */ "@/router/router"
+    );
     await router.push("/");
   };
 

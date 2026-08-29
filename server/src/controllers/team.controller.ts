@@ -155,7 +155,7 @@ export const addTeamMember = async (req: AuthRequest, res: Response) => {
       projectName: project?.name ?? "TaskQuest",
       inviterName: inviter?.displayName ?? "A teammate",
       acceptUrl,
-    }).catch((err) => console.error("Invite email failed:", err));
+    }).catch(() => undefined);
 
     res.json(team);
   } catch {

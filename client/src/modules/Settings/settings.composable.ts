@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { storeToRefs } from "pinia";
+import { useConfirm } from "primevue/useconfirm";
 import { useSettingsStore } from "./settings.store";
 import { useGamificationStore } from "@/components/sidebar.store";
 import type { SettingsTab, ThemeColor } from "./settings.type";
@@ -7,6 +8,7 @@ import type { SettingsTab, ThemeColor } from "./settings.type";
 export const useSettings = () => {
   const settingsStore = useSettingsStore();
   const gamificationStore = useGamificationStore();
+  const confirm = useConfirm();
   const { settings } = storeToRefs(settingsStore);
   const { profile } = storeToRefs(gamificationStore);
 
@@ -38,8 +40,19 @@ export const useSettings = () => {
   };
 
   const confirmReset = () => {
-    settingsStore.resetData();
-    showResetConfirm.value = false;
+    confirm.require({
+      message:
+        "This will permanently delete your tasks, goals, history, and progress. Continue?",
+      header: "Reset all data",
+      icon: "pi pi-exclamation-triangle",
+      accept: async () => {
+        await settingsStore.resetData();
+        showResetConfirm.value = false;
+      },
+      reject: () => {
+        showResetConfirm.value = false;
+      },
+    });
   };
 
   return {

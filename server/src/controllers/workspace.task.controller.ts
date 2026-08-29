@@ -7,6 +7,37 @@ interface AuthRequest extends Request {
   userId?: string;
 }
 
+const isTeamMember = (team: any, userId?: string): boolean => {
+  return team.owner === userId || team.members.some((m: any) => m.userId === userId);
+};
+
+const updateTaskField = (
+  task: any,
+  field: string,
+  value: any,
+  validOptions?: string[],
+): void => {
+  if (value === undefined) return;
+
+  if (field === "title" && value?.trim()) {
+    task.title = value.trim();
+  } else if (field === "description") {
+    task.description = value?.trim() || "";
+  } else if (field === "status" && validOptions?.includes(value)) {
+    task.status = value;
+  } else if (field === "priority" && validOptions?.includes(value)) {
+    task.priority = value;
+  } else if (field === "assignedTo") {
+    task.assignedTo = value || null;
+  } else if (field === "ownerName") {
+    task.ownerName = value || null;
+  } else if (field === "dueDate") {
+    task.dueDate = value ? new Date(value) : null;
+  } else if (field === "duration") {
+    task.duration = value ?? null;
+  }
+};
+
 // Get tasks by sprint
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
@@ -144,31 +175,26 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
     const team = await WorkspaceTeam.findById(task.teamId);
     if (!team) return res.status(404).json({ error: "Team not found" });
 
-    const isMember =
-      team.owner === userId || team.members.some((m) => m.userId === userId);
-    if (!isMember)
+    if (!isTeamMember(team, userId)) {
       return res
         .status(403)
         .json({ error: "Not authorized to update this task" });
-
-    if (title?.trim()) task.title = title.trim();
-    if (description !== undefined) task.description = description?.trim() || "";
-    if (status && ["todo", "in-progress", "done"].includes(status))
-      task.status = status;
-    if (priority && ["low", "medium", "high"].includes(priority))
-      task.priority = priority;
-    if (assignedTo !== undefined) {
-      if (assignedTo && !team.members.some((m) => m.userId === assignedTo)) {
-        return res
-          .status(400)
-          .json({ error: "Assigned user is not a team member" });
-      }
-      task.assignedTo = assignedTo || null;
     }
-    if (ownerName !== undefined) task.ownerName = ownerName || null;
-    if (dueDate !== undefined)
-      task.dueDate = dueDate ? new Date(dueDate) : null;
-    if (duration !== undefined) task.duration = duration ?? null;
+
+    if (assignedTo && !team.members.some((m: any) => m.userId === assignedTo)) {
+      return res
+        .status(400)
+        .json({ error: "Assigned user is not a team member" });
+    }
+
+    updateTaskField(task, "title", title);
+    updateTaskField(task, "description", description);
+    updateTaskField(task, "status", status, ["todo", "in-progress", "done"]);
+    updateTaskField(task, "priority", priority, ["low", "medium", "high"]);
+    updateTaskField(task, "assignedTo", assignedTo);
+    updateTaskField(task, "ownerName", ownerName);
+    updateTaskField(task, "dueDate", dueDate);
+    updateTaskField(task, "duration", duration);
 
     await task.save();
     res.json(task);

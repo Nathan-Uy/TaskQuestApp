@@ -48,7 +48,6 @@ export const llama = async (prompt: string): Promise<string> => {
     } catch (err: unknown) {
       const error = err as { response?: { status: number } };
       if (error.response?.status === 429) {
-        console.warn(`Key ${attempt + 1} rate limited, rotating...`);
         await sleep(2000);
         continue;
       }

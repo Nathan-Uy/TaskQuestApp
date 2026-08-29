@@ -21,41 +21,24 @@
 
     <div class="flex items-start gap-4">
       <!-- Complete button -->
-      <button
+      <Button
         v-if="!readonly"
-        :class="[
-          'mt-0.5 w-5 h-5 shrink-0 flex items-center justify-center transition-all duration-100',
-          task.status === 'completed' ? '' : 'hover:scale-110',
-        ]"
-        :style="{
-          border:
-            '2px solid ' +
-            (task.status === 'completed' ? '#2d7a4f' : '#1a1714'),
-          background:
-            task.status === 'completed' ? '#2d7a4f' : 'var(--card-bg)',
-          borderRadius: '0',
+        type="button"
+        :icon="task.status === 'completed' ? 'pi pi-check' : undefined"
+        :pt="{
+          root: {
+            class: [
+              'mt-0.5 h-5 w-5 shrink-0 rounded-none border-2 border-(--ink-primary) p-0 transition-all duration-100',
+              task.status === 'completed' ? 'bg-(--success) text-white' : 'bg-(--card-bg) text-(--ink-primary) hover:scale-110',
+            ],
+          },
+          icon: { class: 'text-[0.5rem]' },
         }"
         @click="emit('complete', task._id)"
-      >
-        <i
-          v-if="task.status === 'completed'"
-          class="pi pi-check text-white text-[0.5rem]"
-        />
-      </button>
+      />
       <div
         v-else
-        style="
-          margin-top: 2px;
-          width: 20px;
-          height: 20px;
-          flex-shrink: 0;
-          border: 2px solid #2d7a4f;
-          background: #2d7a4f;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 0;
-        "
+        class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 border-(--success) bg-(--success) rounded-none"
       >
         <i class="pi pi-check text-white text-[0.5rem]" />
       </div>
@@ -203,20 +186,22 @@
 
         <Button
           v-if="!readonly"
+          type="button"
           icon="pi pi-pencil"
           text
           rounded
           severity="secondary"
-          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-100"
+          class="h-7 w-7 opacity-0 transition-all duration-100 group-hover:opacity-100"
           @click="startEdit"
         />
         <Button
           v-if="!readonly"
+          type="button"
           icon="pi pi-times"
           text
           rounded
           severity="danger"
-          class="opacity-0 group-hover:opacity-100 w-7! h-7! transition-all duration-100"
+          class="h-7 w-7 opacity-0 transition-all duration-100 group-hover:opacity-100"
           @click="emit('delete', task._id)"
         />
       </div>

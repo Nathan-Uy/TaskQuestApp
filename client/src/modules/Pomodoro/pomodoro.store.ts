@@ -112,13 +112,6 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
   const completePhase = () => {
     status.value = "idle";
 
-    console.log(
-      "[completePhase] phase:",
-      phase.value,
-      "linkedTaskId:",
-      linkedTaskId.value,
-    );
-
     history.value.push({
       id: Date.now(),
       phase: phase.value,
@@ -132,21 +125,8 @@ export const usePomodoroStore = defineStore("pomodoro", () => {
     if (phase.value === "work") {
       sessionsCompleted.value++;
 
-      console.log(
-        "[completePhase] linkedTaskId before increment:",
-        linkedTaskId.value,
-      );
-      console.log(
-        "[completePhase] linkedSessionsCompleted before:",
-        linkedSessionsCompleted.value,
-      );
-
       if (linkedTaskId.value) {
         linkedSessionsCompleted.value++;
-        console.log(
-          "[completePhase] linkedSessionsCompleted after:",
-          linkedSessionsCompleted.value,
-        );
         gamification.recordPomodoro();
       }
 

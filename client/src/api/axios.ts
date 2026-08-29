@@ -1,4 +1,15 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosHeaders } from "axios";
+import { useAuthStore } from "@/stores/auth.store";
+
+const getCookie = (name: string): string => {
+  const cookieEntry = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${name}=`));
+
+  return cookieEntry
+    ? decodeURIComponent(cookieEntry.slice(name.length + 1))
+    : "";
+};
 
 const api = axios.create({
   baseURL: "/api",
@@ -6,8 +17,15 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const method = (config.method ?? "get").toLowerCase();
+  const isMutationRequest = ["post", "put", "patch", "delete"].includes(method);
+  const csrfToken = getCookie("csrfToken");
+
+  if (isMutationRequest && csrfToken) {
+    config.headers = new AxiosHeaders(config.headers || {});
+    config.headers.set("X-CSRF-Token", csrfToken);
+  }
+
   return config;
 });
 
@@ -22,11 +40,13 @@ api.interceptors.response.use(
     if (status === 401) {
       const isAuthEndpoint = config.url?.includes("/auth/");
       const skipRedirect = config.headers?.["X-Skip-Auth-Redirect"];
-      const hasToken = !!sessionStorage.getItem("token");
 
-      if (!isAuthEndpoint && !skipRedirect && hasToken) {
-        sessionStorage.removeItem("token");
-        globalThis.location.href = "/";
+      if (!isAuthEndpoint && !skipRedirect) {
+        const auth = useAuthStore();
+
+        if (auth.isAuthenticated) {
+          await auth.logout().catch(() => undefined);
+        }
       }
       throw err;
     }
@@ -34,16 +54,12 @@ api.interceptors.response.use(
     if (status === 429) {
       const url = config.url ?? "unknown";
 
-      if (retryQueue.has(url)) throw err; // ← was return Promise.reject(err)
+      if (retryQueue.has(url)) throw err;
 
       const retryAfterHeader = err.response?.headers?.["retry-after"];
       const retryAfterMs = retryAfterHeader
         ? Number(retryAfterHeader) * 1000
         : 5_000;
-
-      console.warn(
-        `[429] Rate limited on ${url}. Retrying in ${retryAfterMs}ms`,
-      );
 
       return new Promise((resolve, reject) => {
         const timer = setTimeout(async () => {

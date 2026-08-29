@@ -72,7 +72,7 @@
           <p class="text-sm font-semibold text-stone-800 mb-5">New Goal</p>
 
           <div class="flex flex-col gap-1.5 mb-4">
-            <label class="text-xs font-medium text-stone-500">Goal title</label>
+            <label for = "title" class="text-xs font-medium text-stone-500">Goal title</label>
             <div class="flex gap-2">
               <InputText
                 v-model="form.title"
@@ -98,11 +98,12 @@
           </div>
 
           <div class="flex flex-col gap-1.5 mb-4">
-            <label class="text-xs font-medium text-stone-500">
+            <label for="description" class="text-xs font-medium text-stone-500">
               Description
               <span class="font-normal text-stone-400">(optional)</span>
             </label>
             <Textarea
+id="description"
               v-model="form.description"
               placeholder="Describe your goal..."
               :rows="2"
@@ -112,10 +113,11 @@
 
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500"
+              <label for="timeframe" class="text-xs font-medium text-stone-500"
                 >Timeframe</label
               >
               <Select
+                id="timeframe"
                 v-model="form.timeframe"
                 :options="timeframeOptions"
                 option-label="label"
@@ -125,10 +127,11 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-medium text-stone-500"
+              <label for="xpReward" class="text-xs font-medium text-stone-500"
                 >XP Reward</label
               >
               <InputNumber
+                id="xpReward"
                 v-model="form.xpReward"
                 :min="10"
                 :max="1000"
@@ -260,7 +263,7 @@
                   rounded
                   severity="danger"
                   title="Delete"
-                  @click="deleteGoal(goal._id)"
+                  @click="confirmDeleteGoal(goal._id, goal.title)"
                 />
               </div>
             </div>
@@ -394,6 +397,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { storeToRefs } from "pinia";
+import { useConfirm } from "primevue/useconfirm";
 import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
@@ -431,6 +435,7 @@ const { mutate: linkTask } = useLinkTaskMutation();
 const { mutate: unlinkTask } = useUnlinkTaskMutation();
 
 const goalsStore = useGoalsStore();
+const confirm = useConfirm();
 const { showAddGoal, expandedGoalId } = storeToRefs(goalsStore);
 const { openAddGoal, closeAddGoal, toggleExpand } = goalsStore;
 
@@ -462,6 +467,20 @@ const submitGoal = () => {
 const cancelAdd = () => {
   closeAddGoal();
   resetForm();
+};
+
+const confirmDeleteGoal = (goalId: string, title: string) => {
+  confirm.require({
+    message: `Delete goal "${title}"? This action cannot be undone.`,
+    header: "Delete Goal",
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Delete",
+    acceptIcon: "pi pi-trash",
+    rejectLabel: "Cancel",
+    accept: () => {
+      deleteGoal(goalId);
+    },
+  });
 };
 
 const suggestGoal = async () => {

@@ -92,9 +92,12 @@
             <label
               class="text-xs font-medium"
               style="color: var(--ink-secondary)"
-              >Display name</label
+              for="displayName"
             >
+              Display name
+            </label>
             <InputText
+              id="displayName"
               v-model="displayNameInput"
               placeholder="Your name"
               class="w-full"
@@ -314,13 +317,15 @@
               v-if="settings.notifications.dailyReminder"
               class="flex items-center justify-between pt-1"
             >
-              <label
+              <label  
+                for="reminderTime"
                 class="text-sm font-medium"
                 style="color: var(--ink-primary)"
                 >Reminder time</label
               >
               <div class="flex items-center gap-2">
                 <Select
+                  id="reminderTime"
                   :model-value="reminderHour"
                   :options="hours"
                   class="w-24!"
@@ -332,18 +337,22 @@
                   >:</span
                 >
                 <Select
+                  id="reminderMinute"
                   :model-value="reminderMinute"
                   :options="minuteOptions"
                   option-label="label"
                   option-value="value"
                   class="w-24!"
                   @update:model-value="updateReminderMinute($event)"
+                  label="Minute"
                 />
                 <Select
+                  id="reminderPeriod"
                   :model-value="reminderPeriod"
                   :options="['AM', 'PM']"
                   class="w-24!"
                   @update:model-value="updateReminderPeriod($event)"
+                  label="AM/PM"
                 />
               </div>
             </div>
@@ -498,7 +507,7 @@ const minuteOptions = [
 
 const reminderHour = computed(() => {
   const parts = settings.value.notifications.dailyReminderTime.split(":");
-  const hour = parseInt(parts[0] ?? "9");
+  const hour = Number.parseInt(parts[0] ?? "9");
   const h12 = hour % 12 || 12;
   return String(h12).padStart(2, "0");
 });
@@ -510,11 +519,11 @@ const reminderMinute = computed(() => {
 
 const reminderPeriod = computed(() => {
   const parts = settings.value.notifications.dailyReminderTime.split(":");
-  return parseInt(parts[0] ?? "9") >= 12 ? "PM" : "AM";
+  return Number.parseInt(parts[0] ?? "9") >= 12 ? "PM" : "AM";
 });
 
 const buildTime = (hour: string, minute: string, period: string) => {
-  let h = parseInt(hour);
+  let h = Number.parseInt(hour);
   if (period === "PM" && h !== 12) h += 12;
   if (period === "AM" && h === 12) h = 0;
   return `${String(h).padStart(2, "0")}:${minute}`;

@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useQueryClient } from "@tanstack/vue-query";
 import { ref } from "vue";
 import api from "@/api/axios";
 import type { AppSettings, ThemeColor } from "./settings.type";
@@ -105,7 +106,7 @@ export const useSettingsStore = defineStore("settings", () => {
     try {
       await api.patch("/auth/settings", settings.value);
     } catch {
-      console.error("Failed to persist settings");
+      // Setting persistence is best-effort; keep the in-memory state stable.
     }
   };
 
@@ -150,7 +151,6 @@ export const useSettingsStore = defineStore("settings", () => {
   };
 
   const resetData = async () => {
-    const { useQueryClient } = await import("@tanstack/vue-query");
     const queryClient = useQueryClient();
     queryClient.setQueryData(["tasks"], []);
     queryClient.setQueryData(["goals"], []);

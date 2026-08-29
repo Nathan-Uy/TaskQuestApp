@@ -68,10 +68,11 @@
       <form @submit.prevent="handleInvite">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-1"
+            <label for="inviteEmail" class="block text-sm font-medium mb-1"
               >Email Address *</label
             >
             <InputText
+              id="inviteEmail"
               v-model="inviteEmail"
               type="email"
               placeholder="member@example.com"
@@ -80,8 +81,11 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Role</label>
+            <label for="inviteRole" class="block text-sm font-medium mb-1"
+              >Role</label
+            >
             <Select
+              id="inviteRole"
               v-model="inviteRole"
               :options="roleOptions"
               optionLabel="label"
@@ -104,13 +108,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { useConfirm } from "primevue/useconfirm";
 import { useProject, useAddMember, useRemoveMember } from "./project.tanstack";
-import {} from "./project.tanstack";
-import type { Project, ProjectMember } from "./project.types";
+import type {  ProjectMember } from "./project.types";
 import Button from "primevue/button";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
@@ -187,6 +190,9 @@ const confirmRemoveMember = (member: ProjectMember) => {
     message: `Remove ${member.name} from the project?`,
     header: "Remove Member",
     icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Remove",
+    acceptIcon: "pi pi-times",
+    rejectLabel: "Cancel",
     accept: async () => {
       try {
         await removeMemberMutation.mutateAsync({

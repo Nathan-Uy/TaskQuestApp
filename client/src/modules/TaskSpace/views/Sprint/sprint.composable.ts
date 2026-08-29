@@ -8,7 +8,7 @@ import {
   useUpdateSprint,
   useDeleteSprint,
 } from "./sprint.tanstack";
-import type { Sprint, CreateSprintDto, SprintStatus } from "./sprint.types";
+import type { Sprint, SprintStatus } from "./sprint.types";
 
 export function useSprintManager(teamId: string) {
   const router = useRouter();

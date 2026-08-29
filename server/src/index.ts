@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import path from "node:path";
 import helmet from "helmet";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import { sanitizeRequestInput } from "./utils/mongoSanitizer";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import personalTaskRoutes from "./routes/personalTask.routes";
@@ -24,12 +25,57 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
 
 app.use(helmet());
+
+const LOCAL_CLIENT_URL = "http://localhost:5173";
+const allowedOrigins = new Set(
+  [process.env.CLIENT_URL, LOCAL_CLIENT_URL].filter(
+    (origin): origin is string => Boolean(origin),
+  ),
+);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Skip-Auth-Redirect",
+    ],
   }),
 );
 app.use(express.json());
+
+app.use((req, res, next) => {
+  try {
+    if (req.body && typeof req.body === "object") {
+      sanitizeRequestInput(req.body, "body");
+    }
+
+    if (req.query && typeof req.query === "object") {
+      sanitizeRequestInput(req.query, "query");
+    }
+
+    if (req.params && typeof req.params === "object") {
+      sanitizeRequestInput(req.params, "params");
+    }
+
+    next();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Invalid request payload";
+    res.status(400).json({ message, error: "Mongo injection attempt blocked" });
+  }
+});
 
 // ─── Rate limiters ────────────────────────────────────────────────────────────
 
@@ -77,12 +123,14 @@ async function connectDB() {
     }
     await mongoose.connect(process.env.MONGO_URI);
     isConnected = true;
-    console.log("Connected to MongoDB successfully");
+    process.stdout.write("Connected to MongoDB successfully\n");
   } catch (error) {
-    console.error("MongoDB connection error:", error);
-    if (process.env.NODE_ENV !== "production") {
-      process.exit(1);
-    }
+    process.stderr.write(
+      `MongoDB connection error: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+    throw error;
   }
 }
 
@@ -113,9 +161,9 @@ app.use("/api/workspace/chat", apiLimiter, workspaceChatRoutes);
 // ─── DB + local server development ───────────────────────────────────────────
 
 if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 3000;
+  const PORT = Number(process.env.PORT) || 3000;
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    process.stdout.write(`Server running on http://localhost:${PORT}\n`);
   });
 }
 

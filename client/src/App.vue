@@ -69,3 +69,66 @@ onUnmounted(() => {
   globalThis.removeEventListener("storage", handleStorage);
 });
 </script>
+
+<style>
+/* Global Confirm Dialog Styling — applies to all confirm dialogs */
+:deep(.p-confirm-dialog) {
+  border: 2px solid var(--ink-primary) !important;
+  box-shadow: 4px 4px 0 var(--ink-primary) !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-header) {
+  border-bottom: 2px solid var(--ink-primary) !important;
+  background: var(--surface-default) !important;
+  font-weight: 700 !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-content) {
+  font-weight: 500 !important;
+  line-height: 1.5;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-accept) {
+  border: 2px solid var(--ink-primary) !important;
+  background: var(--danger, #ef4444) !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+  box-shadow: 2px 2px 0 var(--ink-primary) !important;
+  transition: all 150ms ease-out !important;
+  padding: 0.625rem 1rem !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-accept:hover) {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0 var(--ink-primary) !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-accept:active) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 0 0 0 var(--ink-primary) !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-reject) {
+  border: 2px solid var(--ink-primary) !important;
+  background: var(--surface-default) !important;
+  color: var(--ink-primary) !important;
+  font-weight: 700 !important;
+  box-shadow: 2px 2px 0 var(--ink-primary) !important;
+  transition: all 150ms ease-out !important;
+  padding: 0.625rem 1rem !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-reject:hover) {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0 var(--ink-primary) !important;
+}
+
+:deep(.p-confirm-dialog .p-confirm-dialog-reject:active) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 0 0 0 var(--ink-primary) !important;
+}
+
+:deep(.p-confirm-dialog .p-button-icon) {
+  margin-right: 0.5rem !important;
+}
+</style>

@@ -1,178 +1,84 @@
 <template>
-  <div class="flex flex-col pl-8">
+  <div class="flex flex-col pl-8 bg-(--surface-muted)">
     <Toast position="bottom-right" />
 
-    <div class="flex items-center justify-between" style="margin-bottom: 28px">
+    <div class="flex items-center justify-between mb-7">
       <div>
         <h1
-          style="
-            font-size: 2.5rem;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-            color: var(--ink-primary);
-            line-height: 1;
-            margin: 0;
-          "
+          class="text-[2.5rem] font-black tracking-[-0.03em] text-(--ink-primary) leading-none m-0"
         >
           Tasks
         </h1>
         <p
-          style="
-            font-size: 0.75rem;
-            margin-top: 6px;
-            color: var(--ink-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-          "
+          class="text-xs mt-1.5 text-(--ink-muted) font-semibold uppercase tracking-[0.08em]"
         >
           {{ today }}
         </p>
       </div>
       <Button
         label="+ New Task"
-        class="bg-(--accent)! text-white! border-2! border-[#1a1714]!"
-        style="font-weight: 800; letter-spacing: 0.02em"
+        :pt="{
+          root: {
+            class:
+              'bg-(--accent) text-white border-2 border-[#1a1714] font-extrabold tracking-[0.02em]',
+          },
+        }"
         @click="openAddTask"
       />
     </div>
 
-    <div class="grid grid-cols-4 gap-3" style="margin-bottom: 28px">
-      <div
-        style="
-          padding: 16px 18px;
-          background: var(--accent);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 4px 4px 0 var(--ink-primary);
-        "
-      >
-        <p
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            color: #fff;
-          "
-        >
-          {{ visibleActiveTasks.length }}
-        </p>
-        <p
-          style="
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-          "
-        >
-          Active
-        </p>
-      </div>
+    <div class="grid grid-cols-4 gap-3 mb-7">
+      <Card :pt="cardPt('bg-(--accent)')">
+        <template #content>
+          <p class="text-[2rem] font-black leading-none mb-1.5">
+            {{ visibleActiveTasks.length }}
+          </p>
+          <p class="text-[0.65rem] font-extrabold uppercase tracking-widest">
+            Active
+          </p>
+        </template>
+      </Card>
 
-      <div
-        style="
-          padding: 16px 18px;
-          background: var(--card-bg);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 4px 4px 0 var(--ink-primary);
-        "
-      >
-        <p
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            color: var(--ink-primary);
-          "
-        >
-          {{ completedToday.length }}
-        </p>
-        <p
-          style="
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: var(--ink-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-          "
-        >
-          Done Today
-        </p>
-      </div>
+      <Card :pt="cardPt('bg-(--card-bg)')">
+        <template #content>
+          <p class="text-[2rem] font-black leading-none mb-1.5 text-(--ink-primary)">
+            {{ completedToday.length }}
+          </p>
+          <p class="text-[0.65rem] font-extrabold text-(--ink-muted) uppercase tracking-widest">
+            Done Today
+          </p>
+        </template>
+      </Card>
 
-      <div
-        style="
-          padding: 16px 18px;
-          background: var(--card-bg);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 4px 4px 0 var(--ink-primary);
-        "
-      >
-        <p
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            color: var(--ink-primary);
-          "
-        >
-          {{ profile.tasksCompleted }}
-        </p>
-        <p
-          style="
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: var(--ink-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-          "
-        >
-          All Time
-        </p>
-      </div>
+      <Card :pt="cardPt('bg-(--card-bg)')">
+        <template #content>
+          <p class="text-[2rem] font-black leading-none mb-1.5 text-(--ink-primary)">
+            {{ profile.tasksCompleted }}
+          </p>
+          <p class="text-[0.65rem] font-extrabold text-(--ink-muted) uppercase tracking-widest">
+            All Time
+          </p>
+        </template>
+      </Card>
 
-      <div
-        style="
-          padding: 16px 18px;
-          background: var(--xp);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 4px 4px 0 var(--ink-primary);
-        "
-      >
-        <p
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            color: #fff;
-          "
-        >
-          +{{ completedToday.reduce((s, t) => s + t.xpReward, 0) }}
-        </p>
-        <p
-          style="
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.75);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-          "
-        >
-          XP Today
-        </p>
-      </div>
+      <Card :pt="cardPt('bg-(--xp)')">
+        <template #content>
+          <p class="text-[2rem] font-black leading-none mb-1.5">
+            +{{ completedToday.reduce((s, t) => s + t.xpReward, 0) }}
+          </p>
+          <p class="text-[0.65rem] font-extrabold uppercase tracking-widest">
+            XP Today
+          </p>
+        </template>
+      </Card>
     </div>
 
     <Dialog
       v-model:visible="showAddTask"
       modal
       header="New Task"
-      :style="{ width: '520px' }"
       :draggable="false"
+      :pt="{ root: { class: 'w-[520px]' } }"
       @hide="resetForm"
     >
       <TaskForm
@@ -184,14 +90,22 @@
         @cancel="closeAddTask"
       >
         <template #default>
-          </template>
+          <div
+            v-if="descError"
+            class="mt-2 rounded-none border-2 border-(--ink-primary) bg-(--danger-soft) px-3 py-2 text-xs font-bold text-(--danger)"
+          >
+            {{ descError }}
+          </div>
+        </template>
 
         <template #ai-button>
           <Button
             :icon="descLoading ? 'pi pi-spinner pi-spin' : 'pi pi-sparkles'"
             :label="descLoading ? 'Thinking...' : 'AI Fill'"
             :disabled="!form.title.trim() || descLoading"
-            class="bg-(--accent-soft)! text-(--accent)! text-xs! font-bold!"
+            :pt="{
+              root: { class: 'bg-(--accent-soft) text-(--accent) text-xs font-bold' },
+            }"
             @click="generateDescription"
           />
         </template>
@@ -204,146 +118,84 @@
       leave-active-class="transition-all duration-100 ease-in"
       leave-to-class="opacity-0 -translate-y-2"
     >
-      <div
+      <Panel
         v-if="triageResult.length > 0"
-        style="
-          border: 2px solid #a07620;
-          box-shadow: 4px 4px 0 #a07620;
-          padding: 20px;
-          background: var(--warning-soft);
-          margin-bottom: 24px;
-        "
+        :pt="{
+          root: {
+            class: 'border-2 border-[#a07620] shadow-[4px_4px_0_#a07620] bg-(--warning-soft) mb-6',
+          },
+          header: { class: 'p-5 pb-4 bg-transparent border-none' },
+          content: { class: 'px-5 pb-5 pt-0' },
+        }"
       >
-        <div class="flex items-center justify-between mb-4">
+        <template #header>
           <div class="flex items-center gap-2">
-            <i
-              class="pi pi-exclamation-triangle text-sm"
-              style="color: var(--warning)"
-            />
-            <p
-              style="
-                font-size: 0.875rem;
-                font-weight: 800;
-                color: var(--ink-primary);
-              "
-            >
+            <i class="pi pi-exclamation-triangle text-sm text-(--warning)" />
+            <p class="text-sm font-extrabold text-(--ink-primary)">
               Overdue Task Triage
             </p>
-            <span
-              style="
-                background: var(--warning);
-                color: #fff;
-                font-size: 0.7rem;
-                font-weight: 800;
-                padding: 2px 8px;
-                border: 1.5px solid var(--ink-primary);
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-              "
-            >
-              {{ triageResult.length }} tasks
-            </span>
+            <Tag
+              :value="`${triageResult.length} tasks`"
+              :pt="{
+                root: {
+                  class:
+                    'bg-(--warning) text-white text-[0.7rem] font-extrabold px-2 py-0.5 border-[1.5px] border-(--ink-primary) uppercase tracking-[0.05em] rounded-none',
+                },
+              }"
+            />
           </div>
+        </template>
+        <template #icons>
           <Button
             icon="pi pi-times"
             text
             rounded
             severity="secondary"
-            class="w-7! h-7!"
+            :pt="{ root: { class: 'w-7 h-7' } }"
             @click="triageResult = []"
           />
-        </div>
+        </template>
+
         <div class="flex flex-col gap-2">
           <div
             v-for="item in triageResult"
             :key="item.taskId"
-            style="
-              display: flex;
-              align-items: flex-start;
-              gap: 10px;
-              padding: 10px 12px;
-              background: #fff;
-              border: 1.5px solid var(--ink-primary);
-            "
+            class="flex items-start gap-2.5 py-2.5 px-3 bg-(--card-bg) border-[1.5px] border-(--ink-primary)"
           >
-            <span
-              :style="{
-                background:
-                  item.action === 'reschedule'
-                    ? '#dbeafe'
-                    : item.action === 'delegate'
-                      ? '#ede9fe'
-                      : '#fee2e2',
-                color:
-                  item.action === 'reschedule'
-                    ? '#1d4ed8'
-                    : item.action === 'delegate'
-                      ? '#6d28d9'
-                      : '#dc2626',
-                fontSize: '0.65rem',
-                fontWeight: '800',
-                padding: '2px 8px',
-                border: '1.5px solid currentColor',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                flexShrink: 0,
-              }"
-              >{{ item.action }}</span
-            >
+            <Tag
+              :value="item.action"
+              :style="getActionStyle(item.action)"
+              class="text-[0.65rem] font-extrabold px-2 py-0.5 border-[1.5px] border-current uppercase tracking-widest rounded-none shrink-0"
+            />
             <div class="flex-1 min-w-0">
-              <p
-                style="
-                  font-size: 0.875rem;
-                  font-weight: 700;
-                  color: var(--ink-primary);
-                  margin: 0;
-                "
-              >
+              <p class="text-sm font-bold text-(--ink-primary) m-0">
                 {{ item.title }}
               </p>
-              <p
-                style="
-                  font-size: 0.75rem;
-                  color: var(--ink-muted);
-                  margin: 2px 0 0;
-                "
-              >
+              <p class="text-xs text-(--ink-muted) m-0 mt-0.5">
                 {{ item.reason }}
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </Panel>
     </Transition>
 
-    <section style="margin-bottom: 32px">
-      <div
-        class="flex items-center justify-between"
-        style="margin-bottom: 12px"
-      >
-        <div class="flex items-center" style="gap: 8px">
+    <section class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
           <span
-            style="
-              font-size: 0.68rem;
-              font-weight: 800;
-              color: var(--ink-primary);
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-            "
+            class="text-[0.68rem] font-extrabold text-(--ink-primary) uppercase tracking-widest"
             >Active</span
           >
-          <span
-            style="
-              background: var(--ink-primary);
-              color: #fff;
-              font-size: 0.65rem;
-              font-weight: 800;
-              padding: 1px 7px;
-              letter-spacing: 0.05em;
-            "
-          >
-            {{ visibleActiveTasks.length }}
-          </span>
+          <Tag
+            :value="String(visibleActiveTasks.length)"
+            :pt="{
+              root: {
+                class:
+                  'bg-(--ink-primary) text-white text-[0.65rem] font-extrabold px-[7px] py-px tracking-[0.05em] rounded-none',
+              },
+            }"
+          />
         </div>
         <div class="flex items-center gap-2">
           <Select
@@ -352,7 +204,7 @@
             option-label="label"
             option-value="value"
             placeholder="Sort"
-            style="height: 32px; font-size: 0.75rem; font-weight: 700"
+            :pt="{ root: { class: 'h-8 text-xs font-bold' } }"
           />
           <Button
             v-if="overdueCount > 0"
@@ -361,12 +213,11 @@
               triageLoading ? 'Triaging...' : `Triage ${overdueCount} overdue`
             "
             :disabled="triageLoading"
-            style="
-              background: var(--warning-soft);
-              color: var(--warning);
-              font-size: 0.75rem;
-              font-weight: 800;
-            "
+            :pt="{
+              root: {
+                class: 'bg-(--warning-soft) text-(--warning) text-xs font-extrabold',
+              },
+            }"
             @click="runTriage"
           />
         </div>
@@ -374,34 +225,17 @@
 
       <div
         v-if="isLoading"
-        style="
-          padding: 40px;
-          font-size: 0.875rem;
-          background: var(--card-bg);
-          border: 2px solid var(--ink-primary);
-          color: var(--ink-muted);
-          text-align: center;
-        "
+        class="p-10 text-sm bg-(--card-bg) border-2 border-(--ink-primary) text-(--ink-muted) text-center"
       >
         <i class="pi pi-spinner pi-spin mr-2" />Loading tasks...
       </div>
       <div
         v-else-if="visibleActiveTasks.length === 0"
-        style="
-          padding: 40px;
-          font-size: 0.875rem;
-          background: var(--card-bg);
-          border: 2px dashed var(--ink-primary);
-          color: var(--ink-muted);
-          text-align: center;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        "
+        class="p-10 text-sm bg-(--card-bg) border-2 border-dashed border-(--ink-primary) text-(--ink-muted) text-center font-bold uppercase tracking-[0.05em]"
       >
         No active tasks. Add one above ↑
       </div>
-      <div v-else class="flex flex-col" style="gap: 10px">
+      <div v-else class="flex flex-col gap-2.5">
         <TaskCard
           v-for="task in visibleActiveTasks"
           :key="task._id"
@@ -412,34 +246,22 @@
       </div>
     </section>
 
-    <section v-if="allCompleted.length > 0" style="margin-bottom: 32px">
-      <div
-        class="flex items-center justify-between"
-        style="margin-bottom: 12px"
-      >
-        <div class="flex items-center" style="gap: 8px">
+    <section v-if="allCompleted.length > 0" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
           <span
-            style="
-              font-size: 0.68rem;
-              font-weight: 800;
-              color: var(--success);
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-            "
+            class="text-[0.68rem] font-extrabold text-(--success) uppercase tracking-widest"
             >Completed</span
           >
-          <span
-            style="
-              background: var(--success);
-              color: #fff;
-              font-size: 0.65rem;
-              font-weight: 800;
-              padding: 1px 7px;
-              letter-spacing: 0.05em;
-            "
-          >
-            {{ filteredCompleted.length }}
-          </span>
+          <Tag
+            :value="String(filteredCompleted.length)"
+            :pt="{
+              root: {
+                class:
+                  'bg-(--success) text-white text-[0.65rem] font-extrabold px-[7px] py-px tracking-[0.05em] rounded-none',
+              },
+            }"
+          />
         </div>
         <div class="flex items-center gap-2">
           <DatePicker
@@ -457,7 +279,7 @@
             text
             rounded
             severity="secondary"
-            class="w-7! h-7!"
+            :pt="{ root: { class: 'w-7 h-7' } }"
             @click="clearDateFilter"
           />
         </div>
@@ -465,21 +287,11 @@
 
       <div
         v-if="filteredCompleted.length === 0"
-        style="
-          padding: 40px;
-          font-size: 0.875rem;
-          background: var(--card-bg);
-          border: 2px dashed var(--ink-primary);
-          color: var(--ink-muted);
-          text-align: center;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        "
+        class="p-10 text-sm bg-(--card-bg) border-2 border-dashed border-(--ink-primary) text-(--ink-muted) text-center font-bold uppercase tracking-[0.05em]"
       >
         No completed tasks for this date.
       </div>
-      <div v-else class="flex flex-col" style="gap: 10px">
+      <div v-else class="flex flex-col gap-2.5">
         <TaskCard
           v-for="task in filteredCompleted"
           :key="task._id"
@@ -499,7 +311,11 @@ import Dialog from "primevue/dialog";
 import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Toast from "primevue/toast";
+import Card from "primevue/card";
+import Tag from "primevue/tag";
+import Panel from "primevue/panel";
 import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
 import { useGamificationStore } from "@/components/sidebar.store";
 import { useTasksStore } from "@/modules/Tasks/tasks.store";
 import {
@@ -529,6 +345,7 @@ const tasksStore = useTasksStore();
 const { showAddTask } = storeToRefs(tasksStore);
 const { openAddTask, closeAddTask } = tasksStore;
 const toast = useToast();
+const confirm = useConfirm();
 
 const { form, resetForm, getDuration } = useTaskForm();
 
@@ -551,7 +368,23 @@ const sortOptions = [
   { label: "Duration", value: "duration" },
 ];
 
-// ── Delete with undo ──────────────────────────────────────────────────────────
+const statCardShell =
+  "border-2 border-(--ink-primary) shadow-[4px_4px_0_var(--ink-primary)] py-4 px-[18px]";
+
+const cardPt = (bgClass: string) => ({
+  root: { class: `${statCardShell} ${bgClass}` },
+  body: { class: "p-0" },
+  content: { class: "p-0" },
+});
+
+const actionPalette: Record<string, { background: string; color: string }> = {
+  reschedule: { background: "#dbeafe", color: "#1d4ed8" },
+  delegate: { background: "#ede9fe", color: "#6d28d9" },
+};
+
+const getActionStyle = (action: string) =>
+  actionPalette[action] ?? { background: "#fee2e2", color: "#dc2626" };
+
 const pendingDeleteIds = ref<Set<string>>(new Set());
 const pendingDeletes = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -563,25 +396,32 @@ const handleDelete = (id: string) => {
   const task = tasks.value?.find((t) => t._id === id);
   if (!task) return;
 
-  pendingDeleteIds.value = new Set([...pendingDeleteIds.value, id]);
+  confirm.require({
+    message: `Delete task "${task.title}"? This action cannot be undone.`,
+    header: "Delete Task",
+    icon: "pi pi-exclamation-triangle",
+    accept: () => {
+      pendingDeleteIds.value = new Set([...pendingDeleteIds.value, id]);
 
-  toast.add({
-    severity: "secondary",
-    summary: `"${task.title}" will be deleted`,
-    life: 5000,
-    closable: true,
-    group: `delete-${id}`,
+      toast.add({
+        severity: "secondary",
+        summary: `"${task.title}" will be deleted`,
+        life: 5000,
+        closable: true,
+        group: `delete-${id}`,
+      });
+
+      const timer = setTimeout(() => {
+        deleteTask(id);
+        pendingDeleteIds.value = new Set(
+          [...pendingDeleteIds.value].filter((x) => x !== id),
+        );
+        pendingDeletes.delete(id);
+      }, 5000);
+
+      pendingDeletes.set(id, timer);
+    },
   });
-
-  const timer = setTimeout(() => {
-    deleteTask(id);
-    pendingDeleteIds.value = new Set(
-      ...[...pendingDeleteIds.value].filter((x) => x !== id),
-    );
-    pendingDeletes.delete(id);
-  }, 5000);
-
-  pendingDeletes.set(id, timer);
 };
 
 const undoDelete = (id: string) => {
@@ -590,12 +430,11 @@ const undoDelete = (id: string) => {
     clearTimeout(timer);
     pendingDeletes.delete(id);
     pendingDeleteIds.value = new Set(
-      ...[...pendingDeleteIds.value].filter((x) => x !== id),
+      [...pendingDeleteIds.value].filter((x) => x !== id),
     );
   }
 };
 
-// ── Form ──────────────────────────────────────────────────────────────────────
 const descLoading = ref(false);
 const descError = ref("");
 const triageLoading = ref(false);
@@ -603,7 +442,7 @@ const triageResult = ref<TriagedTask[]>([]);
 
 const submitTask = () => {
   if (!form.value.title.trim()) return;
-  
+
   createTask({
     title: form.value.title.trim(),
     priority: form.value.priority as TaskPriority,
@@ -644,7 +483,7 @@ const runTriage = async () => {
     const result = await aiApi.triageOverdueTasks();
     triageResult.value = result.triaged;
   } catch {
-    console.error("Triage failed");
+    triageResult.value = [];
   } finally {
     triageLoading.value = false;
   }

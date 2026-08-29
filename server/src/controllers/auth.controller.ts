@@ -8,6 +8,25 @@ import { sendResetEmail } from "../lib/mailer";
 const signToken = (id: string) =>
   jwt.sign({ id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
 
+// Bounded quantifiers avoid the catastrophic-backtracking risk of unbounded
+// adjacent [^\s@]+ groups (SonarLint typescript:S8786).
+const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,24}$/;
+
+const generateCsrfToken = () => crypto.randomBytes(32).toString("hex");
+
+const setCsrfCookie = (res: Response, token: string) => {
+  res.cookie("csrfToken", token, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 60 * 1000,
+  });
+};
+
+const hashPassword = (password: string) =>
+  crypto.createHash("sha256").update(password).digest("hex");
+
 const sanitizeUser = (user: any) => ({
   _id: user._id,
   displayName: user.displayName,
@@ -33,23 +52,52 @@ const setTokenCookie = (res: Response, token: string) => {
   });
 };
 
+const clearTokenCookie = (res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+};
+
+export const getCsrfToken = async (req: Request, res: Response) => {
+  const csrfToken = generateCsrfToken();
+  setCsrfCookie(res, csrfToken);
+  res.json({ csrfToken });
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { displayName, email, password } = req.body;
+    const trimmedName = String(displayName ?? "").trim();
+    const normalizedEmail = String(email ?? "")
+      .trim()
+      .toLowerCase();
+    const passwordHash = String(password ?? "");
 
-    if (!displayName || !email || !password) {
+    if (!trimmedName || !normalizedEmail || !passwordHash) {
       return res
         .status(400)
         .json({ message: "Display name, email, and password are required" });
     }
 
-    if (password.length < 6) {
+    if (trimmedName.length < 2 || trimmedName.length > 40) {
       return res
         .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+        .json({ message: "Display name must be between 2 and 40 characters" });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    if (!emailRegex.test(normalizedEmail)) {
+      return res
+        .status(400)
+        .json({ message: "Please enter a valid email address" });
+    }
+
+    if (passwordHash.length !== 64) {
+      return res.status(400).json({ message: "Invalid password format" });
+    }
+
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res
@@ -57,20 +105,19 @@ export const register = async (req: Request, res: Response) => {
         .json({ message: "An account with that email already exists" });
     }
 
-    const bcrypt = await import("bcryptjs");
-    const hashedPassword = await bcrypt.default.hash(password, 12);
-
     const user = await User.create({
-      displayName: String(displayName).trim(),
+      displayName: trimmedName,
       email: normalizedEmail,
-      password: hashedPassword,
+      password: passwordHash,
       avatar: "",
     });
 
     const token = signToken(user._id.toString());
-    res.status(201).json({ token, user: sanitizeUser(user) });
-  } catch (err) {
-    console.error("Register error:", err);
+    setTokenCookie(res, token);
+    const csrfToken = generateCsrfToken();
+    setCsrfCookie(res, csrfToken);
+    res.status(201).json({ token, user: sanitizeUser(user), csrfToken });
+  } catch {
     res.status(500).json({ message: "Registration failed" });
   }
 };
@@ -78,34 +125,58 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email ?? "")
+      .trim()
+      .toLowerCase();
+    const passwordHash = String(password ?? "");
 
-    if (!email || !password) {
+    if (!normalizedEmail || !passwordHash) {
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    if (!emailRegex.test(normalizedEmail)) {
+      return res
+        .status(400)
+        .json({ message: "Please enter a valid email address" });
+    }
+
     const user = await User.findOne({ email: normalizedEmail });
-    if (!user || !user?.password) {
+    // `user` is already null-checked on the left, so the right-hand side
+    // doesn't need `?.` (SonarLint typescript:S6582).
+    if (!user || !user.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const bcrypt = await import("bcryptjs");
-    const isMatch = await bcrypt.default.compare(password, user.password);
-    if (!isMatch) {
+    const isDirectMatch = user.password === passwordHash;
+    const isLegacyBcryptMatch =
+      !isDirectMatch &&
+      (await bcrypt.default.compare(passwordHash, user.password));
+
+    if (!isDirectMatch && !isLegacyBcryptMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (user.password !== passwordHash) {
+      user.password = passwordHash;
+      await user.save();
+    }
+
     const token = signToken(user._id.toString());
-    res.json({ token, user: sanitizeUser(user) });
-  } catch (err) {
-    console.error("Login error:", err);
+    setTokenCookie(res, token);
+    const csrfToken = generateCsrfToken();
+    setCsrfCookie(res, csrfToken);
+    res.json({ token, user: sanitizeUser(user), csrfToken });
+  } catch {
     res.status(500).json({ message: "Login failed" });
   }
 };
 
 export const logout = async (req: Request, res: Response) => {
+  clearTokenCookie(res);
+  res.clearCookie("csrfToken", { path: "/" });
   res.json({ message: "Logged out" });
 };
 
@@ -150,8 +221,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
     await sendResetEmail(user.email, resetUrl);
     res.json({ message: "Reset link sent to your email" });
-  } catch (err) {
-    console.error("Forgot password error:", err);
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -161,10 +231,10 @@ export const resetPassword = async (req: Request, res: Response) => {
     const { token, password } = req.body;
     if (!token || !password)
       return res.status(400).json({ message: "All fields are required" });
-    if (password.length < 6)
+    if (password.length < 8)
       return res
         .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+        .json({ message: "Password must be at least 8 characters" });
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: new Date() },

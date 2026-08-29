@@ -1,127 +1,83 @@
 <template>
-  <div :style="backgroundStyle">
-    <!-- Navbar -->
-    <div
-      style="
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 1.5rem;
-        height: 52px;
-        background: #fff;
-        border-bottom: 2px solid #1a1714;
-        box-shadow: 0 2px 0 #1a1714;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      "
+  <div
+    :style="backgroundStyle"
+    class="min-h-screen bg-[#f0eeea] bg-fixed bg-size-[24px_24px]"
+  >
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-10 flex h-13 items-center justify-between border-b-2 border-(--ink-primary) bg-white px-6 shadow-[0_2px_0_var(--ink-primary)]"
     >
-      <!-- Left: brand + nav -->
-      <div style="display: flex; align-items: center; gap: 0">
+      <!-- Left Side -->
+      <div class="flex min-w-0 items-center">
+        <!-- TaskSpace Logo -->
         <span
-          style="
-            font-size: 1rem;
-            font-weight: 900;
-            color: #1a1714;
-            letter-spacing: -0.03em;
-            padding-right: 1.5rem;
-            border-right: 2px solid #1a1714;
-            margin-right: 1rem;
-          "
+          class="mr-4 shrink-0 border-r-2 border-(--ink-primary) pr-4 text-base font-black tracking-[-0.03em] text-(--ink-primary)"
         >
-          Task<span style="color: var(--accent)">Space</span>
+          Task<span class="text-(--accent)">Space</span>
         </span>
 
-        <button
-          v-for="item in visibleMenuItems"
-          :key="item.label"
-          :style="{
-            padding: '6px 14px',
-            fontSize: '0.75rem',
-            fontWeight: '800',
-            border: '2px solid transparent',
-            background: 'transparent',
-            color: isActiveRoute(item)
-              ? 'var(--accent)'
-              : 'var(--ink-secondary)',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            borderBottom: isActiveRoute(item)
-              ? '2px solid var(--accent)'
-              : '2px solid transparent',
-            transition: 'all 80ms ease',
-          }"
-          @mouseenter="
-            ($event.currentTarget as HTMLElement).style.color = 'var(--accent)'
-          "
-          @mouseleave="
-            ($event.currentTarget as HTMLElement).style.color = isActiveRoute(
-              item,
-            )
-              ? 'var(--accent)'
-              : 'var(--ink-secondary)'
-          "
-          @click="item.command()"
+        <!-- Navigation -->
+        <nav
+          v-if="visibleMenuItems.length"
+          class="flex min-w-0 items-center gap-1"
         >
-          {{ item.label }}
-        </button>
+          <Button
+            v-for="item in visibleMenuItems"
+            :key="item.label"
+            text
+            class="m-0! border-2 border-transparent px-3.5 py-1.5 text-[0.75rem] font-extrabold uppercase tracking-[0.06em] transition-all duration-100"
+            :class="
+              isActiveRoute(item)
+                ? 'border-b-(--accent) border-transparent text-(--accent)'
+                : 'border-transparent text-(--ink-secondary) hover:text-(--accent)'
+            "
+            @click="item.command()"
+          >
+            {{ item.label }}
+          </Button>
+        </nav>
       </div>
 
-      <!-- Right: logout -->
+      <!-- Logout -->
       <button
-        style="
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          font-size: 0.75rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          border: 2px solid var(--ink-primary);
-          background: #fff;
-          color: var(--ink-primary);
-          cursor: pointer;
-          box-shadow: 2px 2px 0 var(--ink-primary);
-          transition: all 80ms ease;
-        "
-        @mouseenter="
-          ($event.currentTarget as HTMLElement).style.transform =
-            'translate(1px,1px)';
-          ($event.currentTarget as HTMLElement).style.boxShadow =
-            '1px 1px 0 var(--ink-primary)';
-        "
-        @mouseleave="
-          ($event.currentTarget as HTMLElement).style.transform = 'none';
-          ($event.currentTarget as HTMLElement).style.boxShadow =
-            '2px 2px 0 var(--ink-primary)';
-        "
+        type="button"
+        class="ml-4 flex shrink-0 items-center gap-2 border-2 border-(--ink-primary) bg-white px-3.5 py-1.5 text-[0.75rem] font-extrabold uppercase tracking-[0.06em] text-(--ink-primary) shadow-[2px_2px_0_var(--ink-primary)] transition-all duration-100 hover:-translate-y-0.5 hover:translate-x-0.5 hover:shadow-[1px_1px_0_var(--ink-primary)]"
         @click="handleLogout"
       >
-        <i class="pi pi-sign-out" style="font-size: 0.75rem" />
-        Logout
-      </button>
-    </div>
+        <i
+          class="pi pi-sign-out shrink-0 text-[0.75rem]"
+        />
 
-    <!-- Content -->
-    <div style="padding: 2rem 1.5rem">
+        <span class="whitespace-nowrap">
+          Logout
+        </span>
+      </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="px-6 py-8">
       <router-view />
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import Button from "primevue/button";
+import { useConfirm } from "primevue/useconfirm";
 import { useAuthStore } from "@/stores/auth.store";
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const confirm = useConfirm();
 
 const selectedTeamId = ref<string | null>(null);
 
+/**
+ * TaskSpace background
+ */
 const backgroundStyle = {
   minHeight: "100vh",
   backgroundColor: "#f0eeea",
@@ -130,6 +86,9 @@ const backgroundStyle = {
   backgroundAttachment: "fixed",
 };
 
+/**
+ * TaskSpace menu items
+ */
 const menuItems = computed(() => [
   {
     label: "Projects",
@@ -141,56 +100,105 @@ const menuItems = computed(() => [
     visible: !!selectedTeamId.value,
     path: `/taskspace/team/${selectedTeamId.value}/sprints`,
     command: () =>
-      router.push(`/taskspace/team/${selectedTeamId.value}/sprints`),
+      router.push(
+        `/taskspace/team/${selectedTeamId.value}/sprints`,
+      ),
   },
   {
     label: "Members",
     visible: !!selectedTeamId.value,
     path: `/taskspace/team/${selectedTeamId.value}/members`,
     command: () =>
-      router.push(`/taskspace/team/${selectedTeamId.value}/members`),
+      router.push(
+        `/taskspace/team/${selectedTeamId.value}/members`,
+      ),
   },
   {
     label: "Chat",
     visible: !!selectedTeamId.value,
     path: `/taskspace/team/${selectedTeamId.value}/chat`,
-    command: () => router.push(`/taskspace/team/${selectedTeamId.value}/chat`),
+    command: () =>
+      router.push(
+        `/taskspace/team/${selectedTeamId.value}/chat`,
+      ),
   },
 ]);
 
+/**
+ * Only show menu items that are currently available
+ */
 const visibleMenuItems = computed(() =>
-  menuItems.value.filter((item) => item.visible !== false),
+  menuItems.value.filter(
+    (item) => item.visible !== false,
+  ),
 );
 
+/**
+ * Check active route
+ */
 const isActiveRoute = (item: { path?: string }) =>
-  item.path ? route.path.startsWith(item.path) : false;
+  item.path
+    ? route.path.startsWith(item.path)
+    : false;
 
+/**
+ * Watch team route parameter
+ */
 watch(
   () => route.params.teamId,
   (newId) => {
     if (newId && typeof newId === "string") {
       selectedTeamId.value = newId;
-      localStorage.setItem("taskSpace_lastTeamId", newId);
+
+      localStorage.setItem(
+        "taskSpace_lastTeamId",
+        newId,
+      );
     } else {
       selectedTeamId.value = null;
-      localStorage.removeItem("taskSpace_lastTeamId");
+
+      localStorage.removeItem(
+        "taskSpace_lastTeamId",
+      );
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 );
 
+/**
+ * Clear team when leaving a team route
+ */
 watch(
   () => route.path,
   (newPath) => {
     if (!newPath.includes("/team/")) {
       selectedTeamId.value = null;
-      localStorage.removeItem("taskSpace_lastTeamId");
+
+      localStorage.removeItem(
+        "taskSpace_lastTeamId",
+      );
     }
   },
 );
 
+/**
+ * Logout confirmation
+ */
 const handleLogout = () => {
-  auth.logout();
-  router.push("/login");
+  confirm.require({
+    message: "Are you sure you want to log out?",
+    header: "Log out",
+    icon: "pi pi-sign-out",
+    acceptLabel: "Yes, Log Out",
+    acceptIcon: "pi pi-sign-out",
+    rejectLabel: "Cancel",
+
+    accept: async () => {
+      await auth.logout();
+      await router.push("/login");
+    },
+  });
 };
 </script>

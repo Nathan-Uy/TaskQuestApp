@@ -194,8 +194,7 @@ export const addMember = async (req: AuthRequest, res: Response) => {
         inviteeEmail: email,
         status: "pending",
       });
-    } catch (createErr) {
-      console.error("❌ Invitation.create() failed:", createErr);
+    } catch {
       return res
         .status(500)
         .json({ error: "Failed to create invitation record" });
@@ -209,11 +208,10 @@ export const addMember = async (req: AuthRequest, res: Response) => {
       projectName: project.name,
       inviterName: inviter?.displayName ?? "A teammate",
       acceptUrl: `${process.env.CLIENT_URL}/taskspace/projects`,
-    }).catch((err) => console.error("Invite email failed:", err));
+    }).catch(() => undefined);
 
     res.json({ message: "Invitation sent successfully" });
-  } catch (err) {
-    console.error("addMember error:", err);
+  } catch {
     res.status(500).json({ error: "Failed to send invitation" });
   }
 };

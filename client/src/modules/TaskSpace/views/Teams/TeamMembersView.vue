@@ -310,6 +310,10 @@ const confirmRemoveMember = (member: any) => {
   confirm.require({
     message: `Remove ${member.name} from the team?`,
     header: "Remove Member",
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Remove",
+    acceptIcon: "pi pi-times",
+    rejectLabel: "Cancel",
     accept: async () => {
       try {
         await removeMember.mutateAsync({ teamId, userId: member.userId });

@@ -1,39 +1,19 @@
 <template>
   <aside
-    class="w-56 h-screen flex flex-col overflow-y-auto"
-    style="
-      background: var(--sidebar-bg);
-      border-right: 2px solid var(--ink-primary);
-    "
+    class="box-border flex h-dvh w-60 min-w-60 flex-col overflow-hidden border-r-2 border-(--ink-primary) bg-(--sidebar-bg) text-(--ink-primary) shadow-[4px_0_0_var(--ink-primary)]"
   >
     <!-- Logo -->
     <div
-      style="
-        padding: 1.5rem 1.25rem 1rem;
-        border-bottom: 2px solid var(--ink-primary);
-      "
+      class="shrink-0 border-b-2 border-(--ink-primary) px-5 pb-4 pt-5"
     >
       <p
-        style="
-          font-size: 1.25rem;
-          font-weight: 900;
-          color: var(--ink-primary);
-          letter-spacing: -0.03em;
-          line-height: 1;
-          margin: 0;
-        "
+        class="m-0 text-[1.35rem] font-black leading-none tracking-[-0.04em]"
       >
-        Task<span style="color: var(--accent)">Quest</span>
+        Task<span class="text-(--accent)">Quest</span>
       </p>
+
       <p
-        style="
-          font-size: 0.65rem;
-          font-weight: 700;
-          color: var(--ink-muted);
-          margin: 4px 0 0;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-        "
+        class="mt-2 text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-(--ink-muted)"
       >
         Productivity
       </p>
@@ -41,118 +21,64 @@
 
     <!-- User Profile -->
     <div
-      style="padding: 1rem 1.25rem; border-bottom: 2px solid var(--ink-primary)"
+      class="shrink-0 border-b-2 border-(--ink-primary) px-4 py-4"
     >
       <div class="flex items-center gap-3">
+        <!-- Avatar -->
         <div
-          style="
-            width: 36px;
-            height: 36px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.875rem;
-            font-weight: 800;
-            color: #fff;
-            background: var(--accent);
-            border: 2px solid var(--ink-primary);
-            box-shadow: 2px 2px 0 var(--ink-primary);
-          "
+          class="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-(--ink-primary) bg-(--accent) text-sm font-black text-white shadow-[2px_2px_0_var(--ink-primary)]"
         >
           {{ profile.displayName.charAt(0) }}
         </div>
-        <div style="min-width: 0">
+
+        <div class="min-w-0 flex-1">
+          <!-- Name -->
           <p
-            style="
-              font-size: 0.8rem;
-              font-weight: 700;
-              color: var(--ink-primary);
-              margin: 0;
-              line-height: 1.2;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            "
+            class="m-0 truncate text-[0.82rem] font-bold leading-tight text-(--ink-primary)"
           >
             {{ profile.displayName }}
           </p>
-          <div class="relative group/badge" style="margin-top: 5px">
+
+          <!-- XP Badge -->
+          <div class="group/badge relative mt-2">
             <div
-              style="
-                position: relative;
-                overflow: hidden;
-                padding: 4px 8px;
-                background: var(--accent-soft);
-                border: 1.5px solid var(--accent);
-              "
+              class="relative overflow-hidden border-[1.5px] border-(--accent) bg-(--accent-soft) px-2 py-1.5"
             >
+              <!-- XP Progress -->
               <div
-                style="
-                  position: absolute;
-                  inset: 0;
-                  background: var(--accent);
-                  opacity: 0.15;
-                  transition: width 0.7s ease;
-                "
-                :style="{ width: mounted ? progressPct + '%' : '0%' }"
+                class="absolute inset-y-0 left-0 bg-(--accent) opacity-20 transition-[width] duration-700 ease-out"
+                :style="{
+                  width: mounted ? progressPct + '%' : '0%',
+                }"
               />
+
               <div
-                style="
-                  position: relative;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  gap: 6px;
-                "
+                class="relative flex items-center justify-between gap-2"
               >
-                <div style="display: flex; align-items: center; gap: 4px">
+                <div class="flex items-center gap-1.5">
                   <i
-                    class="pi pi-star-fill"
-                    style="font-size: 0.5rem; color: var(--accent)"
+                    class="pi pi-star-fill text-[0.52rem] text-(--accent)"
                     :class="xpPulse ? 'animate-ping' : ''"
                   />
+
                   <span
-                    style="
-                      font-size: 0.65rem;
-                      font-weight: 800;
-                      color: var(--accent);
-                    "
-                    >Lv {{ profile.level }}</span
+                    class="text-[0.64rem] font-extrabold text-(--accent)"
                   >
+                    Lv {{ profile.level }}
+                  </span>
                 </div>
+
                 <span
-                  style="
-                    font-size: 0.6rem;
-                    font-weight: 600;
-                    color: var(--accent);
-                    opacity: 0.7;
-                  "
+                  class="text-[0.58rem] font-semibold text-(--accent)/80"
                 >
                   {{ profile.currentXP }}/{{ profile.xpToNextLevel }}
                 </span>
               </div>
             </div>
+
+            <!-- XP Tooltip -->
             <div
-              style="
-                position: absolute;
-                left: 0;
-                top: 100%;
-                margin-top: 6px;
-                z-index: 50;
-                pointer-events: none;
-                opacity: 0;
-                background: var(--ink-primary);
-                color: #fff;
-                font-size: 0.7rem;
-                font-weight: 600;
-                padding: 6px 10px;
-                white-space: nowrap;
-                border: 1.5px solid var(--ink-primary);
-                box-shadow: 2px 2px 0 var(--accent);
-                transition: opacity 0.15s ease;
-              "
-              class="group-hover/badge:opacity-100"
+              class="pointer-events-none absolute left-0 top-full z-50 mt-2 border-[1.5px] border-(--ink-primary) bg-(--ink-primary) px-2.5 py-1.5 text-[0.7rem] font-semibold text-white opacity-0 shadow-[2px_2px_0_var(--accent)] transition-opacity duration-150 group-hover/badge:opacity-100"
             >
               {{ profile.xpToNextLevel - profile.currentXP }} XP to Level
               {{ profile.level + 1 }}
@@ -163,316 +89,223 @@
     </div>
 
     <!-- Navigation -->
-    <nav style="flex: 1; padding: 0.75rem 0; overflow-y: auto">
+    <nav
+      class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2 py-3"
+    >
       <div
         v-for="section in navSections"
         :key="section.title"
-        style="margin-bottom: 4px"
+        class="mb-2"
       >
-        <button
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 6px 1.25rem;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: var(--ink-muted);
-          "
+        <!-- Section Header -->
+        <Button
+          text
+          class="m-0! w-full justify-between px-3 py-2 text-(--ink-muted) hover:bg-(--nav-hover)"
+          :pt="{
+            root: {
+              class:
+                'rounded-none border-none shadow-none text-left',
+            },
+            label: {
+              class:
+                'text-[0.62rem] font-extrabold uppercase tracking-[0.12em]',
+            },
+          }"
           @click="toggle(section.title)"
         >
-          <span
-            style="
-              font-size: 0.62rem;
-              font-weight: 800;
-              text-transform: uppercase;
-              letter-spacing: 0.12em;
-            "
-            >{{ section.title }}</span
-          >
-          <i
-            :class="[
-              'pi pi-chevron-down',
-              collapsed[section.title] ? '-rotate-90' : 'rotate-0',
-            ]"
-            style="font-size: 0.55rem; transition: transform 0.15s ease"
-          />
-        </button>
+          <template #default>
+            <span>{{ section.title }}</span>
 
+            <i
+              :class="[
+                'pi pi-chevron-down text-[0.55rem] transition-transform duration-150',
+                collapsed[section.title]
+                  ? '-rotate-90'
+                  : 'rotate-0',
+              ]"
+            />
+          </template>
+        </Button>
+
+        <!-- Section Items -->
         <div
-          style="
-            overflow: hidden;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 0 0.5rem;
-          "
+          class="flex flex-col gap-1 overflow-hidden px-1 transition-all duration-200 ease-out"
           :style="
             collapsed[section.title]
               ? 'max-height: 0; opacity: 0;'
               : 'max-height: 300px; opacity: 1;'
           "
         >
-          <!-- Regular nav items -->
+          <!-- Regular Nav Items -->
           <router-link
-            v-for="item in section.items.filter((i) => i.name !== 'taskspace')"
+            v-for="item in section.items.filter(
+              (i) => i.name !== 'taskspace',
+            )"
             :key="item.name"
             :to="item.path"
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 7px 10px;
-              font-size: 0.8rem;
-              font-weight: 600;
-              color: var(--ink-secondary);
-              text-decoration: none;
-              border: 1.5px solid transparent;
-              transition: all 80ms ease;
-            "
+            class="flex min-w-0 items-center gap-2 rounded-none border border-transparent px-3 py-2 text-sm font-semibold text-(--ink-secondary) no-underline transition-all duration-100 hover:bg-(--nav-hover) hover:text-(--ink-primary)"
             active-class="nb-nav-active"
-            @mouseenter="
-              ($event.currentTarget as HTMLElement).style.background =
-                'var(--nav-hover)'
-            "
-            @mouseleave="
-              ($event.currentTarget as HTMLElement).style.background =
-                'transparent'
-            "
           >
-            <span style="width: 16px; text-align: center; font-size: 0.9rem">{{
-              item.icon
-            }}</span>
-            <span>{{ item.label }}</span>
+            <span
+              class="w-4 shrink-0 text-center text-[0.9rem]"
+            >
+              {{ item.icon }}
+            </span>
+
+            <span class="truncate">
+              {{ item.label }}
+            </span>
           </router-link>
 
           <!-- TaskSpace -->
-          <button
-            v-if="section.items.some((i) => i.name === 'taskspace')"
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              width: 100%;
-              padding: 7px 10px;
-              font-size: 0.8rem;
-              font-weight: 600;
-              color: var(--ink-secondary);
-              background: transparent;
-              border: 1.5px solid transparent;
-              cursor: pointer;
-              text-align: left;
-              transition: all 80ms ease;
+          <Button
+            v-if="
+              section.items.some(
+                (i) => i.name === 'taskspace',
+              )
             "
-            @mouseenter="
-              ($event.currentTarget as HTMLElement).style.background =
-                'var(--nav-hover)'
-            "
-            @mouseleave="
-              ($event.currentTarget as HTMLElement).style.background =
-                'transparent'
-            "
+            text
+            class="m-0! w-full min-w-0 justify-start gap-2 border border-transparent px-3 py-2.5 text-(--ink-secondary) hover:bg-(--nav-hover)"
+            :pt="{
+              root: {
+                class:
+                  'rounded-none shadow-none text-left overflow-hidden',
+              },
+              label: {
+                class: 'truncate text-sm font-semibold',
+              },
+            }"
             @click="openTaskSpace"
           >
-            <span style="width: 16px; text-align: center; font-size: 0.9rem"
-              >🗂</span
-            >
-            <span>TaskSpace</span>
-          </button>
+            <template #default>
+              <span
+                class="w-4 shrink-0 text-center text-[0.9rem]"
+              >
+                🗂
+              </span>
+
+              <span class="truncate">
+                TaskSpace
+              </span>
+            </template>
+          </Button>
         </div>
       </div>
     </nav>
 
     <!-- Streak Coach -->
     <div
-      style="padding: 0.75rem 1rem; border-top: 2px solid var(--ink-primary)"
+      class="shrink-0 border-t-2 border-(--ink-primary) px-3 pb-3 pt-4"
     >
+      <!-- Generated Habit -->
       <div
         v-if="streakCoach"
-        style="
-          background: var(--accent-soft);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 3px 3px 0 var(--ink-primary);
-          padding: 10px 12px;
-        "
+        class="border-2 border-(--ink-primary) bg-(--accent-soft) p-3 shadow-[3px_3px_0_var(--ink-primary)]"
       >
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 6px">
+        <div class="mb-2 flex items-center justify-between">
+          <div class="flex min-w-0 items-center gap-2">
             <i
-              class="pi pi-sparkles"
-              style="color: var(--accent); font-size: 0.75rem"
+              class="pi pi-sparkles shrink-0 text-[0.72rem] text-(--accent)"
             />
+
             <span
-              style="
-                font-size: 0.6rem;
-                font-weight: 800;
-                color: var(--accent);
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-              "
-              >Weekly Habit</span
+              class="truncate text-[0.58rem] font-extrabold uppercase tracking-[0.08em] text-(--accent)"
             >
+              Weekly Habit
+            </span>
           </div>
-          <button
-            style="
-              background: none;
-              border: none;
-              cursor: pointer;
-              color: var(--accent);
-              opacity: 0.6;
-            "
+
+          <Button
+            text
+            icon="pi pi-times"
+            severity="secondary"
+            class="m-0! shrink-0 p-0 text-(--accent)! opacity-60!"
             @click="streakCoach = null"
-          >
-            <i class="pi pi-times" style="font-size: 0.6rem" />
-          </button>
+          />
         </div>
+
         <p
-          style="
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--ink-primary);
-            margin: 0 0 4px;
-            line-height: 1.3;
-          "
+          class="mb-2 text-sm font-bold leading-tight text-(--ink-primary)"
         >
           {{ streakCoach.habit }}
         </p>
+
         <p
-          style="
-            font-size: 0.65rem;
-            color: var(--ink-secondary);
-            margin: 0 0 6px;
-            line-height: 1.4;
-          "
+          class="mb-2 text-[0.68rem] leading-relaxed text-(--ink-secondary)"
         >
           {{ streakCoach.why }}
         </p>
+
         <p
-          style="
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin: 0;
-          "
+          class="m-0 text-[0.68rem] font-bold text-(--accent)"
         >
           ▶ {{ streakCoach.howToStart }}
         </p>
       </div>
 
-      <button
+      <!-- Get Habit Button -->
+      <Button
         v-else
+        :label="
+          streakLoading
+            ? 'Thinking...'
+            : 'Get weekly habit'
+        "
+        :loading="streakLoading"
         :disabled="streakLoading"
-        style="
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          font-size: 0.7rem;
-          font-weight: 800;
-          color: var(--accent);
-          background: var(--accent-soft);
-          border: 2px solid var(--ink-primary);
-          box-shadow: 2px 2px 0 var(--ink-primary);
-          padding: 8px;
-          cursor: pointer;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          transition: all 80ms ease;
-        "
-        @mouseenter="
-          ($event.currentTarget as HTMLElement).style.cssText +=
-            '; transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink-primary);'
-        "
-        @mouseleave="
-          ($event.currentTarget as HTMLElement).style.cssText = (
-            $event.currentTarget as HTMLElement
-          ).style.cssText
-            .replace('transform: translate(1px,1px);', '')
-            .replace(
-              'box-shadow: 1px 1px 0 var(--ink-primary);',
-              'box-shadow: 2px 2px 0 var(--ink-primary);',
-            )
-        "
+        icon="pi pi-sparkles"
+        class="m-0! w-full min-w-0 border-2 border-(--ink-primary) bg-(--accent-soft) text-(--accent) uppercase tracking-[0.05em] shadow-[2px_2px_0_var(--ink-primary)] hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0_var(--ink-primary)]"
         @click="fetchStreakCoach"
-      >
-        <i
-          :class="[
-            'pi text-xs',
-            streakLoading ? 'pi-spinner pi-spin' : 'pi-sparkles',
-          ]"
-        />
-        {{ streakLoading ? "Thinking..." : "Get weekly habit" }}
-      </button>
+      />
     </div>
 
     <!-- Settings & Logout -->
-    <div style="border-top: 2px solid var(--ink-primary); padding: 0.5rem">
+  <div
+    class="shrink-0 border-t-2 border-(--ink-primary) p-3"
+  >
+    <div
+      class="w-full border-2 border-(--ink-primary) bg-(--surface-muted) p-1 shadow-[3px_3px_0_var(--ink-primary)]"
+    >
+      <!-- Settings -->
       <button
-        style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          width: 100%;
-          padding: 8px 10px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          color: var(--ink-secondary);
-          background: transparent;
-          border: 1.5px solid transparent;
-          cursor: pointer;
-          transition: all 80ms ease;
-        "
-        @mouseenter="
-          ($event.currentTarget as HTMLElement).style.background =
-            'var(--nav-hover)'
-        "
-        @mouseleave="
-          ($event.currentTarget as HTMLElement).style.background = 'transparent'
-        "
+        type="button"
+        class="flex w-full min-w-0 items-center gap-2 border border-transparent bg-transparent px-2.5 py-2 text-left text-(--ink-secondary) transition-colors hover:bg-(--nav-hover)"
         @click="router.push('/settings')"
       >
-        <i class="pi pi-cog" style="font-size: 0.875rem" />
-        <span>Settings</span>
+        <i
+          class="pi pi-cog shrink-0 text-[0.875rem]"
+        />
+
+        <span
+          class="min-w-0 flex-1 truncate text-sm font-semibold leading-normal"
+        >
+          Settings
+        </span>
       </button>
+
+      <!-- Divider -->
+      <div
+        class="my-1 h-px bg-(--ink-primary)/20"
+      />
+
+      <!-- Logout -->
       <button
-        style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          width: 100%;
-          padding: 8px 10px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          color: var(--danger);
-          background: transparent;
-          border: 1.5px solid transparent;
-          cursor: pointer;
-          transition: all 80ms ease;
-        "
-        @mouseenter="
-          ($event.currentTarget as HTMLElement).style.background =
-            'var(--danger-soft)'
-        "
-        @mouseleave="
-          ($event.currentTarget as HTMLElement).style.background = 'transparent'
-        "
+        type="button"
+        class="flex w-full min-w-0 items-center gap-2 border border-transparent bg-transparent px-2.5 py-2 text-left text-(--danger) transition-colors hover:bg-(--danger-soft)"
         @click="handleLogout"
       >
-        <i class="pi pi-sign-out" style="font-size: 0.875rem" />
-        <span>Logout</span>
+        <i
+          class="pi pi-sign-out shrink-0 text-[0.875rem]"
+        />
+
+        <span
+          class="min-w-0 flex-1 truncate text-sm font-semibold leading-normal"
+        >
+          Logout
+        </span>
       </button>
     </div>
+  </div>
   </aside>
 </template>
 
@@ -480,31 +313,68 @@
 import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import Button from "primevue/button";
+import { useConfirm } from "primevue/useconfirm";
+
 import { useGamificationStore } from "./sidebar.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { aiApi } from "@/api/ai.api";
+
 import type { StreakCoach } from "@/types/ai.types";
 import type { NavSection } from "./sidebar.types";
 
-const { profile, progressPct } = storeToRefs(useGamificationStore());
+const { profile, progressPct } =
+  storeToRefs(useGamificationStore());
+
 const router = useRouter();
 const auth = useAuthStore();
+const confirm = useConfirm();
 
 const navSections: NavSection[] = [
   {
     title: "Work",
     items: [
-      { name: "tasks", label: "Tasks", icon: "✓", path: "/personal-tasks" },
-      { name: "pomodoro", label: "Pomodoro", icon: "⏱", path: "/pomodoro" },
-      { name: "calendar", label: "Calendar", icon: "📅", path: "/calendar" },
-      { name: "taskspace", label: "TaskSpace", icon: "🗂", path: "/taskspace" },
+      {
+        name: "tasks",
+        label: "Tasks",
+        icon: "✓",
+        path: "/personal-tasks",
+      },
+      {
+        name: "pomodoro",
+        label: "Pomodoro",
+        icon: "⏱",
+        path: "/pomodoro",
+      },
+      {
+        name: "calendar",
+        label: "Calendar",
+        icon: "📅",
+        path: "/calendar",
+      },
+      {
+        name: "taskspace",
+        label: "TaskSpace",
+        icon: "🗂",
+        path: "/taskspace",
+      },
     ],
   },
   {
     title: "Growth",
     items: [
-      { name: "goals", label: "Goals", icon: "🎯", path: "/goals" },
-      { name: "analytics", label: "Analytics", icon: "📈", path: "/analytics" },
+      {
+        name: "goals",
+        label: "Goals",
+        icon: "🎯",
+        path: "/goals",
+      },
+      {
+        name: "analytics",
+        label: "Analytics",
+        icon: "📈",
+        path: "/analytics",
+      },
     ],
   },
 ];
@@ -516,34 +386,60 @@ const streakLoading = ref(false);
 const streakCoach = ref<StreakCoach | null>(null);
 
 function toggle(title: string) {
-  collapsed.value[title] = !collapsed.value[title];
+  collapsed.value[title] =
+    !collapsed.value[title];
 }
 
 const handleLogout = () => {
-  auth.logout();
-  router.push("/");
+  confirm.require({
+    message:
+      "You will be logged out of your account and return to the login screen. Your progress and data are safely saved.",
+    header: "Confirm Logout",
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Yes, Log Out",
+    acceptIcon: "pi pi-sign-out",
+    rejectLabel: "Cancel",
+    rejectIcon: "pi pi-times",
+    accept: async () => {
+      await auth.logout();
+      await router.push("/");
+    },
+    reject: () => {
+      /* Dialog dismissed */
+    },
+  });
 };
 
 const fetchStreakCoach = async () => {
   streakLoading.value = true;
+
   try {
-    streakCoach.value = await aiApi.getStreakCoach();
+    streakCoach.value =
+      await aiApi.getStreakCoach();
   } catch {
-    console.error("Streak coach failed");
+    streakCoach.value = null;
   } finally {
     streakLoading.value = false;
   }
 };
 
-const openTaskSpace = () => window.open("/taskspace", "_blank");
+const openTaskSpace = () =>
+  window.open("/taskspace", "_blank");
 
-onMounted(() => setTimeout(() => (mounted.value = true), 100));
+onMounted(() => {
+  setTimeout(() => {
+    mounted.value = true;
+  }, 100);
+});
 
 watch(
   () => profile.value.currentXP,
   () => {
     xpPulse.value = true;
-    setTimeout(() => (xpPulse.value = false), 600);
+
+    setTimeout(() => {
+      xpPulse.value = false;
+    }, 600);
   },
 );
 </script>
