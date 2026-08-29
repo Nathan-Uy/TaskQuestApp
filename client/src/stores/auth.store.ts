@@ -51,10 +51,28 @@ export const useAuthStore = defineStore("auth", () => {
     queryClient.removeQueries({ queryKey: ["goals"] });
   };
 
-  const googleLogin = async (credential: string) => {
+  const login = async (email: string, password: string) => {
     isLoggingIn.value = true;
     try {
-      const { data } = await api.post("/auth/google", { credential });
+      const { data } = await api.post("/auth/login", { email, password });
+      token.value = data.token;
+      user.value = data.user;
+      initialized.value = true;
+      sessionStorage.setItem("token", data.token);
+      await syncGamification(data.user);
+    } finally {
+      isLoggingIn.value = false;
+    }
+  };
+
+  const register = async (displayName: string, email: string, password: string) => {
+    isLoggingIn.value = true;
+    try {
+      const { data } = await api.post("/auth/register", {
+        displayName,
+        email,
+        password,
+      });
       token.value = data.token;
       user.value = data.user;
       initialized.value = true;
@@ -101,7 +119,8 @@ export const useAuthStore = defineStore("auth", () => {
     isAuthenticated,
     initialized,
     isLoggingIn,
-    googleLogin,
+    login,
+    register,
     fetchMe,
     logout,
     syncStores,
