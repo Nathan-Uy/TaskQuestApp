@@ -143,8 +143,6 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const user = await User.findOne({ email: normalizedEmail });
-    // `user` is already null-checked on the left, so the right-hand side
-    // doesn't need `?.` (SonarLint typescript:S6582).
     if (!user?.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
