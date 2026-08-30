@@ -24,6 +24,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(helmet());
 
 const LOCAL_CLIENT_URL = "http://localhost:5173";
