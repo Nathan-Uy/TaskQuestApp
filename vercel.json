@@ -1,29 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "npm run build:all",
+  "installCommand": "npm run install:all",
   "outputDirectory": "client/dist",
-  "buildCommand": "cd client && npm run build",
-  "builds": [
-    {
-      "src": "server/src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "runtime": "nodejs20.x"
-      }
+  "functions": {
+    "api/server.ts": {
+      "maxDuration": 30,
+      "memory": 1024
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "server/src/index.ts",
-      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    },
-    {
-      "src": "/(.*)",
-      "dest": "client/dist/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "client/dist/index.html"
-    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/server" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
